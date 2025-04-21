@@ -12,6 +12,10 @@ This repo is intended to be used in a few ways:
 
 To do these, you can clone this repo, use the Docker image (for the benchmark), or use the PyPi package for our designers.
 
+## Results
+
+![Summary of results.](assets/images/results_summary.png)
+
 ## Installation & testing
 
 Once this repo is cloned, you can make the conda/mamba/micromamba environment with:
