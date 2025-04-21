@@ -1,0 +1,27 @@
+name: nucleobench
+dependencies:
+    - h5py
+    - pip
+    - pytest  # Python unit testing framework.
+    - coverage  # Python unit testing tool.
+    - pyclean  # Remove cache in between tests.
+
+    - numpy
+    - scipy
+    - pandas
+    - pyarrow  # Required for parquet support.
+    - fastparquet  # Required for parquet support.
+
+    - pytorch
+
+    - lightning
+    - wandb  # For skipping login when loading gRelu models.
+
+    - google-cloud-batch
+    - google-cloud-storage
+
+    - bioconda::pybigwig  # Needed for pip libraries below.
+
+    - pip:
+        - gReLU==1.0.5  # For the gReLU models.
+        - bpnet-lite==0.8.1  # For a BPNet model.
