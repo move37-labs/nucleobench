@@ -49,7 +49,7 @@ COPY docker_entrypoint_multi.py /nucleobench/
 COPY nucleobench /nucleobench/nucleobench
 # These starting sequences for enformer are too long to include in the csv.
 # NOTE: This should be removed in the final docker image, since it is 95% the size of the image.
-COPY experiments/google_batch/start_sequences/muscle_expression /nucleobench/experiments/google_batch/start_sequences/muscle_expression
+# COPY experiments/google_batch/start_sequences/muscle_expression /nucleobench/experiments/google_batch/start_sequences/muscle_expression
 
 # Change permissions to allow reading / writing.
 USER root
