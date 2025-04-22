@@ -16,8 +16,8 @@
     # gcloud auth configure-docker us-east1-docker.pkg.dev
 
 # To push the linux/amd64to gcr.io:
-    # docker tag an_linuxamd64 us-east1-docker.pkg.dev/nucleorave/sequence-optimization/an_linuxamd64:latest
-    # docker push us-east1-docker.pkg.dev/nucleorave/sequence-optimization/an_linuxamd64:latest
+    # docker tag an_linuxamd64 us-east1-docker.pkg.dev/nucleobench/sequence-optimization/an_linuxamd64:latest
+    # docker push us-east1-docker.pkg.dev/nucleobench/sequence-optimization/an_linuxamd64:latest
 
 FROM ubuntu:20.04
 FROM mambaorg/micromamba:2.0.5
