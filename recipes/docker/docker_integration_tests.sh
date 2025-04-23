@@ -27,8 +27,8 @@ docker_run_dummy_malinois
 echo "***RUNNING: FSP, malinois***"
 docker_run_fsp_malinois
 
-echo "***RUNNING: Adalead, malinois***"
-docker_run_adalead_malinois
+echo "***RUNNING: Ledidi, malinois***"
+docker_run_ledidi_gata2
 
 echo "***RUNNING: Simanneal, malinois***"
 docker_run_simanneal_malinois

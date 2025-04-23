@@ -56,31 +56,23 @@ function docker_run_fsp_malinois() {
         --output_path "${fullpath}"
 }
 
-function docker_run_adalead_malinois() {
-    local output="${LOCAL_OUTPUT_DIR}/adalead_malinois"
+function docker_run_ledidi_gata2() {
+    local output="${LOCAL_OUTPUT_DIR}/fsp_malinois"
     setup_outputdir "${output}"
     local fullpath="$(realpath $output)"
-    
+
     docker run -v "${fullpath}":"${fullpath}"  "${DOCKER_IMG_NAME}" \
         --seed_sequence ${NT_200} \
-        --model malinois \
-            --target_feature 0 \
-            --bending_factor 1.0 \
-        --optimization adalead \
-            --sequences_batch_size 256 \
-            --model_queries_per_batch 1024 \
-            --mutation_rate 0.001 \
-            --recombination_rate 0.001 \
-            --threshold 0.1 \
-            --rho 1 \
-            --eval_batch_size 1 \
-            --rng_seed 42 \
+        --model bpnet \
+            --protein "GATA2" \
+        --optimization ledidi \
+            --lr 0.1 \
+            --train_batch_size 1 \
         --optimization_steps_per_output 1 \
         --proposals_per_round 1 \
         --max_number_of_rounds 1 \
         --output_path "${fullpath}"
 }
-
 
 function docker_run_simanneal_malinois() {
     local output="${LOCAL_OUTPUT_DIR}/simanneal_malinois"
