@@ -49,8 +49,6 @@ You can also run the integration tests, which require an internet connection:
 pytest docker_entrypoint_test.py
 ```
 
-Nucleic acid design benchmark.
-
 ## Running NucleoBench from PyPi or Docker
 
 See the `recipes/python` folder for examples of how to run the designers with PyPi.
