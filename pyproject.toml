@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nucleobench"
-version = "0.1.1"
+version = "0.1.2"
 description = "Optimizers from the nucleobench package."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -19,12 +19,15 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
+    "torch>=2.2",
+    "gReLU==1.0.5",
+    "wandb",
+    "bpnet-lite==0.8.1",
     "numpy>=1.16",
     "scipy",
     "pandas",
     "h5py",
     "pyarrow",
-    "torch>=2.2",
 ]
 
 [project.optional-dependencies]
@@ -42,6 +45,14 @@ dev = [
 packages = [
     "nucleobench", 
     "nucleobench.common", 
+    "nucleobench.models", 
+    "nucleobench.models.bpnet", 
+    "nucleobench.models.dummy", 
+    "nucleobench.models.grelu", 
+    "nucleobench.models.grelu.enformer",
+    "nucleobench.models.malinois",
+    "nucleobench.models.malinois.model",
+    "nucleobench.models.substring_count_net",  
     "nucleobench.optimizations", 
     "nucleobench.optimizations.ada", 
     "nucleobench.optimizations.ada.adalead",
