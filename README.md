@@ -14,20 +14,33 @@ To do these, you can clone this repo, use the Docker image (for the benchmark), 
 
 ## Results
 
-![Summary of results.](assets/images/results_summary.png)
+![Summary of results.](https://github.com/move37-labs/nucleobench/blob/main/assets/images/results_summary.png)
 
-## Installation & testing
-
-Once this repo is cloned, you can make the conda/mamba/micromamba environment with:
+## Installation from PyPi
 
 ```bash
-conda env create -f environment.yml
-conda activate nucleobench
+pip install nucleobench
 ```
 
-To test that you've install NucleoBench, run all the unittests:
+Then you can use it in python:
+```python
+from nucleobench import optimizations
+
+
+```
+
+## Installation & testing from GitHub
 
 ```bash
+# Clone the repo.
+git clone https://github.com/move37-labs/nucleobench.git
+cd nucleobench
+
+# Create and activate the conda environment.
+conda env create -f environment.yml
+conda activate nucleobench
+
+# Run all the unittests.
 pytest nucleobench/
 ```
 

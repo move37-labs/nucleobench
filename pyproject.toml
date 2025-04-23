@@ -4,30 +4,27 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nucleobench"
-version = "0.1.0"
+version = "0.1.1"
 description = "Optimizers from the nucleobench package."
 readme = "README.md"
-requires-python = ">=3.8"
-license = {text = "MIT"}
+requires-python = ">=3.10"
 authors = [
     {name = "Move37 Labs", email = "joel.shor@move37labs.com"}
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
-    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "numpy",
+    "numpy>=1.16",
     "scipy",
     "pandas",
     "h5py",
     "pyarrow",
-    "torch",
+    "torch>=2.2",
 ]
 
 [project.optional-dependencies]
@@ -42,8 +39,20 @@ dev = [
 "Bug Tracker" = "https://github.com/move37-labs/nucleobench/issues"
 
 [tool.setuptools]
-packages = ["nucleobench.common", "nucleobench.optimizations"]
-package-dir = {"nucleobench.common" = "nucleobench/common", "nucleobench.optimizations" = "nucleobench/optimizations"}
+packages = [
+    "nucleobench", 
+    "nucleobench.common", 
+    "nucleobench.optimizations", 
+    "nucleobench.optimizations.ada", 
+    "nucleobench.optimizations.ada.adalead",
+    "nucleobench.optimizations.beam_search",
+    "nucleobench.optimizations.directed_evolution",
+    "nucleobench.optimizations.dummy",
+    "nucleobench.optimizations.fastseqprop_torch",
+    "nucleobench.optimizations.ledidi",
+    "nucleobench.optimizations.simulated_annealing",
+    ]
+package-dir = {"" = "."}
 
 [tool.black]
 line-length = 88
