@@ -2,7 +2,7 @@
 
 This is the initial repo for an upcoming paper, `NucleoBench: A Large-Scale Benchmark of Neural Nucleic Acid Design Algorithms`.
 
-This repo is covered by the MIT license.
+This repo is covered by the Apache-2.0 license.
 
 This repo is intended to be used in a few ways:
 
