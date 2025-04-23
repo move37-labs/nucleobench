@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nucleobench"
-version = "0.1.4"
+version = "0.1.5"
 description = "Optimizers from the nucleobench package."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -20,6 +20,7 @@ classifiers = [
 ]
 dependencies = [
     "torch>=2.2",
+    "lightning",
     "gReLU==1.0.5",
     "wandb",
     "bpnet-lite==0.8.1",
@@ -28,6 +29,7 @@ dependencies = [
     "pandas",
     "h5py",
     "pyarrow",
+    "google-cloud-storage",
 ]
 
 [project.optional-dependencies]
