@@ -6,7 +6,6 @@ from nucleobench.optimizations.fastseqprop_torch import fs
 from nucleobench.optimizations.ledidi import ledidi
 from nucleobench.optimizations.directed_evolution import directed_evolution
 from nucleobench.optimizations.ada.adalead import adalead_ref
-from nucleobench.optimizations.ada.adabeam import adabeam
 from nucleobench.optimizations.simulated_annealing import simulated_annealing
 
 OPTIMIZATIONS_REQUIRING_TISM_ = {
@@ -21,7 +20,6 @@ OPTIMIZATIONS_REQUIRING_PYTORCH_DIFF_ = {
 
 GENERAL_OPTIMIZATIONS_ = {
     "adalead": adalead_ref.AdaLeadRef,
-    "adabeam": adabeam.AdaBeam,
     "directed_evolution": directed_evolution.DirectedGreedEvolution,
     "dummy": random_perturbation.RandomPerturbation,
     "simulated_annealing": simulated_annealing.SimulatedAnnealing,
