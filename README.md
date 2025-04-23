@@ -51,9 +51,10 @@ pytest docker_entrypoint_test.py
 
 Nucleic acid design benchmark.
 
-## Running NucleoBench
+## Running NucleoBench from PyPi or Docker
 
-See the folder `recipes` for examples of how to run the designer locally.
+See the `recipes/python` folder for examples of how to run the designers with PyPi.
+See the `recipes/docker` folder for examples of how to run the designers with Docker.
 
 ## Building a Docker image
 
