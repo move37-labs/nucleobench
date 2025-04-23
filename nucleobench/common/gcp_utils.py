@@ -42,7 +42,7 @@ def save_proposals(
     be placed in a local directory or on Google Cloud Storage if a 'gs://' path is provided in the arguments.
 
     Args:
-        write_dicts: A list of dictiomary of things to write.
+        write_dicts: A list of dictionary of things to write.
         args: Args for the job. Best to keep them close to the output.
         output_path: Directory to write the output to, either locally or on GCP. Format of output is:
             {output_path}/{opt_method}_{model}/{exp start time}/{reults of exp N}.pkl
@@ -75,10 +75,13 @@ def save_proposals(
             bucket_name=bucket_name,
         )
     else:
-        if os.path.dirname(filename) != '' and os.path.dirname(filename) != '.':
-            os.makedirs(os.path.dirname(filename), exist_ok=True)
-        with open(filename, 'wb') as f:
-            pickle.dump(save_dicts, f)
+        try:
+            if os.path.dirname(filename) != '' and os.path.dirname(filename) != '.':
+                os.makedirs(os.path.dirname(filename), exist_ok=True)
+            with open(filename, 'wb') as f:
+                pickle.dump(save_dicts, f)
+        except PermissionError as e:
+            raise PermissionError(f'Permission error: {os.path.dirname(filename)}, {filename}') from e
     
     print(f'Proposals deposited at:\n\t{filename}')
 
