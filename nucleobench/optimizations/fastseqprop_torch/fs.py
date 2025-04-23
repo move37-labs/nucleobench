@@ -11,7 +11,7 @@ from nucleobench.common import constants
 from nucleobench.common import string_utils
 from nucleobench.common import testing_utils
 
-from nucleobench.common import model_class as mc
+from nucleobench.models import model_class as mc
 
 from nucleobench.optimizations import optimization_class as oc
 from nucleobench.optimizations.fastseqprop_torch import fs_torch_module as fs_opt

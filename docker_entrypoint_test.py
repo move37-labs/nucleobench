@@ -13,7 +13,7 @@ import pytest
 import tempfile
 
 from nucleobench import models
-from nucleobench.common import model_class as mc
+from nucleobench.models import model_class as mc
 from nucleobench import optimizations
 from nucleobench.common import argparse_lib
 

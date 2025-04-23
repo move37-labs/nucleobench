@@ -12,7 +12,7 @@ import tqdm
 
 import numpy as np
 
-from nucleobench.common import model_class as mc
+from nucleobench.models import model_class as mc
 from nucleobench.common import constants
 
 

@@ -17,7 +17,7 @@ from nucleobench.common import constants
 from nucleobench.common import string_utils
 from nucleobench.common import attribution_lib_torch as att_lib
 
-from nucleobench.common import model_class as mc
+from nucleobench.models import model_class as mc
 from nucleobench.models.malinois import load_model
 
 
