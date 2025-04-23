@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nucleobench"
+version = "0.1.0"
+description = "Optimizers from the nucleobench package."
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Move37 Labs", email = "joel.shor@move37labs.com"}
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "numpy",
+    "scipy",
+    "pandas",
+    "h5py",
+    "pyarrow",
+    "torch",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "coverage",
+    "pyclean",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/move37-labs/nucleobench"
+"Bug Tracker" = "https://github.com/move37-labs/nucleobench/issues"
+
+[tool.setuptools]
+packages = ["nucleobench.common", "nucleobench.optimizations"]
+package-dir = {"nucleobench.common" = "nucleobench/common", "nucleobench.optimizations" = "nucleobench/optimizations"}
+
+[tool.black]
+line-length = 88
+target-version = ["py38", "py39", "py310", "py311"]
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.pytest.ini_options]
+testpaths = ["nucleobench"]
+python_files = "*_test.py"
