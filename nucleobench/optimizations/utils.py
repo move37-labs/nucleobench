@@ -1,6 +1,6 @@
 """Common utils for optimization algorithms."""
 
-from typing import Generator, Optional
+from typing import Generator
 
 import numpy as np
 import random
