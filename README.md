@@ -25,8 +25,7 @@ pip install nucleobench
 Then you can use it in python:
 ```python
 from nucleobench import optimizations
-
-
+opt = optimizations.get_optimization('beam_search_unordered')  # Any optimizer name.
 ```
 
 ## Installation & testing from GitHub

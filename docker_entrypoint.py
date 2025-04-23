@@ -31,7 +31,7 @@ from nucleobench.common import gcp_utils
 
 from nucleobench import models
 from nucleobench.common import argparse_lib
-from nucleobench.models import model_class as mc
+from nucleobench.common import model_class as mc
 from nucleobench import optimizations
 from nucleobench.optimizations import optimization_class as oc
 
