@@ -21,9 +21,6 @@ build_docker_image
 
 # From this and below, commont or uncomment which tests you want to run.
 
-echo "***RUNNING: Simanneal, malinois***"
-docker_run_simanneal_malinois
-
 echo "***RUNNING: Dummy opt, malinois***"
 docker_run_dummy_malinois
 
@@ -32,3 +29,6 @@ docker_run_fsp_malinois
 
 echo "***RUNNING: Adalead, malinois***"
 docker_run_adalead_malinois
+
+echo "***RUNNING: Simanneal, malinois***"
+docker_run_simanneal_malinois

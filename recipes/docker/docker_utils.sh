@@ -2,27 +2,46 @@
 #
 # Used in the docker integration tests, and example uses.
 #
+# TODO(joelshor): Add example that writes output to GCP bucket.
+#
 
 DOCKER_IMG_NAME="nucleobench-docker"
-OUTPUT_DIR="docker_integration_tests"
+LOCAL_OUTPUT_DIR="docker_integration_tests3"
+
+# An example start sequence.
+readonly NT_200="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+
 
 function build_docker_image() {
     docker build -t "${DOCKER_IMG_NAME}" -f Dockerfile .
 }
 
+function setup_outputdir(){
+    local output_dir=$1
+    mkdir -p "${output_dir}"
+}
+
 function docker_run_dummy_malinois() {
-    docker run "${DOCKER_IMG_NAME}" \
+    local output="${LOCAL_OUTPUT_DIR}/dummy_malinois"
+    setup_outputdir "${output}"
+    local fullpath="$(realpath $output)"
+
+    docker run -v "${fullpath}":"${fullpath}"  "${DOCKER_IMG_NAME}" \
         --seed_sequence AAAAAAAAA \
         --model dummy \
         --optimization dummy \
         --optimization_steps_per_output 20 \
         --proposals_per_round 2 \
         --max_number_of_rounds 10 \
-        --output_path "${OUTPUT_DIR}/dummy"
+        --output_path "${fullpath}"
 }
 
 function docker_run_fsp_malinois() {
-    docker run "${DOCKER_IMG_NAME}" \
+    local output="${LOCAL_OUTPUT_DIR}/fsp_malinois"
+    setup_outputdir "${output}"
+    local fullpath="$(realpath $output)"
+
+    docker run -v "${fullpath}":"${fullpath}"  "${DOCKER_IMG_NAME}" \
         --seed_sequence ${NT_200} \
         --model malinois \
             --target_feature 0 \
@@ -34,11 +53,15 @@ function docker_run_fsp_malinois() {
         --optimization_steps_per_output 1 \
         --proposals_per_round 1 \
         --max_number_of_rounds 1 \
-        --output_path "${OUTPUT_DIR}/fsp_malinois"
+        --output_path "${fullpath}"
 }
 
 function docker_run_adalead_malinois() {
-    docker run "${DOCKER_IMG_NAME}" \
+    local output="${LOCAL_OUTPUT_DIR}/adalead_malinois"
+    setup_outputdir "${output}"
+    local fullpath="$(realpath $output)"
+    
+    docker run -v "${fullpath}":"${fullpath}"  "${DOCKER_IMG_NAME}" \
         --seed_sequence ${NT_200} \
         --model malinois \
             --target_feature 0 \
@@ -55,12 +78,16 @@ function docker_run_adalead_malinois() {
         --optimization_steps_per_output 1 \
         --proposals_per_round 1 \
         --max_number_of_rounds 1 \
-        --output_path "${OUTPUT_DIR}/adalead_malinois"
+        --output_path "${fullpath}"
 }
 
 
 function docker_run_simanneal_malinois() {
-    docker run "${DOCKER_IMG_NAME}" \
+    local output="${LOCAL_OUTPUT_DIR}/simanneal_malinois"
+    setup_outputdir "${output}"
+    local fullpath="$(realpath $output)"
+
+    docker run -v "${fullpath}":"${fullpath}"  "${DOCKER_IMG_NAME}" \
         --seed_sequence ${NT_200} \
         --model malinois \
             --target_feature 0 \
@@ -74,5 +101,5 @@ function docker_run_simanneal_malinois() {
         --optimization_steps_per_output 1 \
         --proposals_per_round 1 \
         --max_number_of_rounds 1 \
-        --output_path "${OUTPUT_DIR}/simanneal_malinois"
+        --output_path "${fullpath}"
 }
