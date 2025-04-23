@@ -14,7 +14,7 @@ To do these, you can clone this repo, use the Docker image (for the benchmark), 
 
 ## Results
 
-![Summary of results.](https://github.com/move37-labs/nucleobench/blob/main/assets/images/results_summary.png)
+![Summary of results.](https://raw.githubusercontent.com/move37-labs/nucleobench/main/assets/images/results_summary.png)
 
 ## Installation from PyPi
 
