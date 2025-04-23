@@ -1,5 +1,5 @@
 #
-# bash recipes/adabeam_max.sh
+# bash recipes/python/adabeam_max.sh
 #
 python -m docker_entrypoint \
     --model bpnet \

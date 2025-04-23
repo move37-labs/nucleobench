@@ -1,5 +1,5 @@
 #
-# bash recipes/adalead_malinois.sh
+# bash recipes/python/adalead_malinois.sh
 #
 python -m docker_entrypoint \
     --model malinois \
