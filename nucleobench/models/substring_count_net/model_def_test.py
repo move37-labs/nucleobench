@@ -6,8 +6,6 @@ pytest nucleobench/models/substring_count_net/model_def_test.py
 ```
 """
 
-import pytest
-
 from nucleobench.models.substring_count_net import model_def
 
 
