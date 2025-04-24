@@ -1,0 +1,80 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nucleobench"
+version = "0.1.5"
+description = "Nucleobench optimizers and tasks."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    {name = "Move37 Labs", email = "joel.shor@move37labs.com"}
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "torch>=2.2",
+    "lightning",
+    "gReLU==1.0.5",
+    "wandb",
+    "bpnet-lite==0.8.1",
+    "numpy>=1.16",
+    "scipy",
+    "pandas",
+    "h5py",
+    "pyarrow",
+    "google-cloud-storage",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "coverage",
+    "pyclean",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/move37-labs/nucleobench"
+"Bug Tracker" = "https://github.com/move37-labs/nucleobench/issues"
+
+[tool.setuptools]
+packages = [
+    "nucleobench", 
+    "nucleobench.common", 
+    "nucleobench.models", 
+    "nucleobench.models.bpnet", 
+    "nucleobench.models.dummy", 
+    "nucleobench.models.grelu", 
+    "nucleobench.models.grelu.enformer",
+    "nucleobench.models.malinois",
+    "nucleobench.models.malinois.model",
+    "nucleobench.models.substring_count_net",  
+    "nucleobench.optimizations", 
+    "nucleobench.optimizations.ada", 
+    "nucleobench.optimizations.ada.adalead",
+    "nucleobench.optimizations.beam_search",
+    "nucleobench.optimizations.directed_evolution",
+    "nucleobench.optimizations.dummy",
+    "nucleobench.optimizations.fastseqprop_torch",
+    "nucleobench.optimizations.ledidi",
+    "nucleobench.optimizations.simulated_annealing",
+    ]
+package-dir = {"" = "."}
+
+[tool.black]
+line-length = 88
+target-version = ["py310", "py311"]
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.pytest.ini_options]
+testpaths = ["nucleobench"]
+python_files = "*_test.py"
