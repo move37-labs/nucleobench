@@ -70,7 +70,7 @@ def evolve(
     
     # Iteratively perform greedy directed evolution.
     cur_seqs = seqs
-    best_score = np.Inf
+    best_score = np.inf
     best_seqs = seqs
     list_of_energies = []
     for i in tqdm.trange(max_iter):
