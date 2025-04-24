@@ -9,8 +9,7 @@ from nucleobench.common import constants
 from nucleobench.common import memory_utils
 from nucleobench.common import testing_utils
 
-from nucleobench.models import model_class as mc
-
+from nucleobench.optimizations import model_class as mc
 from nucleobench.optimizations import optimization_class as oc
 from nucleobench.optimizations import utils as opt_utils
 

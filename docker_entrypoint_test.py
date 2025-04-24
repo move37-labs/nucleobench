@@ -13,8 +13,8 @@ import pytest
 import tempfile
 
 from nucleobench import models
-from nucleobench.models import model_class as mc
 from nucleobench import optimizations
+from nucleobench.optimizations import model_class as mc
 from nucleobench.common import argparse_lib
 
 import docker_entrypoint as de
