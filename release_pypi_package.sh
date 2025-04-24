@@ -7,6 +7,10 @@
 # Clear old version.
 rm dist/*
 
+# Pick which version to build.
+# mv pyproject.full.toml pyproject.toml
+mv pyproject.optimizers.toml pyproject.toml
+
 # Build the package.
 python -m build
 
