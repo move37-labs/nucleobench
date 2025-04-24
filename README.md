@@ -51,8 +51,9 @@ pytest docker_entrypoint_test.py
 
 ## Running NucleoBench from PyPi or Docker
 
-See the `recipes/python` folder for examples of how to run the designers with PyPi.
+See the `recipes/colab` folder for examples of how to run the designers with PyPi.
 See the `recipes/docker` folder for examples of how to run the designers with Docker.
+See the `recipes/python` folder for examples of how to run the designers with the cloned github repo.
 
 ## Building a Docker image
 
