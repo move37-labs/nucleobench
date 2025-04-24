@@ -1,6 +1,6 @@
 from nucleobench.common import testing_utils
 from nucleobench.common import constants
-from typing import Callable, Union, Optional
+from typing import Callable, Optional
 import argparse
 import numpy as np
 import random
