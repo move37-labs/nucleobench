@@ -10,7 +10,7 @@ from nucleobench.common import constants
 from nucleobench.common import attribution_lib_torch as att_lib
 from nucleobench.common import string_utils
 
-from nucleobench.models import model_class as mc
+from nucleobench.optimizations import model_class as mc
 
 class CountSubstringModel(torch.nn.Module, mc.PyTorchDifferentiableModel, mc.TISMModelClass):
     """Count number of substrings, using convs."""

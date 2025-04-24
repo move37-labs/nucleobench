@@ -1,6 +1,6 @@
 """Parent class for optimizers."""
 
-from nucleobench.models import model_class
+from nucleobench.optimizations import model_class
 
 from typing import Optional, Union
 

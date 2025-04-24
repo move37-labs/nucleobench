@@ -5,7 +5,7 @@ from typing import Iterable
 
 from nucleobench.common import constants
 
-from nucleobench.models import model_class as mc
+from nucleobench.optimizations import model_class as mc
 
 class DummyModel(mc.ModelClass):
     def __init__(self, vocab: list[str] = constants.VOCAB, to_count: str = 'A'):
