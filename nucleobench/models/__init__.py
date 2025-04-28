@@ -1,4 +1,4 @@
-from nucleobench.models import model_class as mc
+from nucleobench.optimizations import model_class as mc
 from nucleobench.models.bpnet import model_def as bpnet_model_def
 from nucleobench.models.grelu.enformer import model_def as enformer_model_def
 from nucleobench.models.dummy import model_def as dummy_model_def
