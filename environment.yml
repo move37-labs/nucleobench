@@ -1,4 +1,7 @@
 name: nucleobench
+channels:
+  - conda-forge
+  - nodefaults
 dependencies:
     - h5py
     - pip
