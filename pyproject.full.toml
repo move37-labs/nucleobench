@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nucleobench"
-version = "0.1.7"
+version = "0.1.8"
 description = "Nucleobench optimizers and tasks."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -30,6 +30,7 @@ dependencies = [
     "h5py",
     "pyarrow",
     "google-cloud-storage",
+    "pybigwig",
 ]
 
 [project.optional-dependencies]
