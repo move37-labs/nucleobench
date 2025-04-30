@@ -19,7 +19,8 @@ To do these, you can clone this repo, use the Docker image (for the benchmark), 
 ## Installation from PyPi
 
 ```bash
-pip install nucleobench
+pip install nucleobench  # optimizers and tasks
+pip install nucleopt  # smaller, faster install for just optimizers
 ```
 
 Then you can use it in python:
