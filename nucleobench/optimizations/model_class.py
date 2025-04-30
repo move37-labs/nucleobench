@@ -1,12 +1,11 @@
 """Parent class for models."""
 
-from typing import Any, Callable, Optional
+from typing import Any, Optional
 
 import torch
 import numpy as np
 
 SequenceType = str
-SamplesType = list[str]
 
 class ModelClass(object):
     
@@ -18,7 +17,7 @@ class ModelClass(object):
     def debug_init_args() -> dict[str, Any]:
         raise ValueError('Not implemented.')
     
-    def __init__(self, model_fn: Callable, seed_sequence: SequenceType):
+    def __init__(self, model_fn: callable, seed_sequence: SequenceType):
         raise NotImplementedError("Not implemented.")
     
     def __call__(self, x: SequenceType, return_debug_info: bool) -> np.ndarray:

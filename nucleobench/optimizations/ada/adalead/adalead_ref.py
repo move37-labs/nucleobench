@@ -30,15 +30,13 @@ import argparse
 import numpy as np
 import random
 
+from nucleobench.optimizations import optimization_class as oc
 
+from nucleobench.optimizations.typing import ModelType, SequenceType, SamplesType
 from nucleobench.optimizations.ada import ada_utils
 
 
-SequenceType = str
-SamplesType = list[str]
-
-
-class AdaLeadRef:
+class AdaLeadRef(oc.SequenceOptimizer):
     """
     Adalead explorer.
 
@@ -132,7 +130,7 @@ class AdaLeadRef:
 
     def __init__(
         self,
-        model_fn: callable,
+        model_fn: ModelType,
         seed_sequence: SequenceType,
         sequences_batch_size: int,
         model_queries_per_batch: int,

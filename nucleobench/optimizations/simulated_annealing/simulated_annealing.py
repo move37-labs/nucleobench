@@ -5,9 +5,9 @@ import argparse
 import numpy as np
 import random
 
+from nucleobench.optimizations import optimization_class as oc
 
-SequenceType = str
-SamplesType = list[str]
+from nucleobench.optimizations.typing import ModelType, PositionsToMutateType, SequenceType, SamplesType
 
 
 class SimulatedAnnealingBase:
@@ -112,7 +112,60 @@ class UniformProposal:
         return sequence
 
 
-class SimulatedAnnealing:
+class SimulatedAnnealing(oc.SequenceOptimizer):
+    """Simulated annealing to minimize model_fn on sequences."""
+
+    def __init__(
+        self,
+        model_fn: ModelType,
+        seed_sequence: SequenceType,
+        polynomial_decay_a: float,
+        polynomial_decay_b: float,
+        polynomial_decay_p: float,
+        n_mutations_per_proposal: int,
+        rng_seed: int,
+        positions_to_mutate: Optional[PositionsToMutateType] = None,
+    ):
+        proposal_fn = UniformProposal(
+            "".join(constants.VOCAB), n_mutations_per_proposal, positions_to_mutate
+        )
+        temperature_fn = PolynomialDecay(
+            a=polynomial_decay_a, b=polynomial_decay_b, p=polynomial_decay_p
+        )
+
+        self.sa = SimulatedAnnealingBase(
+            model_fn=model_fn,
+            seed_sequence=seed_sequence,
+            proposal_fn=proposal_fn,
+            temperature_fn=temperature_fn,
+            rng_seed=rng_seed,
+        )
+
+    @staticmethod
+    def run_parser():
+        parser = argparse.ArgumentParser(description="", add_help=False)
+        return parser
+
+    @staticmethod
+    def debug_run_args():
+        return {}
+
+    def get_samples(self, n_samples: int) -> SamplesType:
+        return self.sa.get_samples(n_samples)
+
+    def step(self) -> bool:
+        return self.sa.step()
+
+    def run(
+        self,
+        n_steps: int,
+    ):
+        for _step in range(n_steps):
+            self.step()
+
+    def is_finished(self) -> bool:
+        return False
+    
     @staticmethod
     def init_parser():
         parser = argparse.ArgumentParser(description="", add_help=False)
@@ -168,54 +221,3 @@ class SimulatedAnnealing:
             "n_mutations_per_proposal": 1,
             "rng_seed": 42,
         }
-
-    def __init__(
-        self,
-        model_fn: Callable,
-        seed_sequence: SequenceType,
-        polynomial_decay_a: float,
-        polynomial_decay_b: float,
-        polynomial_decay_p: float,
-        n_mutations_per_proposal: int,
-        rng_seed: int,
-        positions_to_mutate: Optional[list[int]] = None,
-    ):
-        proposal_fn = UniformProposal(
-            "".join(constants.VOCAB), n_mutations_per_proposal, positions_to_mutate
-        )
-        temperature_fn = PolynomialDecay(
-            a=polynomial_decay_a, b=polynomial_decay_b, p=polynomial_decay_p
-        )
-
-        self.sa = SimulatedAnnealingBase(
-            model_fn=model_fn,
-            seed_sequence=seed_sequence,
-            proposal_fn=proposal_fn,
-            temperature_fn=temperature_fn,
-            rng_seed=rng_seed,
-        )
-
-    @staticmethod
-    def run_parser():
-        parser = argparse.ArgumentParser(description="", add_help=False)
-        return parser
-
-    @staticmethod
-    def debug_run_args():
-        return {}
-
-    def get_samples(self, n_samples: int) -> SamplesType:
-        return self.sa.get_samples(n_samples)
-
-    def step(self) -> bool:
-        return self.sa.step()
-
-    def run(
-        self,
-        n_steps: int,
-    ):
-        for _step in range(n_steps):
-            self.step()
-
-    def is_finished(self) -> bool:
-        return False

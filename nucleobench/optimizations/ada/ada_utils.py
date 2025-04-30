@@ -7,11 +7,15 @@ import numpy as np
 from scipy.stats import binom
 import torch
 import random
+
+from nucleobench.optimizations import typing
+
 from nucleobench.optimizations import utils as opt_utils
 
 
-SequenceType = str
-TISMType = list[dict[str, float]]
+SequenceType = typing.SequenceType
+TISMType = typing.TISMType
+
 
 class ModelWrapper:
     def __init__(self, model):

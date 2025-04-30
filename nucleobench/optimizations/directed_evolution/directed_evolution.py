@@ -10,44 +10,20 @@ from nucleobench.common import argparse_lib
 from nucleobench.common import constants
 from nucleobench.common import testing_utils
 
+from nucleobench.optimizations.typing import PositionsToMutateType, SequenceType, SamplesType, ModelType
 from nucleobench.optimizations import optimization_class as oc
+
 from nucleobench.optimizations.directed_evolution import directed_evolution_module as de_mod
 
-SequenceType = str
-SamplesType = list[str]
 
 class DirectedGreedEvolution(oc.SequenceOptimizer):
     """Directed greed evolution of a pack of sequences. Based on work from Genentech's gRelu.
     """
-    
-    @staticmethod
-    def init_parser():
-        parser = argparse.ArgumentParser(description="", add_help=False)
-        group = parser.add_argument_group('Directed evolution init args')
-        
-        group.add_argument('--batch_size', type=int, default=1, required=False, help='')
-        group.add_argument('--rnd_seed', type=int, default=0, required=False, help='')
-        
-        # TISM args.
-        group.add_argument('--use_tism', type=argparse_lib.str_to_bool, default=False, required=False, help='')
-        group.add_argument('--location_only', type=argparse_lib.str_to_bool, default=False, required=False, help='')
-        group.add_argument('--budget', type=int, default=None, required=False, help='')
-        group.add_argument('--fraction_tism', type=float, default=0.5, required=False, help='')
-        
-        return parser
-    
-    @staticmethod
-    def debug_init_args():
-        return {
-            'model_fn': testing_utils.CountLetterModel(),
-            'seed_sequence': 'AA',
-            'rnd_seed': 0,
-        }
 
     def __init__(self, 
-                 model_fn: Callable, 
+                 model_fn: ModelType, 
                  seed_sequence: SequenceType,
-                 positions_to_mutate: Optional[list[int]] = None,
+                 positions_to_mutate: Optional[PositionsToMutateType] = None,
                  batch_size: int = 1,
                  use_tism: bool = False,
                  location_only: bool = False,
@@ -119,3 +95,28 @@ class DirectedGreedEvolution(oc.SequenceOptimizer):
     
     def is_finished(self) -> bool:
         return False
+    
+    
+    @staticmethod
+    def init_parser():
+        parser = argparse.ArgumentParser(description="", add_help=False)
+        group = parser.add_argument_group('Directed evolution init args')
+        
+        group.add_argument('--batch_size', type=int, default=1, required=False, help='')
+        group.add_argument('--rnd_seed', type=int, default=0, required=False, help='')
+        
+        # TISM args.
+        group.add_argument('--use_tism', type=argparse_lib.str_to_bool, default=False, required=False, help='')
+        group.add_argument('--location_only', type=argparse_lib.str_to_bool, default=False, required=False, help='')
+        group.add_argument('--budget', type=int, default=None, required=False, help='')
+        group.add_argument('--fraction_tism', type=float, default=0.5, required=False, help='')
+        
+        return parser
+    
+    @staticmethod
+    def debug_init_args():
+        return {
+            'model_fn': testing_utils.CountLetterModel(),
+            'seed_sequence': 'AA',
+            'rnd_seed': 0,
+        }

@@ -1,6 +1,6 @@
 """Unorded beam search."""
 
-from typing import Optional, Union
+from typing import Optional
 
 import argparse
 import numpy as np
@@ -9,14 +9,12 @@ from nucleobench.common import constants
 from nucleobench.common import memory_utils
 from nucleobench.common import testing_utils
 
-from nucleobench.optimizations import model_class as mc
+from nucleobench.optimizations.typing import PositionsToMutateType, SequenceType, SamplesType, TISMModelClass
 from nucleobench.optimizations import optimization_class as oc
 from nucleobench.optimizations import utils as opt_utils
 
 from nucleobench.optimizations.beam_search import beam_utils
 
-SequenceType = Union[str, list[str]]
-SamplesType = Union[list[str], list[list[str]]]
 
 EDIT_LOCATION_ALGOS_ = ['all', 'random']
 EDIT_PROPOSAL_ALGOS_ = ['all', 'random']
@@ -54,12 +52,12 @@ class UnorderedBeamSearch(oc.SequenceOptimizer):
     
     def __init__(
         self, 
-        model_fn: mc.TISMModelClass, 
+        model_fn: TISMModelClass, 
         seed_sequence: SequenceType,
         beam_size: int,
         edit_location_algo: str,
         edit_proposal_algo: str,
-        positions_to_mutate: Optional[list[int]] = None,
+        positions_to_mutate: Optional[PositionsToMutateType] = None,
         random_n_loc: int = -1,
         vocab: list[str] = constants.VOCAB,
         minibatch_size: int = 1,

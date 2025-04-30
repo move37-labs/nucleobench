@@ -13,13 +13,10 @@ from nucleobench.common import memory_utils
 from nucleobench.common import priority_queue
 from nucleobench.common import testing_utils
 
-from nucleobench.optimizations import model_class as mc
 from nucleobench.optimizations import optimization_class as oc
+from nucleobench.optimizations.typing import PositionsToMutateType, SequenceType, SamplesType, TISMModelClass
 
 from nucleobench.optimizations.beam_search import beam_utils
-
-SequenceType = Union[str, list[str]]
-SamplesType = Union[list[str], list[list[str]]]
 
 
 INIT_ORDER_METHODS_ = ['sequential', 'random', 'tism_fixed', 'tism_reverse']
@@ -28,11 +25,11 @@ class OrderedBeamSearch(oc.SequenceOptimizer):
         
     def __init__(
         self, 
-        model_fn: mc.TISMModelClass, 
+        model_fn: TISMModelClass, 
         seed_sequence: SequenceType,
         beam_size: int,
         init_order_method: str,
-        positions_to_mutate: Optional[list[int]] = None,
+        positions_to_mutate: Optional[PositionsToMutateType] = None,
         rng_seed: int = 0,
         # TODO(joelshor): Delete priority queue from here.
         use_priority_queue: bool = False,

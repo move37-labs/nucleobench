@@ -1,20 +1,21 @@
 """Randomly change sequence."""
 
 import argparse
+import random
 from typing import Optional
 
-from typing import Callable
 from nucleobench.common import constants
 from nucleobench.optimizations import optimization_class as oc
-import random
+
+from nucleobench.optimizations.typing import PositionsToMutateType, SequenceType, SamplesType, ModelType
 
 class RandomPerturbation(oc.SequenceOptimizer):
     """A dummy optimizer."""
 
     def __init__(self, 
-                 model_fn: Callable, 
-                 seed_sequence: str,
-                 positions_to_mutate: Optional[list[int]] = None,
+                 model_fn: ModelType, 
+                 seed_sequence: SequenceType,
+                 positions_to_mutate: Optional[PositionsToMutateType] = None,
                  ):
         del model_fn
         self.seq = list(seed_sequence)
@@ -48,7 +49,7 @@ class RandomPerturbation(oc.SequenceOptimizer):
     def debug_run_args():
         return {}
         
-    def get_samples(self, n_samples: int) -> list[str]:
+    def get_samples(self, n_samples: int) -> SamplesType:
         """Get samples."""
         return [''.join(self.seq)] * n_samples
     

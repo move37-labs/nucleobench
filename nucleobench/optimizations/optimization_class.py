@@ -1,19 +1,15 @@
 """Parent class for optimizers."""
 
-from nucleobench.optimizations import model_class
+from typing import Optional
 
-from typing import Optional, Union
-
-SequenceType = str
-SamplesType = list[str]
-
+from nucleobench.optimizations.typing import ModelType, SequenceType, SamplesType, PositionsToMutateType
 
 class SequenceOptimizer(object):
     def __init__(
         self, 
-        model_fn: Union[model_class.ModelClass, callable], 
+        model_fn: ModelType, 
         seed_sequence: SequenceType,
-        positions_to_mutate: Optional[list[int]] = None,
+        positions_to_mutate: Optional[PositionsToMutateType] = None,
         ):
         raise NotImplementedError("Not implemented.")
 

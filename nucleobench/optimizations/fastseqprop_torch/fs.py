@@ -1,6 +1,6 @@
 """Custom implementation of Fast SeqProp."""
 
-from typing import Optional, Union
+from typing import Optional
 
 import argparse
 import numpy as np
@@ -11,12 +11,11 @@ from nucleobench.common import constants
 from nucleobench.common import string_utils
 from nucleobench.common import testing_utils
 
-from nucleobench.optimizations import model_class as mc
+from nucleobench.optimizations.typing import PositionsToMutateType, SequenceType, SamplesType, PyTorchDifferentiableModel
 from nucleobench.optimizations import optimization_class as oc
+
 from nucleobench.optimizations.fastseqprop_torch import fs_torch_module as fs_opt
 
-SequenceType = Union[str, list[str]]
-SamplesType = Union[list[str], list[list[str]]]
 
 class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
     """Custom implementation of Fast SeqProp.
@@ -27,30 +26,10 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
     1. From the authors: [here](https://github.com/johli/seqprop/)
     1. From boda2: [here](https://github.com/sjgosai/boda2)"""
     
-    @staticmethod
-    def init_parser():
-        parser = argparse.ArgumentParser(description="", add_help=False)
-        group = parser.add_argument_group('FastSeqprop init args')
-        
-        group.add_argument('--learning_rate', type=float, default=0.5, required=True, help='')
-        group.add_argument('--eta_min', type=float, default=1e-6, required=True, help='')
-        group.add_argument('--rnd_seed', type=int, default=10, required=False, help='')
-        
-        return parser
-    
-    @staticmethod
-    def debug_init_args():
-        return {
-            'model_fn': testing_utils.CountLetterModel(),
-            'seed_sequence': 'AA',
-            'positions_to_mutate': [1],
-            'rnd_seed': 0,
-        }
-    
     def __init__(self, 
-                 model_fn: Union[mc.PyTorchDifferentiableModel, callable], 
+                 model_fn: PyTorchDifferentiableModel, 
                  seed_sequence: SequenceType,
-                 positions_to_mutate: Optional[list[int]] = None,
+                 positions_to_mutate: Optional[PositionsToMutateType] = None,
                  learning_rate: float = 0.5,
                  eta_min: float = 1e-6,
                  vocab: list[str] = constants.VOCAB,
@@ -161,3 +140,23 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
     
     def is_finished(self) -> bool:
         return False
+    
+    @staticmethod
+    def init_parser():
+        parser = argparse.ArgumentParser(description="", add_help=False)
+        group = parser.add_argument_group('FastSeqprop init args')
+        
+        group.add_argument('--learning_rate', type=float, default=0.5, required=True, help='')
+        group.add_argument('--eta_min', type=float, default=1e-6, required=True, help='')
+        group.add_argument('--rnd_seed', type=int, default=10, required=False, help='')
+        
+        return parser
+    
+    @staticmethod
+    def debug_init_args():
+        return {
+            'model_fn': testing_utils.CountLetterModel(),
+            'seed_sequence': 'AA',
+            'positions_to_mutate': [1],
+            'rnd_seed': 0,
+        }

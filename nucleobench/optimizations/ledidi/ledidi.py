@@ -1,6 +1,6 @@
 """Wrapper around gRelu Ledidi."""
 
-from typing import Optional, Union
+from typing import Optional
 
 import argparse
 import numpy as np
@@ -10,45 +10,21 @@ from nucleobench.common import constants
 from nucleobench.common import string_utils
 from nucleobench.common import testing_utils
 
-from nucleobench.optimizations import model_class as mc
+from nucleobench.optimizations.typing import PositionsToMutateType, SequenceType, SamplesType, PyTorchDifferentiableModel
 from nucleobench.optimizations import optimization_class as oc
 
 from nucleobench.optimizations.ledidi import ledidi_module as ledidi
 
-SequenceType = Union[str, list[str]]
-SamplesType = Union[list[str], list[list[str]]]
 
 class Ledidi(oc.SequenceOptimizer):
     """Wrapper around Ledidi, inspired by gRelu.
     Original paper [here](https://www.biorxiv.org/content/10.1101/2020.05.21.109686v1.full).
     """
     
-    @staticmethod
-    def init_parser():
-        parser = argparse.ArgumentParser(description="", add_help=False)
-        group = parser.add_argument_group('Ledidi init args')
-        
-        group.add_argument('--train_batch_size', type=int, default=256, required=True, help='')
-        group.add_argument('--lr', type=float, default=0.1, required=True, help='')
-        group.add_argument('--rng_seed', type=int, default=0, required=False, help='')
-        
-        return parser
-    
-    @staticmethod
-    def debug_init_args():
-        return {
-            'model_fn': testing_utils.CountLetterModel(),
-            'seed_sequence': 'AA',
-            'train_batch_size': 4,
-            'lr': 0.1,
-            'rng_seed': 0,
-        }
-    
     def __init__(self, 
-                 # TODO(joelshor): This should be a differential model, not just callable.
-                 model_fn: mc.PyTorchDifferentiableModel, 
+                 model_fn: PyTorchDifferentiableModel, 
                  seed_sequence: SequenceType,
-                 positions_to_mutate: Optional[list[int]] = None,
+                 positions_to_mutate: Optional[PositionsToMutateType] = None,
                  vocab: list[str] = constants.VOCAB,
                  # Defaults taken from Ledidi paper.
                  train_batch_size: int = 64, 
@@ -146,3 +122,24 @@ class Ledidi(oc.SequenceOptimizer):
     
     def is_finished(self) -> bool:
         return False
+    
+    @staticmethod
+    def init_parser():
+        parser = argparse.ArgumentParser(description="", add_help=False)
+        group = parser.add_argument_group('Ledidi init args')
+        
+        group.add_argument('--train_batch_size', type=int, default=256, required=True, help='')
+        group.add_argument('--lr', type=float, default=0.1, required=True, help='')
+        group.add_argument('--rng_seed', type=int, default=0, required=False, help='')
+        
+        return parser
+    
+    @staticmethod
+    def debug_init_args():
+        return {
+            'model_fn': testing_utils.CountLetterModel(),
+            'seed_sequence': 'AA',
+            'train_batch_size': 4,
+            'lr': 0.1,
+            'rng_seed': 0,
+        }
