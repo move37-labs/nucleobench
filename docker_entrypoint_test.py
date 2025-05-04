@@ -173,3 +173,44 @@ def test_empty_positions_to_mutate():
         '--positions_to_mutate', '',
         ])
     assert parsed_args.main_args.positions_to_mutate == None
+
+
+def test_no_intermediate_records():
+    model = "malinois"
+    optimization = "directed_evolution"
+
+    model_class = models.get_model(model)
+    opt_class = optimizations.get_optimization(optimization)
+    
+    model_obj = model_class(**model_class.debug_init_args())
+
+    opt_init_args = opt_class.debug_init_args()
+    opt_init_args["model_fn"] = model_obj
+    if model == "malinois":
+        opt_init_args["seed_sequence"] = "AT" * 100
+    elif model == 'bpnet':
+        opt_init_args["seed_sequence"] = "AT" * 1000
+    elif model == 'enformer':
+        opt_init_args["seed_sequence"] = "A" * 82_000
+    opt_obj = opt_class(**opt_init_args)
+
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        de.run_loop(
+            model=model_obj,
+            opt=opt_obj,
+            all_args=argparse_lib.ParsedArgs(
+                main_args=argparse.Namespace(
+                    model=model,
+                    optimization=optimization,
+                    max_number_of_rounds=1,
+                    optimization_steps_per_output=-1,
+                    proposals_per_round=1,
+                    output_path=tmpdirname,
+                    trace_memory=False,
+                ),
+                model_init_args=None,
+                opt_init_args=None,
+                opt_run_args=argparse.Namespace(**opt_class.debug_run_args()),
+            ),
+            ignore_errors=False,
+        )

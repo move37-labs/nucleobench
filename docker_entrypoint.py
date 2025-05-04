@@ -43,6 +43,8 @@ def run_loop(
     ignore_errors: bool = False,
     ):
     args = all_args.main_args
+    
+    # Determine whether the end condition should be met by time or number of rounds.
     if args.max_number_of_rounds is None:
         max_time = args.max_seconds
         args.max_number_of_rounds = 99999999
@@ -50,6 +52,14 @@ def run_loop(
         if args.max_number_of_rounds == 0:
             args.max_number_of_rounds = 99999999
         max_time = None
+        
+    # Determine whether to record intermediate steps or not.
+    if args.optimization_steps_per_output == -1:
+        optimization_steps_per_output_effective = 1
+        record_intermediate_steps = False
+    else:
+        optimization_steps_per_output_effective = args.optimization_steps_per_output
+        record_intermediate_steps = True
 
     # Initialize performance counters.
     opt_time = 0
@@ -86,23 +96,24 @@ def run_loop(
 
             # Take some optimization steps.
             s_time = time.time()
-            opt.run(n_steps=args.optimization_steps_per_output, **vars(all_args.opt_run_args))
+            opt.run(n_steps=optimization_steps_per_output_effective, **vars(all_args.opt_run_args))
             e_time = time.time()
             opt_time += (e_time - s_time)
 
-            to_write = _get_dict_to_write(
-                opt=opt, 
-                all_args=all_args, 
-                model=model, 
-                exp_start_time=exp_start_time, 
-                exp_starttime_str=exp_starttime_str, 
-                opt_time=opt_time, 
-                round_i=round_i)
-            all_dicts_to_write.append(to_write)
+            if record_intermediate_steps:
+                to_write = _get_dict_to_write(
+                    opt=opt, 
+                    all_args=all_args, 
+                    model=model, 
+                    exp_start_time=exp_start_time, 
+                    exp_starttime_str=exp_starttime_str, 
+                    opt_time=opt_time, 
+                    round_i=round_i)
+                all_dicts_to_write.append(to_write)
 
-            tot_steps = (round_i+1) * args.optimization_steps_per_output
+            tot_steps = (round_i+1) * optimization_steps_per_output_effective
             tot_time = time.time() - exp_start_time
-            print(f'Completed round {round_i} ({args.optimization_steps_per_output} steps) took {(e_time - s_time):.2f}s. Avg {tot_time/tot_steps:.2f}s per step.')
+            print(f'Completed round {round_i} ({optimization_steps_per_output_effective} steps) took {(e_time - s_time):.2f}s. Avg {tot_time/tot_steps:.2f}s per step.')
             if args.trace_memory:
                 cur_mem_usage, peak_mem_usage = tracemalloc.get_traced_memory()
                 print(f'Memory usage: {cur_mem_usage/1024**2:.2f} MB, peak: {peak_mem_usage/1024**2:.2f} MB')
@@ -206,7 +217,9 @@ def parse_all(argv: list) -> tuple[mc.ModelClass, oc.SequenceOptimizer, argparse
                        choices=optimizations.OPTIMIZATIONS_.keys())
     group.add_argument('--output_path', type=str, required=True,
                        help='Directory for all the structured output.')
-    group.add_argument('--optimization_steps_per_output', type=int, default=10, help='')
+    group.add_argument(
+        '--optimization_steps_per_output', type=int, default=10, 
+        help='The number of optimization steps to run before recording a step. Note that `-1` means "do not record any intermediate steps."')
     group.add_argument('--proposals_per_round', type=int, default=1, help='')
     group.add_argument('--ignore_errors', type=argparse_lib.str_to_bool, default=False, help='')
     group.add_argument('--trace_memory', type=argparse_lib.str_to_bool, default=False, help='')
