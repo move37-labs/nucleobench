@@ -20,7 +20,7 @@ OPTIMIZATIONS_REQUIRING_PYTORCH_DIFF_ = {
 
 GENERAL_OPTIMIZATIONS_ = {
     "adalead": adalead_ref.AdaLeadRef,
-    "directed_evolution": directed_evolution.DirectedGreedEvolution,
+    "directed_evolution": directed_evolution.DirectedGreedyEvolution,
     "dummy": random_perturbation.RandomPerturbation,
     "simulated_annealing": simulated_annealing.SimulatedAnnealing,
 }

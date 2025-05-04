@@ -16,7 +16,7 @@ from nucleobench.optimizations import optimization_class as oc
 from nucleobench.optimizations.directed_evolution import directed_evolution_module as de_mod
 
 
-class DirectedGreedEvolution(oc.SequenceOptimizer):
+class DirectedGreedyEvolution(oc.SequenceOptimizer):
     """Directed greed evolution of a pack of sequences. Based on work from Genentech's gRelu.
     """
 
