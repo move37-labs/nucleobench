@@ -30,7 +30,7 @@ ARG APP_USER_GID=1001
 # Set the working directory
 WORKDIR /nucleobench
 
-# Get pip. Needed once we switch to ubuntu.
+# Get needed OS tools.
 USER root
 RUN apt-get update && \
     apt-get upgrade -y && \
