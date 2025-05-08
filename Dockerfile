@@ -36,8 +36,8 @@ RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
     build-essential=12.9 \
-    libssl-dev=1.1.1w-0+deb11u2 \
-    curl=7.74.0-1.3+deb11u11 && \
+    libssl-dev \
+    curl && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
     
