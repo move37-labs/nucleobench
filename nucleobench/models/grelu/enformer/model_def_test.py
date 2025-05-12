@@ -10,6 +10,8 @@ import pytest
 import random
 import torch
 
+from unittest.mock import patch
+
 from nucleobench.common import testing_utils
 
 from nucleobench.models.grelu.enformer import model_def
@@ -81,3 +83,18 @@ def test_tism_consistency():
         assert len(tism2) == 1
         for k, v in tism2[0].items():
             assert v == tism1[idx][k]
+            
+
+@patch('torch.cuda.is_available')
+@pytest.mark.parametrize('cuda_is_available', [True, False])
+def test_device_placement(fake_torch_cuda, cuda_is_available):
+    # Set mock for `torch.cuda.is_available`.
+    fake_torch_cuda.return_value = cuda_is_available
+    
+    enformer_args = model_def.Enformer.debug_init_args()
+    enformer_args['aggregation_type'] = 'muscle_CAGE'
+    m = model_def.Enformer(
+        override_model=testing_utils.CountLetterModel(**model_args),
+        **enformer_args)
+    assert m.device == ('cuda' if cuda_is_available else 'cpu')
+    assert m.has_cuda is cuda_is_available

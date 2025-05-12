@@ -55,9 +55,13 @@ class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         # The vocab MUST be this, since this is what was used in gRelu.
         vocab: list[str] = constants.VOCAB_,
         override_model: Optional[torch.nn.Module] = None,
+        device: str = constants.AUTO_DEVICE,
     ):
         self.project = project
         self.model_name = model_name
+        self.device = device
+        if self.device == constants.AUTO_DEVICE:
+            self.device = "cuda" if torch.cuda.is_available() else "cpu"
         if override_model:
             self.model = override_model
         else:
@@ -68,7 +72,7 @@ class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
                 os.remove(config_path)
             wandb.login(anonymous='must')
             self.model = grelu.resources.load_model(
-                project=self.project, model_name=self.model_name)
+                project=self.project, model_name=self.model_name, device=self.device)
 
         self.tasks = pd.DataFrame(self.model.data_params["tasks"])
 
@@ -99,7 +103,7 @@ class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
     def string_to_onehot(self, x: list[str]) -> torch.Tensor:
         # NOTE: `grelu.sequence.format.strings_to_one_hot(x)` is equivalent to
         # `string_utils.dna2tensor_batch(x, vocab_list=self.vocab)`
-        return grelu.sequence.format.strings_to_one_hot(x) 
+        return grelu.sequence.format.strings_to_one_hot(x).to(self.device)
 
     def inference_on_strings(self, x: Iterable[str], return_debug_info: bool = False) -> np.ndarray:
         if not isinstance(x, (tuple, list)):
@@ -112,9 +116,9 @@ class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         ret = self.inference_on_tensor(tensor, return_debug_info=return_debug_info)
         if return_debug_info:
             assert len(ret) == 2
-            return ret[0].detach().clone().numpy(), ret[1]
+            return ret[0].detach().clone().cpu().numpy(), ret[1]
         else:
-            return ret.detach().clone().numpy()
+            return ret.detach().clone().cpu().numpy()
 
 
     def __call__(self, x: Iterable[str], return_debug_info: bool = False) -> np.ndarray:
