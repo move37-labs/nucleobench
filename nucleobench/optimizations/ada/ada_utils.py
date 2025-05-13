@@ -7,6 +7,7 @@ import numpy as np
 from scipy.stats import binom
 import torch
 import random
+import xxhash
 
 from nucleobench.optimizations import typing
 
@@ -18,13 +19,43 @@ TISMType = typing.TISMType
 
 
 class ModelWrapper:
-    def __init__(self, model):
+    def __init__(self, model, use_cache: bool = False):
         self.model = model
         self.cost = 0
+        self.use_cache = use_cache
+        self.cache = {}
 
-    def get_fitness(self, x):
+    def get_fitness(self, m_input: list):
+        # TODO(joelshor): This should be `self.cost += len(x)`
         self.cost += 1
-        results = self.model(x)
+        
+        if self.use_cache:
+            # 1) Sift sequences into seen and unseen, keeping track of their location
+            # so we can preserve order.
+            # 2) Pull from the has the fitness of the seen sequences.
+            seen_fitness, unseen_seq, unseen_hash = [], [], []
+            for i, seq in enumerate(m_input):
+                k = xxhash.xxh64(seq).intdigest()
+                if k in self.cache:
+                    seen_fitness.append((i, self.cache[k]))
+                else:
+                    unseen_seq.append((i, seq))
+                    unseen_hash.append(k)
+            m_input = [seq for _, seq in unseen_seq]
+                    
+        if len(m_input) == 0:
+            results = []
+        else:
+            results = self.model(m_input)
+        
+        if self.use_cache:
+            # 3) Add the unseen sequences to the cache.
+            # 4) Interleave seen and unseen results to preserve order.
+            for k, v in zip(unseen_hash, results):
+                self.cache[k] = v
+            unseen_fitness = [(i, r) for (i, _), r in zip(unseen_seq, results)]
+            results = [x[1] for x in sorted(seen_fitness + unseen_fitness)]
+        
         # Ada* is formulated to maximize fitness, but we want to minimize.
         return [-x for x in results]
     
@@ -364,7 +395,7 @@ def softmax(x):
     return exp_x / np.sum(exp_x, keepdims=True)
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class RolloutNode:
     """Class for tracking rollout node.
     
