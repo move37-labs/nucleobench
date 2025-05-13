@@ -16,7 +16,7 @@ dependencies:
     - fastparquet  # Required for parquet support.
 
     - pytorch
-    - xxhash  # For hashing for Ada* cache.
+    - python-xxhash  # For hashing for Ada* cache.
 
     - lightning
     - wandb  # For skipping login when loading gRelu models.
