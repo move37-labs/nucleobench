@@ -7,7 +7,7 @@ import bisect
 
 @dataclasses.dataclass(order=True)
 class SearchQItem:
-    energy: float
+    fitness: float
     state: str
     num_edits: int
 
@@ -32,7 +32,7 @@ class TwoSidedPriorityQueue(object):
         self.q  = []
 
     def push(self, itm: SearchQItem):
-        if len(self.q) == self.max_items and itm.energy < self.q[0].energy:
+        if len(self.q) == self.max_items and itm.fitness < self.q[0].fitness:
             return
         elif len(self.q) < self.max_items:
             bisect.insort(self.q, itm)
@@ -64,8 +64,7 @@ class TwoSidedPriorityQueue(object):
 class OneSidedPriorityQueue(object):
     """Priority queue.
 
-    Lower energy is better, but we want to drop bad items, so
-    expect inverted sign as inputs.
+    Uses fitness instead of energy (keep high items, low is bad).
     """
 
     def __init__(self, max_items: int):
@@ -82,7 +81,7 @@ class OneSidedPriorityQueue(object):
 
 
     def push(self, itm: SearchQItem):
-        if len(self.q) == self.max_items and itm.energy < self.q[0].energy:
+        if len(self.q) == self.max_items and itm.fitness < self.q[0].fitness:
             return
         elif len(self.q) < self.max_items:
             heapq.heappush(self.q, itm)

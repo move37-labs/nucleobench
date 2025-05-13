@@ -14,7 +14,7 @@ def test_onesided_priority_queue():
     def _w(s: str):
         return priority_queue.SearchQItem(
             state=s, 
-            energy=int(s),
+            fitness=int(s),
             num_edits=0,
         )
     
@@ -38,7 +38,7 @@ def test_twosided_priority_queue():
     def _w(s: str):
         return priority_queue.SearchQItem(
             state=s, 
-            energy=int(s),
+            fitness=int(s),
             num_edits=0,
         )
     

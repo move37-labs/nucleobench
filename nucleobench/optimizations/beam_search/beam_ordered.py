@@ -69,7 +69,7 @@ class OrderedBeamSearch(oc.SequenceOptimizer):
             self.q = priority_queue.OneSidedPriorityQueue(max_items=self.priority_queue_size)
             self.q.push(priority_queue.SearchQItem(
                 # Higher is better in the queue, so flip the sign.
-                energy=-1 * self.seed_energy,
+                fitness=-1 * self.seed_energy,
                 state=self.seed_sequence,
                 num_edits=0,
             ))
@@ -110,7 +110,7 @@ class OrderedBeamSearch(oc.SequenceOptimizer):
             if self.use_priority_queue:
                 self.q.push_batch([priority_queue.SearchQItem(
                     # Higher is better in the queue.
-                    energy=-1 * e,
+                    fitness=-1 * e,
                     state=v,
                     num_edits=self.n_edits + 1,
                     ) for e, v in evaluated_potential_moves])
