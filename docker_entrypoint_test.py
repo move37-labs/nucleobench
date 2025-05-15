@@ -41,9 +41,6 @@ def test_model_required_fns(model):
 
 @pytest.mark.parametrize("optimization", _valid_opts)
 def test_optimization_required_fns(optimization):
-    # TODO(joelshor, erikstran): Figure out why adalead hangs, and unblock it.
-    if optimization == 'adalead':
-        return
     opt_class = optimizations.get_optimization(optimization)
     _ = opt_class.init_parser()
     init_args = opt_class.debug_init_args()

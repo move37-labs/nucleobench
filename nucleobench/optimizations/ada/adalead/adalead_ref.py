@@ -118,12 +118,12 @@ class AdaLeadRef(oc.SequenceOptimizer):
         return {
             "model_fn": testing_utils.CountLetterModel(),
             "seed_sequence": "AAAAAA",
-            "sequences_batch_size": 10,
-            "model_queries_per_batch": 100,
-            "mutation_rate": 0.25,
-            "recombination_rate": 0.25,
+            "sequences_batch_size": 2,
+            "model_queries_per_batch": 10,
+            "mutation_rate": 0.9,
+            "recombination_rate": 0.0,
             "threshold": 0.25,
-            "rho": 2,
+            "rho": 0,
             "eval_batch_size": 1,
             "rng_seed": 42,
         }
