@@ -36,12 +36,19 @@ def test_fail_read():
         ttl_set.add("orange") # This should fail
     ttl_set.add("orange3")
 
-    
-def test_ttl_counter_set():
-    ttl_set = TTLCounterSet(ttl=2)
+
+@pytest.mark.parametrize('use_hashing', [False, True])
+def test_ttl_counter_set(use_hashing):
+    ttl_set = TTLCounterSet(ttl=2, use_hashing=use_hashing)
     assert len(ttl_set) == 0
     
     base_names = ["apple", "banana", "orange"]
+    
+    def _check_elements(expected_elements):
+        assert len(ttl_set) == len(expected_elements)
+        if use_hashing:
+            expected_elements = {ttl_set._str2hash(name) for name in expected_elements}
+        assert expected_elements == set(ttl_set.get_current_elements())
     
     ## Step 0
     # Add phase.
@@ -49,9 +56,8 @@ def test_ttl_counter_set():
         ttl_set.add(f'{name}0')
         
     # Check phase.
-    assert len(ttl_set) == 3
     expected_elements = {f"{name}0" for name in base_names}
-    assert expected_elements == set(ttl_set.get_current_elements())
+    _check_elements(expected_elements)
     
     ## Step 1
     ttl_set.increment_counter()  # Counter = 1
@@ -60,9 +66,8 @@ def test_ttl_counter_set():
         ttl_set.add(f'{name}1')
         
     # Check phase.
-    assert len(ttl_set) == 6
     expected_elements = {f"{name}{s}" for name in base_names for s in range(2)}
-    assert expected_elements == set(ttl_set.get_current_elements())
+    _check_elements(expected_elements)
     
     ## Steps 2-10.
     for s in range(2, 11):
@@ -72,28 +77,24 @@ def test_ttl_counter_set():
             ttl_set.add(f'{name}{s}')
             
         # Check phase.
-        assert len(ttl_set) == 9
         expected_elements = {f"{name}{_s}" for name in base_names for _s in range(s-2, s+1)}
-        assert expected_elements == set(ttl_set.get_current_elements())
-        
+        _check_elements(expected_elements)
         
     # Step 11.
     ttl_set.increment_counter()  # Counter = 11
     # No add phase.
         
     # Check phase.
-    assert len(ttl_set) == 6
     expected_elements = {f"{name}{_s}" for name in base_names for _s in range(9, 11)}
-    assert expected_elements == set(ttl_set.get_current_elements())
+    _check_elements(expected_elements)
     
     # Step 12.
     ttl_set.increment_counter()  # Counter = 12
     # No add phase.
         
     # Check phase.
-    assert len(ttl_set) == 3
     expected_elements = {f"{name}10" for name in base_names}
-    assert expected_elements == set(ttl_set.get_current_elements())
+    _check_elements(expected_elements)
     
     # Step 13.
     ttl_set.increment_counter()  # Counter = 13

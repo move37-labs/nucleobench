@@ -1,4 +1,8 @@
+"""A set-like data structure with Time-To-Live (TTL) functionality."""
+
 import collections
+import xxhash
+
 
 class TTLCounterSet(object):
     """
@@ -25,7 +29,7 @@ class TTLCounterSet(object):
                                                 efficiently removing expired items.
     """
 
-    def __init__(self, ttl: int):
+    def __init__(self, ttl: int, use_hashing: bool = True):
         """
         Initializes the TTLCounterSet.
 
@@ -39,8 +43,22 @@ class TTLCounterSet(object):
         self._elements = {}  # Stores element -> addition_counter_value
         # Stores expiration_counter_value -> set of elements expiring then
         self._expirations = collections.OrderedDict()
+        
+        self.use_hashing = use_hashing
 
-    def add(self, element: any) -> None:
+    def _str2hash(self, element: str) -> int:
+        """
+        Converts a string element to a hash value.
+
+        Args:
+            element (str): The string to be hashed.
+
+        Returns:
+            int: The hash value of the string.
+        """
+        return xxhash.xxh64(element).intdigest()
+
+    def add(self, element: str) -> None:
         """
         Adds an element to the set.
 
@@ -50,6 +68,8 @@ class TTLCounterSet(object):
             - Average: O(1) for dictionary and set operations if element is new.
             - If element exists: O(1) for the check before raising an error.
         """
+        if self.use_hashing:
+            element = self._str2hash(element)
         if element in self._elements:
             raise ValueError(f"Element '{element}' already exists in the set.")
 
@@ -64,15 +84,17 @@ class TTLCounterSet(object):
         # maintains insertion order. Since global_counter only increments,
         # new expiration_times will generally be non-decreasing, keeping it naturally sorted.
 
-    def __contains__(self, element: any) -> bool:
+    def __contains__(self, element: str) -> bool:
         """
-        Checks if an element is in the set.
+        Checks if an string is in the set.
         Does not consider its TTL status here, only its presence.
         Expired elements are removed during 'increment_counter'.
 
         Complexity: O(1) average (dictionary lookup).
         """
-        return element in self._elements
+        if self.use_hashing:
+            element = self._str2hash(element)
+        return self._str2hash(element) in self._elements
 
     def increment_counter(self) -> None:
         """
