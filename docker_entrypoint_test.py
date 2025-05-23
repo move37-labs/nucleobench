@@ -8,6 +8,7 @@ pytest docker_entrypoint_test.py --durations=0
 
 import argparse
 import itertools
+import numpy as np
 import os
 import pytest
 import tempfile
@@ -16,13 +17,13 @@ from nucleobench import models
 from nucleobench import optimizations
 from nucleobench.optimizations import model_class as mc
 from nucleobench.common import argparse_lib
+from nucleobench.common import testing_utils
 
 import docker_entrypoint as de
 
 _valid_models = list(models.MODELS_.keys())
 _valid_opts = optimizations.OPTIMIZATIONS_.keys()
 _valid_model_opt_pairs = list(itertools.product(_valid_models, _valid_opts))
-
 
 @pytest.mark.parametrize("model", _valid_models)
 def test_model_required_fns(model):
@@ -70,12 +71,19 @@ def test_run_loop_with_all_combos(model, optimization):
 
     opt_init_args = opt_class.debug_init_args()
     opt_init_args["model_fn"] = model_obj
+    np.random.seed(0)
+    pos_to_mutate = sorted(
+        [int(x) for x in np.random.choice(range(200), size=128, replace=False)])
+    opt_init_args["positions_to_mutate"] = pos_to_mutate
     if model == "malinois":
         opt_init_args["seed_sequence"] = "AT" * 100
     elif model == 'bpnet':
         opt_init_args["seed_sequence"] = "AT" * 1000
     elif model == 'enformer':
         opt_init_args["seed_sequence"] = "A" * 82_000
+    else:
+        opt_init_args["seed_sequence"] = "AT" * 100
+    
     opt_obj = opt_class(**opt_init_args)
 
     with tempfile.TemporaryDirectory() as tmpdirname:
@@ -91,6 +99,8 @@ def test_run_loop_with_all_combos(model, optimization):
                     proposals_per_round=1,
                     output_path=tmpdirname,
                     trace_memory=False,
+                    seed_sequence=opt_init_args["seed_sequence"],
+                    positions_to_mutate=opt_init_args["positions_to_mutate"],
                 ),
                 model_init_args=None,
                 opt_init_args=None,
@@ -161,15 +171,22 @@ def test_read_seed_sequence_from_local_file():
         assert parsed_args.main_args.positions_to_mutate == positions_to_mutate
 
 
-def test_empty_positions_to_mutate():
+@pytest.mark.parametrize("pos_to_mutate_type", ['empty', 'none'])
+def test_empty_positions_to_mutate(pos_to_mutate_type):
+    """Check that parsing handles positions_to_mutate correctly."""
+    pos_to_mutate = {
+        'empty': '',
+        'none': None,
+    }[pos_to_mutate_type]
     model_fn, opt, parsed_args = de.parse_all([
         '--model', 'dummy',
         '--optimization', 'dummy',
         '--output_path', 'dont use',
         '--seed_sequence', 'AAA',
-        '--positions_to_mutate', '',
+        '--positions_to_mutate', pos_to_mutate,
         ])
-    assert parsed_args.main_args.positions_to_mutate == None
+    if pos_to_mutate_type in ['empty', 'none']:
+        assert parsed_args.main_args.positions_to_mutate == None
 
 
 def test_no_intermediate_records():
@@ -204,6 +221,8 @@ def test_no_intermediate_records():
                     proposals_per_round=1,
                     output_path=tmpdirname,
                     trace_memory=False,
+                    seed_sequence=opt_init_args["seed_sequence"],
+                    positions_to_mutate=None,
                 ),
                 model_init_args=None,
                 opt_init_args=None,
@@ -211,3 +230,33 @@ def test_no_intermediate_records():
             ),
             ignore_errors=False,
         )
+
+@pytest.mark.parametrize("optimization", _valid_opts)
+def test_optimization_pos_to_mutate(optimization):
+    """Test that the optimization respects the positions_to_mutate argument."""
+    if optimization in ['fastseqprop', 'ledidi']:
+        # `fastseqprop` does not respect the `positions_to_mutate` argument during sampling.
+        # `ledidi` does not respect the `positions_to_mutate` argument during sampling.
+        return
+    
+    seq_len = 1000
+    seed_sequence = 'A' * seq_len
+    np.random.seed(0)
+    pos_to_mutate = sorted(
+        [int(x) for x in np.random.choice(range(seq_len), size=256, replace=False)])
+    
+    opt_class = optimizations.get_optimization(optimization)
+    _ = opt_class.init_parser()
+    init_args = opt_class.debug_init_args()
+    init_args['positions_to_mutate'] = pos_to_mutate
+    init_args['seed_sequence'] = seed_sequence
+    opt_obj = opt_class(**init_args)
+
+    # Check that obj has required run functions.
+    for _ in range(5):
+        opt_obj.run(n_steps=2, **opt_class.debug_run_args())
+    
+        # Check that all algorithms obey the `positions_to_mutate` argument.
+        proposal = opt_obj.get_samples(1)[0]
+        testing_utils.assert_proposal_respects_positions_to_mutate(
+            seed_sequence, proposal, pos_to_mutate)

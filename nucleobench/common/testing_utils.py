@@ -80,3 +80,21 @@ class CountLetterModel(torch.nn.Module):
     # Method needed for gRelu.
     def get_task_idxs(self, *args, **kwargs):
         return [0, 1, 2]
+
+
+def assert_proposal_respects_positions_to_mutate(
+    seed_sequence: str,
+    proposal_sequence: str,
+    positions_to_mutate: Optional[list[int]] = None,
+    ):
+    if positions_to_mutate is None:
+        return
+    
+    incorrect_differences = []
+    for i in range(len(seed_sequence)):
+        if i in positions_to_mutate:
+            continue
+        else:
+            if seed_sequence[i] != proposal_sequence[i]:
+                incorrect_differences.append(i)
+    assert len(incorrect_differences) == 0, incorrect_differences

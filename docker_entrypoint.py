@@ -28,6 +28,7 @@ import tqdm
 from typing import Any
 
 from nucleobench.common import gcp_utils
+from nucleobench.common import testing_utils
 
 from nucleobench import models
 from nucleobench.common import argparse_lib
@@ -173,6 +174,16 @@ def _get_dict_to_write(
     ) -> dict[str, Any]:
     # Get some proposals.
     proposals = opt.get_samples(all_args.main_args.proposals_per_round)
+    
+    # Check that positions to mutate are respected.
+    try:
+        seed_sequence = all_args.main_args.seed_sequence
+        pos_to_mutate = all_args.main_args.positions_to_mutate
+    except AttributeError as e:
+        raise ValueError(all_args.main_args) from e
+    for proposal in proposals:
+        testing_utils.assert_proposal_respects_positions_to_mutate(
+            seed_sequence, proposal, pos_to_mutate)
 
     # Calculate their energies.
     # TODO(joelshor): Figure out how to add arbitrary debug info. Until then, disable
@@ -250,7 +261,11 @@ def parse_all(argv: list) -> tuple[mc.ModelClass, oc.SequenceOptimizer, argparse
 
     # Initialize objects.
     model_fn = model_obj(**vars(model_init_args))
-    opt = opt_obj(model_fn, known_args.seed_sequence, **vars(opt_init_args))
+    opt = opt_obj(
+        model_fn=model_fn, 
+        seed_sequence=known_args.seed_sequence, 
+        positions_to_mutate=known_args.positions_to_mutate,
+        **vars(opt_init_args))
 
     return model_fn, opt, argparse_lib.ParsedArgs(
         main_args=known_args, 
