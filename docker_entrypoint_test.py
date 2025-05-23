@@ -234,9 +234,7 @@ def test_no_intermediate_records():
 @pytest.mark.parametrize("optimization", _valid_opts)
 def test_optimization_pos_to_mutate(optimization):
     """Test that the optimization respects the positions_to_mutate argument."""
-    if optimization in ['fastseqprop', 'ledidi']:
-        # `fastseqprop` does not respect the `positions_to_mutate` argument during sampling.
-        # `ledidi` does not respect the `positions_to_mutate` argument during sampling.
+    if optimization in optimizations.SAMPLING_IGNORES_POSITIONS_TO_MUTATE_:
         return
     
     seq_len = 1000
