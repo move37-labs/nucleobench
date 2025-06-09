@@ -63,8 +63,6 @@ def evolve(
     Returns:
         (best sequences, best score, list of scores)
     """ 
-    if tism_args is not None and positions is not None:
-        raise ValueError(f'Specific positions and TISM not implemented yet.')
     if positions is None:
         positions = list(range(len(seqs[0])))
     

@@ -81,12 +81,15 @@ def test_single_step():
     assert best_score <= -1
     
 
-@pytest.mark.parametrize('use_tism,location_only', [
-    (False, True),
-    (True, True),
-    (True, False)
+@pytest.mark.parametrize('use_tism,location_only,pos_to_mutate', [
+    (False, True, False),
+    (True, True, False),
+    (True, False, False),
+    (False, True, True),
+    (True, True, True),
+    (True, False, True),
 ])
-def test_evolve_sanity(use_tism,location_only):
+def test_evolve_sanity(use_tism,location_only,pos_to_mutate):
     if use_tism:
         tism_args = de_mod.TISMArgs(
             location_only=location_only,
@@ -96,10 +99,12 @@ def test_evolve_sanity(use_tism,location_only):
         tism_args = None
     best_seqs, best_score, _ = de_mod.evolve(
         model=testing_utils.CountLetterModel(flip_sign=True),
-        seqs=['AA', 'GG', 'GG', 'TC'],
+        seqs=['AA'*5, 'GG'*5, 'GG'*5, 'TC'*5],
         max_iter=2,
         batch_size=2,
-        tism_args=tism_args)
+        tism_args=tism_args,
+        positions=None if pos_to_mutate is False else [0, 1, 2, 3, 4],
+    )
     assert best_score <= -1
     for s in best_seqs:
         assert s.count('C') == -1 * best_score
