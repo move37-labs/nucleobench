@@ -31,6 +31,7 @@ class Ledidi(oc.SequenceOptimizer):
                  lr: float = 0.1,
                  use_input_loss: bool = False,
                  rng_seed: int = 0,
+                 debug: bool = False,
                  ):
         torch.manual_seed(rng_seed)
         np.random.seed(rng_seed)
@@ -85,7 +86,7 @@ class Ledidi(oc.SequenceOptimizer):
             batch_size=self.train_batch_size,
             lr=self.lr,
             return_history=True,
-            verbose=False,
+            verbose=debug,
         )
         
         
