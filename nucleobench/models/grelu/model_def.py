@@ -105,6 +105,7 @@ class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         # `string_utils.dna2tensor_batch(x, vocab_list=self.vocab)`
         return grelu.sequence.format.strings_to_one_hot(x).to(self.device)
 
+
     def inference_on_strings(self, x: Iterable[str], return_debug_info: bool = False) -> np.ndarray:
         if not isinstance(x, (tuple, list)):
             raise ValueError(f'Input needs to be an iterable of strings, not just string: {x}')
