@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nucleobench"
-version = "0.1.8"
+version = "1.0.0"
 description = "Nucleobench optimizers and tasks."
 readme = "README.md"
 requires-python = ">=3.10"
