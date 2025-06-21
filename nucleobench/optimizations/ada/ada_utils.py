@@ -1,7 +1,7 @@
 """Common utilities for AdaLead."""
 
 import dataclasses
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 from scipy.stats import binom
@@ -15,19 +15,46 @@ from nucleobench.optimizations import utils as opt_utils
 
 
 SequenceType = typing.SequenceType
-TISMType = typing.TISMType
 
+
+@dataclasses.dataclass(frozen=True)
+class RolloutNode:
+    """Class for tracking rollout node.
+    
+    NOTE on terminology:
+    
+    a -> b -> c
+    
+    `a` is the root of `b` and `c`.
+    `a` is the parent of `b`.
+    `b` is the parent of `c`.
+    
+    """
+    seq: SequenceType
+    num_edits_from_root: int
+    num_edits_from_parent: int
+    fitness: np.float32
 
 class ModelWrapper:
-    def __init__(self, model, use_cache: bool = False):
+    def __init__(self, 
+                 model,
+                 use_cache: bool = False, 
+                 debug: bool = False,
+                 ):
         self.model = model
         self.cost = 0
         self.use_cache = use_cache
         self.cache = {}
+        self.debug = debug
+        
+        
+    def str_in_cache(self, seq: str) -> bool:
+        """Check if a sequence is in the cache."""
+        k = xxhash.xxh64(seq).intdigest()
+        return k in self.cache
 
     def get_fitness(self, m_input: list):
-        # TODO(joelshor): This should be `self.cost += len(x)`
-        self.cost += 1
+        self.cost += len(m_input)
         
         if self.use_cache:
             # 1) Sift sequences into seen and unseen, keeping track of their location
@@ -42,6 +69,10 @@ class ModelWrapper:
                     unseen_seq.append((i, seq))
                     unseen_hash.append(k)
             m_input = [seq for _, seq in unseen_seq]
+            
+            if self.debug:
+                if len(seen_fitness) > 0:
+                    print(f'Cache hit: {len(seen_fitness)}')
                     
         if len(m_input) == 0:
             results = []
@@ -58,20 +89,6 @@ class ModelWrapper:
         
         # Ada* is formulated to maximize fitness, but we want to minimize.
         return [-x for x in results]
-    
-    def tism(self, x: str, idxs: Optional[list[int]] = None) -> tuple[torch.Tensor, TISMType]:
-        """Returns (inference result, tism result)."""
-        self.cost += 1  # Consider multiplying the cost if we want proper accounting.
-        
-        inference_result, tism_result = self.model.tism(x, idxs)
-        if idxs is not None:
-            assert len(tism_result) == len(idxs)
-        
-        # Ada* is formulated to maximize fitness, but we want to minimize.
-        inference_result *= -1
-        tism_result = [{k: -1 * v for k, v in d.items()} for d in tism_result]
-        
-        return inference_result, tism_result
     
     
 def generate_random_mutant(
@@ -290,41 +307,7 @@ def generate_random_mutant_v2(
         rng=rng,
     )
     
-    
-def generate_random_mutant_tism(
-    sequence: str, 
-    pos_and_chars_to_mutate: list[tuple[int, str]],
-    random_n_loc: int,
-    rng: np.random.Generator,
-    unnormalized_probs: np.ndarray,
-) -> str:
-    """
-    Generate a mutant of `sequence` with exactly `random_n_loc` edits, using `tism` info.
 
-    Args:
-        sequence: Sequence that will be mutated from.
-        pos_and_chars_to_mutate: (position, character) of the allowed positions to be mutated.
-        random_n_loc: Number of mutations per sequence.
-        alphabet: Alphabet string.
-        rng: Random number generator.
-
-    Returns:
-        Mutant sequence string.
-
-    """
-    assert isinstance(pos_and_chars_to_mutate, list)
-    
-    edits_to_make = rng.choice(
-        pos_and_chars_to_mutate, 
-        size=random_n_loc, 
-        replace=False,
-        p=unnormalized_probs)
-    assert len(edits_to_make) == random_n_loc
-    
-    mutant = list(sequence)
-    for pos, char in edits_to_make:
-        mutant[int(pos)] = str(char)
-    return ''.join(mutant)
 
 
 def recombine_population(
@@ -364,15 +347,38 @@ def threshold_on_fitness_percentile(
     in_seqs: list[str], 
     in_seq_scores: np.ndarray, 
     threshold: float,
+    debug: bool = False,
     ) -> tuple[list[str], np.ndarray]:
     """Get all sequences within `threshold` percentile of the top_fitness."""
+    in_nodes = [RolloutNode(seq, 0, 0, score) for seq, score in zip(in_seqs, in_seq_scores)]
+    out_nodes = threshold_nodes_on_fitness_percentile(
+        in_nodes=in_nodes, 
+        threshold=threshold, 
+        debug=debug)
+    out_seqs = [node.seq for node in out_nodes]
+    out_seq_scores = np.array([node.fitness for node in out_nodes])
+
+    return out_seqs, out_seq_scores
+
+
+def threshold_nodes_on_fitness_percentile(
+    in_nodes: list[RolloutNode], 
+    threshold: float,
+    debug: bool = False,
+    ) -> list[RolloutNode]:
+    """Get all sequences within `threshold` percentile of the top_fitness."""
+    in_seq_scores = np.array([node.fitness for node in in_nodes])
+    in_seqs = [node.seq for node in in_nodes]
+    
     top_fitness = in_seq_scores.max()
     parent_mask = in_seq_scores >= top_fitness * (1 - np.sign(top_fitness) * threshold)
     parent_inds = np.argwhere(parent_mask).flatten()
-    parents = [in_seqs[i] for i in parent_inds]
-    parent_scores = in_seq_scores[parent_inds]
+    out_nodes = [in_nodes[i] for i in parent_inds]
     
-    return parents, parent_scores
+    if debug:
+        print(f'Thresholding went from {len(in_seqs)} to {len(out_nodes)}')
+    
+    return out_nodes
 
 
 def softmax(x):
@@ -395,20 +401,19 @@ def softmax(x):
     return exp_x / np.sum(exp_x, keepdims=True)
 
 
-@dataclasses.dataclass(frozen=True)
-class RolloutNode:
-    """Class for tracking rollout node.
+def get_batched_fitness(
+    model_wrapper: ModelWrapper,
+    sequences: list[str],
+    batch_size: int,
+) -> np.ndarray:
+    """Get fitness for a list of sequences in batches."""
+    if len(sequences) == 0:
+        return np.array([])
+
+    fitness = []
+    for i in range(0, len(sequences), batch_size):
+        batch = sequences[i:i + batch_size]
+        batch_fitness = model_wrapper.get_fitness(batch)
+        fitness.extend(batch_fitness)
     
-    NOTE on terminology:
-    
-    a -> b -> c
-    
-    `a` is the root of `b` and `c`.
-    `a` is the parent of `b`.
-    `b` is the parent of `c`.
-    
-    """
-    seq: SequenceType
-    num_edits_from_root: int
-    num_edits_from_parent: int
-    fitness: np.float32
+    return np.array(fitness)
