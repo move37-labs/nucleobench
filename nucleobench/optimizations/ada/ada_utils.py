@@ -31,8 +31,6 @@ class RolloutNode:
     
     """
     seq: SequenceType
-    num_edits_from_root: int
-    num_edits_from_parent: int
     fitness: np.float32
 
 class ModelWrapper:

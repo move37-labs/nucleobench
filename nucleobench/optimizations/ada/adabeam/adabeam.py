@@ -85,17 +85,18 @@ class AdaBeam(oc.SequenceOptimizer):
         
         self.debug = debug
 
-        # For now we expect to receive a single str, that we mutate to create a population.
+        # Mutate a string to create a starting population.
         assert isinstance(seed_sequence, str)
+        seed_node = RolloutNode(seq=seed_sequence, fitness=None)
         num_edit_locs = self.num_mutations_sampler.sample(beam_size)
-        start_sequences = [self.generate_mutations(seed_sequence, random_n_locs)
-                           for random_n_locs in num_edit_locs]
-        start_scores = self.get_batched_fitness(start_sequences)
-        for score in start_scores:
-            assert not np.isnan(score)
-            
-        self.current_nodes = [RolloutNode(seq=seq, fitness=score, num_edits_from_root=0, num_edits_from_parent=0) 
-                              for seq, score in zip(start_sequences, start_scores)]
+        self.current_nodes = []
+        for i in range(0, beam_size, self.eval_batch_size):
+            cur_num_edits = num_edit_locs[i : i + self.eval_batch_size]
+            self.current_nodes.extend(
+                self.mutate_nodes(
+                    [seed_node] * len(cur_num_edits),
+                    cur_num_edits,
+            ))
 
 
     def get_batched_fitness(self, sequences: list[str]) -> np.ndarray:
@@ -287,12 +288,4 @@ class AdaBeam(oc.SequenceOptimizer):
         for f in fitnesses:
             assert not np.isnan(f)
         
-        return [
-            RolloutNode(
-                seq=seq,
-                num_edits_from_root=n.num_edits_from_root + random_n_loc,
-                num_edits_from_parent=random_n_loc,
-                fitness=f,
-            )
-            for seq, n, random_n_loc, f in zip(seqs, nodes, num_edit_locs, fitnesses)
-        ]
+        return [RolloutNode(seq=seq, fitness=f) for seq, f in zip(seqs, fitnesses)]
