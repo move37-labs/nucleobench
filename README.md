@@ -28,16 +28,15 @@ This repo is intended to be used in a few days:
 ## Contents
 
 - [Setup](#setup)
-  - [Requirements](#requirements)
   - [Installation](#installation)
     - [PyPi](#pypi)
     - [Source](#source)
     - [Docker](#docker)
 - [Usage](#usage)
     - [Recipes](#recipes)
-    - [Python, commandline](#python_cmd)
-    - [Docker, commandline](#docker_cmd)
-    - [Python, code](#python_code)
+    - [Python, commandline](#python-commandline)
+    - [Docker, commandline](#docker-commandline)
+    - [Python, code](#python-code)
 - [Citation](#citation)
 
 ## Setup
@@ -98,7 +97,6 @@ See the `recipes/python` folder for examples of how to run the designers with th
 
 
 ### Python, commandline
-<a name="python_cmd"></a>
 
 An example of how to run on the commandline, using Python:
 
@@ -118,7 +116,6 @@ python -m docker_entrypoint \
     --seed_sequence {YOUR START SEQUENCE}
 ```
 ### Docker, commandline
-<a name="docker_cmd"></a>
 
 An example of how to run on the commandline, using Docker:
 
@@ -146,7 +143,6 @@ docker run \
 ```
 
 ### Python, code
-<a name="docker_code"></a>
 
 Below is an example of how to download NucleoBench and use it:
 ```python
