@@ -58,6 +58,7 @@ packages = [
     "nucleobench.models.substring_count_net",  
     "nucleobench.optimizations", 
     "nucleobench.optimizations.ada", 
+    "nucleobench.optimizations.ada.adabeam",
     "nucleobench.optimizations.ada.adalead",
     "nucleobench.optimizations.beam_search",
     "nucleobench.optimizations.directed_evolution",

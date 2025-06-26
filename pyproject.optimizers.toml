@@ -45,6 +45,7 @@ packages = [
     "nucleobench.common",  
     "nucleobench.optimizations", 
     "nucleobench.optimizations.ada", 
+    "nucleobench.optimizations.ada.adabeam",
     "nucleobench.optimizations.ada.adalead",
     "nucleobench.optimizations.beam_search",
     "nucleobench.optimizations.directed_evolution",
