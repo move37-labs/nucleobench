@@ -1,18 +1,15 @@
 #
 # bash recipes/python/adabeam_atac.sh
 #
-python -m docker_entrypoint \
+python -m cProfile -o program.prof docker_entrypoint.py \
     --model bpnet \
         --protein 'ATAC' \
     --optimization adabeam \
         --beam_size 2 \
-        --threshold 0.1 \
-        --n_rollouts_per_root 1 \
+        --n_rollouts_per_root 4 \
         --mutations_per_sequence 2 \
-        --adaptive_mu True \
-        --adapt_to_num_edits_from_root True \
         --rng_seed 0 \
-    --max_seconds 3000 \
+    --max_seconds 240 \
     --optimization_steps_per_output 5 \
     --proposals_per_round 1 \
     --output_path ./docker_entrypoint_test/adabeam_atac \
