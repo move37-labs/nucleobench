@@ -42,7 +42,7 @@ class UnorderedBeamSearch(oc.SequenceOptimizer):
     def debug_init_args():
         return {
             'model_fn': testing_utils.CountLetterModel(),
-            'seed_sequence': 'AAAA',
+            'start_sequence': 'AAAA',
             'beam_size': 5,
             'edit_location_algo': 'random',
             'edit_proposal_algo': 'random',
@@ -53,7 +53,7 @@ class UnorderedBeamSearch(oc.SequenceOptimizer):
     def __init__(
         self, 
         model_fn: TISMModelClass, 
-        seed_sequence: SequenceType,
+        start_sequence: SequenceType,
         beam_size: int,
         edit_location_algo: str,
         edit_proposal_algo: str,
@@ -63,10 +63,10 @@ class UnorderedBeamSearch(oc.SequenceOptimizer):
         minibatch_size: int = 1,
         rng_seed: int = 0,
         ):
-        assert isinstance(seed_sequence, str)
-        self.positions_to_mutate = positions_to_mutate or list(range(len(seed_sequence)))
+        assert isinstance(start_sequence, str)
+        self.positions_to_mutate = positions_to_mutate or list(range(len(start_sequence)))
         assert min(self.positions_to_mutate) >= 0
-        assert max(self.positions_to_mutate) < len(seed_sequence)
+        assert max(self.positions_to_mutate) < len(start_sequence)
         
         if edit_location_algo not in EDIT_LOCATION_ALGOS_:
             raise ValueError('Arg not recognized.')
@@ -75,7 +75,7 @@ class UnorderedBeamSearch(oc.SequenceOptimizer):
         if random_n_loc == -1:
             random_n_loc = len(self.positions_to_mutate)
         assert random_n_loc > 0
-        assert random_n_loc <= len(seed_sequence)
+        assert random_n_loc <= len(start_sequence)
         self.random_n_loc = random_n_loc
         
         if edit_proposal_algo not in EDIT_PROPOSAL_ALGOS_:
@@ -87,7 +87,7 @@ class UnorderedBeamSearch(oc.SequenceOptimizer):
         
         self.model_fn = model_fn
         self.beam_size = beam_size
-        self.seed_sequence = seed_sequence
+        self.start_sequence = start_sequence
         
         self.vocab = vocab
         self.minibatch_size = minibatch_size  # minibatch size for network.
@@ -95,9 +95,9 @@ class UnorderedBeamSearch(oc.SequenceOptimizer):
         # Set up the initial queue with the right number of elements.
         # TODO(joelshor): Consider using a priority tree, but probably not,
         # since it's not that helpful.
-        self.seed_energy = self.model_fn([self.seed_sequence])[0]
+        self.seed_energy = self.model_fn([self.start_sequence])[0]
         self.beam = beam_utils.Beam(max_items=self.beam_size)
-        self.beam.put([(self.seed_energy, self.seed_sequence)])
+        self.beam.put([(self.seed_energy, self.start_sequence)])
         
         self.n_edits = 0
 
@@ -179,4 +179,4 @@ class UnorderedBeamSearch(oc.SequenceOptimizer):
         }
     
     def is_finished(self) -> bool:
-        return self.n_edits >= len(self.seed_sequence)
+        return self.n_edits >= len(self.start_sequence)

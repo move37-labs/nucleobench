@@ -18,7 +18,7 @@ def test_beamsearch_init(init_order_method):
     beamsearch = beam.OrderedBeamSearch(
         model_fn=testing_utils.CountLetterModel(
             vocab_i=1, flip_sign=True),  # Count 'C'
-        seed_sequence='ACTG',
+        start_sequence='ACTG',
         beam_size=10,
         init_order_method=init_order_method,
     )
@@ -43,7 +43,7 @@ def test_beam_run_sanity(init_order_method):
     beamsearch = beam.OrderedBeamSearch(
         model_fn=testing_utils.CountLetterModel(
             vocab_i=1, flip_sign=True),  # Count 'C'
-        seed_sequence='ACTG',
+        start_sequence='ACTG',
         beam_size=5,
         init_order_method=init_order_method,
     )
@@ -65,7 +65,7 @@ def test_maxqueue_correctness():
     beamsearch = beam.OrderedBeamSearch(
         model_fn=testing_utils.CountLetterModel(
             vocab_i=1, flip_sign=True),  # Count 'C'
-        seed_sequence='ACTG',
+        start_sequence='ACTG',
         beam_size=5,
         init_order_method='sequential',
         use_priority_queue=True,
@@ -80,7 +80,7 @@ def test_positions_to_mutate():
     beamsearch = beam.OrderedBeamSearch(
         model_fn=testing_utils.CountLetterModel(
             vocab_i=1, flip_sign=True),  # Count 'C'
-        seed_sequence='AAAAA',
+        start_sequence='AAAAA',
         positions_to_mutate=[1, 2],
         beam_size=5,
         init_order_method='sequential',
@@ -95,7 +95,7 @@ def test_random_seed():
     search_orders = []
     args = dict(
         model_fn=testing_utils.CountLetterModel(),
-        seed_sequence='AAAAA',
+        start_sequence='AAAAA',
         beam_size=5,
         init_order_method='random',
     )
@@ -113,7 +113,7 @@ def test_get_samples_fail():
     beamsearch = beam.OrderedBeamSearch(
         model_fn=testing_utils.CountLetterModel(
             vocab_i=1, flip_sign=True),  # Count 'C'
-        seed_sequence='ACTG',
+        start_sequence='ACTG',
         beam_size=5,
         init_order_method='random',
     )

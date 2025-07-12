@@ -27,7 +27,7 @@ class AdaBeam(oc.SequenceOptimizer):
     def __init__(
         self,
         model_fn: ModelType,
-        seed_sequence: SequenceType,
+        start_sequence: SequenceType,
         mutations_per_sequence: float,
         beam_size: int,
         n_rollouts_per_root: int,
@@ -42,7 +42,7 @@ class AdaBeam(oc.SequenceOptimizer):
 
         Args:
             model_fn: The model function to use for scoring sequences. Sometimes called the "oracle" or "task.
-            seed_sequence: Start sequence for the optimization.
+            start_sequence: Start sequence for the optimization.
             mutations_per_sequence: The expected number of mutations per sequence. Actual number of mutations
                 per round is sampled from a distribution.
             beam_size: Maximum number of candidates to carry from one round to the next.
@@ -57,10 +57,10 @@ class AdaBeam(oc.SequenceOptimizer):
             debug: If `True`, print debug information.
         """
         self.positions_to_mutate = positions_to_mutate or list(
-            range(len(seed_sequence))
+            range(len(start_sequence))
         )
         assert min(self.positions_to_mutate) >= 0
-        assert max(self.positions_to_mutate) < len(seed_sequence)
+        assert max(self.positions_to_mutate) < len(start_sequence)
 
         assert mutations_per_sequence > 0  # 0 NOT allowed.
         assert mutations_per_sequence <= len(self.positions_to_mutate)
@@ -72,7 +72,7 @@ class AdaBeam(oc.SequenceOptimizer):
         self.model = ada_utils.ModelWrapper(model_fn, use_cache=True, debug=debug)
 
         self.skip_repeat_sequences = skip_repeat_sequences
-        self.seed_sequence = seed_sequence
+        self.start_sequence = start_sequence
         self.beam_size = beam_size
         self.n_rollouts_per_root = n_rollouts_per_root
         self.alphabet = "".join(constants.VOCAB)
@@ -86,8 +86,8 @@ class AdaBeam(oc.SequenceOptimizer):
         self.debug = debug
 
         # Mutate a string to create a starting population.
-        assert isinstance(seed_sequence, str)
-        seed_node = RolloutNode(seq=seed_sequence, fitness=None)
+        assert isinstance(start_sequence, str)
+        seed_node = RolloutNode(seq=start_sequence, fitness=None)
         num_edit_locs = self.num_mutations_sampler.sample(beam_size)
         self.current_nodes = []
         for i in range(0, beam_size, self.eval_batch_size):
@@ -181,7 +181,7 @@ class AdaBeam(oc.SequenceOptimizer):
     def debug_init_args():
         return {
             "model_fn": testing_utils.CountLetterModel(),
-            "seed_sequence": "AAAAAA",
+            "start_sequence": "AAAAAA",
             "beam_size": 10,
             "mutations_per_sequence": 1,
             "n_rollouts_per_root": 4,

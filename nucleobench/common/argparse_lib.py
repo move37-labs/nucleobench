@@ -15,10 +15,10 @@ class ParsedArgs:
     
 def parse_long_start_sequence(known_args: argparse.Namespace) -> argparse.Namespace:
     """Parse a long start sequence from a file."""
-    assert known_args.seed_sequence.startswith('local://')
-    local_fileloc = known_args.seed_sequence[len('local://'):]
+    assert known_args.start_sequence.startswith('local://')
+    local_fileloc = known_args.start_sequence[len('local://'):]
     with open(local_fileloc, 'r') as f:
-        known_args.seed_sequence = f.read()
+        known_args.start_sequence = f.read()
     return known_args
 
 

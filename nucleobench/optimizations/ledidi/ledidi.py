@@ -23,7 +23,7 @@ class Ledidi(oc.SequenceOptimizer):
     
     def __init__(self, 
                  model_fn: PyTorchDifferentiableModel, 
-                 seed_sequence: SequenceType,
+                 start_sequence: SequenceType,
                  positions_to_mutate: Optional[PositionsToMutateType] = None,
                  vocab: list[str] = constants.VOCAB,
                  # Defaults taken from Ledidi paper.
@@ -37,7 +37,7 @@ class Ledidi(oc.SequenceOptimizer):
         np.random.seed(rng_seed)
         
         self.vocab = vocab
-        self.seed_sequence = seed_sequence
+        self.start_sequence = start_sequence
         
         self.positions_to_mutate = positions_to_mutate
         self.train_batch_size = train_batch_size
@@ -45,7 +45,7 @@ class Ledidi(oc.SequenceOptimizer):
         self.use_input_loss = use_input_loss
         
         # Convert sequence into a one-hot encoded tensor.
-        self.seed_tensor = string_utils.dna2tensor(self.seed_sequence)
+        self.seed_tensor = string_utils.dna2tensor(self.start_sequence)
         if isinstance(model_fn, torch.nn.Module):
             self.model_fn = model_fn.eval()
             for param in self.model_fn.parameters():
@@ -139,7 +139,7 @@ class Ledidi(oc.SequenceOptimizer):
     def debug_init_args():
         return {
             'model_fn': testing_utils.CountLetterModel(),
-            'seed_sequence': 'AA',
+            'start_sequence': 'AA',
             'train_batch_size': 4,
             'lr': 0.1,
             'rng_seed': 0,

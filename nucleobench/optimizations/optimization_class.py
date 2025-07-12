@@ -8,7 +8,7 @@ class SequenceOptimizer(object):
     def __init__(
         self, 
         model_fn: ModelType, 
-        seed_sequence: SequenceType,
+        start_sequence: SequenceType,
         positions_to_mutate: Optional[PositionsToMutateType] = None,
         ):
         raise NotImplementedError("Not implemented.")

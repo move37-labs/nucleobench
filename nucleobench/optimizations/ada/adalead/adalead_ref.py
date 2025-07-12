@@ -117,7 +117,7 @@ class AdaLeadRef(oc.SequenceOptimizer):
     def debug_init_args():
         return {
             "model_fn": testing_utils.CountLetterModel(),
-            "seed_sequence": "AAAAAA",
+            "start_sequence": "AAAAAA",
             "sequences_batch_size": 2,
             "model_queries_per_batch": 10,
             "mutation_rate": 0.9,
@@ -131,7 +131,7 @@ class AdaLeadRef(oc.SequenceOptimizer):
     def __init__(
         self,
         model_fn: ModelType,
-        seed_sequence: SequenceType,
+        start_sequence: SequenceType,
         sequences_batch_size: int,
         model_queries_per_batch: int,
         threshold: float,
@@ -144,7 +144,7 @@ class AdaLeadRef(oc.SequenceOptimizer):
         debug: bool = False,
     ):  
         self.model = ada_utils.ModelWrapper(model_fn)
-        self.seed_sequence = seed_sequence
+        self.start_sequence = start_sequence
         self.sequences_batch_size = sequences_batch_size
         self.model_queries_per_batch = model_queries_per_batch
         self.threshold = threshold
@@ -154,17 +154,17 @@ class AdaLeadRef(oc.SequenceOptimizer):
         self.rho = rho
         self.eval_batch_size = eval_batch_size
         self.rng = random.Random(rng_seed)
-        self.positions_to_mutate = positions_to_mutate or list(range(len(seed_sequence)))
+        self.positions_to_mutate = positions_to_mutate or list(range(len(start_sequence)))
         self.debug = debug
 
         assert min(self.positions_to_mutate) >= 0
-        assert max(self.positions_to_mutate) < len(seed_sequence)
+        assert max(self.positions_to_mutate) < len(start_sequence)
 
         # For now we expect to receive a single str, that we mutate to create a population.
-        assert isinstance(seed_sequence, str)
+        assert isinstance(start_sequence, str)
         self.seed_population = [
             ada_utils.generate_random_mutant(
-                sequence=seed_sequence, 
+                sequence=start_sequence, 
                 positions_to_mutate=self.positions_to_mutate, 
                 mu=mutation_rate, 
                 alphabet=self.alphabet, 

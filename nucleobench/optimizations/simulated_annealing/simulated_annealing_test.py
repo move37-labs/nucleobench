@@ -18,7 +18,7 @@ def test_simulated_annealing():
     # Try editing all positions.
     sa = SimulatedAnnealing(
         model_fn=model,
-        seed_sequence=start_seq,
+        start_sequence=start_seq,
         positions_to_mutate=None,
         polynomial_decay_a=1.0,
         polynomial_decay_b=1.0,
@@ -37,7 +37,7 @@ def test_simulated_annealing():
     # Try not editing the last position.
     sa = SimulatedAnnealing(
         model_fn=model,
-        seed_sequence=start_seq,
+        start_sequence=start_seq,
         positions_to_mutate=list(range(len(start_seq) - 1)),
         polynomial_decay_a=1.0,
         polynomial_decay_b=1.0,

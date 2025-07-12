@@ -14,7 +14,7 @@ class SimulatedAnnealingBase:
     def __init__(
         self,
         model_fn: Callable,
-        seed_sequence: SequenceType,
+        start_sequence: SequenceType,
         proposal_fn: Callable,
         temperature_fn: Callable,
         rng_seed: int,
@@ -26,14 +26,14 @@ class SimulatedAnnealingBase:
         self.n_steps = 0
 
         # Simulated annealing doesn't support batch mode for now.
-        assert isinstance(seed_sequence, str)
-        self.seed_sequence = seed_sequence
-        self.seed_score = model_fn([seed_sequence])[0]
+        assert isinstance(start_sequence, str)
+        self.start_sequence = start_sequence
+        self.seed_score = model_fn([start_sequence])[0]
 
-        self.current_sequence = seed_sequence
+        self.current_sequence = start_sequence
         self.current_score = self.seed_score
 
-        self.best_sequence = seed_sequence
+        self.best_sequence = start_sequence
         self.best_score = self.current_score
 
         self.rng = random.Random(rng_seed)
@@ -118,7 +118,7 @@ class SimulatedAnnealing(oc.SequenceOptimizer):
     def __init__(
         self,
         model_fn: ModelType,
-        seed_sequence: SequenceType,
+        start_sequence: SequenceType,
         polynomial_decay_a: float,
         polynomial_decay_b: float,
         polynomial_decay_p: float,
@@ -135,7 +135,7 @@ class SimulatedAnnealing(oc.SequenceOptimizer):
 
         self.sa = SimulatedAnnealingBase(
             model_fn=model_fn,
-            seed_sequence=seed_sequence,
+            start_sequence=start_sequence,
             proposal_fn=proposal_fn,
             temperature_fn=temperature_fn,
             rng_seed=rng_seed,
@@ -213,7 +213,7 @@ class SimulatedAnnealing(oc.SequenceOptimizer):
     def debug_init_args():
         return {
             "model_fn": testing_utils.CountLetterModel(flip_sign=True),
-            "seed_sequence": "AAAAAA",
+            "start_sequence": "AAAAAA",
             "positions_to_mutate": None,
             "polynomial_decay_a": 1.0,
             "polynomial_decay_b": 1.0,

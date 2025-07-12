@@ -25,7 +25,7 @@ def test_adalead_ref():
     seq_batch_size = 20
     adalead = AdaLeadRef(
         model_fn=model,
-        seed_sequence=start_seq,
+        start_sequence=start_seq,
         sequences_batch_size=seq_batch_size,
         model_queries_per_batch=100,
         threshold=0.25,
@@ -57,7 +57,7 @@ def test_positions_to_mutate():
     seq_batch_size = 2
     adalead = AdaLeadRef(
         model_fn=model,
-        seed_sequence=start_seq,
+        start_sequence=start_seq,
         positions_to_mutate=[0, 1],
         sequences_batch_size=seq_batch_size,
         model_queries_per_batch=11,
@@ -82,7 +82,7 @@ def test_positions_to_mutate():
 def test_zero_is_not_none():
     AdaLeadRef(
         model_fn=testing_utils.CountLetterModel(),
-        seed_sequence="A" * 100,
+        start_sequence="A" * 100,
         sequences_batch_size=2,
         model_queries_per_batch=11,
         mutation_rate=0.1,

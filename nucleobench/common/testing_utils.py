@@ -83,7 +83,7 @@ class CountLetterModel(torch.nn.Module):
 
 
 def assert_proposal_respects_positions_to_mutate(
-    seed_sequence: str,
+    start_sequence: str,
     proposal_sequence: str,
     positions_to_mutate: Optional[list[int]] = None,
     ):
@@ -91,10 +91,10 @@ def assert_proposal_respects_positions_to_mutate(
         return
     
     incorrect_differences = []
-    for i in range(len(seed_sequence)):
+    for i in range(len(start_sequence)):
         if i in positions_to_mutate:
             continue
         else:
-            if seed_sequence[i] != proposal_sequence[i]:
+            if start_sequence[i] != proposal_sequence[i]:
                 incorrect_differences.append(i)
     assert len(incorrect_differences) == 0, incorrect_differences

@@ -19,7 +19,7 @@ def test_init_sanity(positions_to_mutate):
     positions_to_mutate = [0] if positions_to_mutate else None
     ledidi.Ledidi(
         model_fn=testing_utils.CountLetterModel(),
-        seed_sequence='AA',
+        start_sequence='AA',
         positions_to_mutate=positions_to_mutate,
         train_batch_size=4,
     )
@@ -28,7 +28,7 @@ def test_init_sanity(positions_to_mutate):
 def test_get_samples():
     ld_opt = ledidi.Ledidi(
         model_fn=testing_utils.CountLetterModel(),
-        seed_sequence='AA',
+        start_sequence='AA',
         train_batch_size=4,
     )
     
@@ -47,7 +47,7 @@ def test_correctness(positions_to_mutate):
     model_fn = testing_utils.CountLetterModel(flip_sign=True, vocab_i=1)
     led_opt = ledidi.Ledidi(
         model_fn=model_fn,
-        seed_sequence='AA',
+        start_sequence='AA',
         train_batch_size=4,
         positions_to_mutate=positions_to_mutate,
         lr=1.0,

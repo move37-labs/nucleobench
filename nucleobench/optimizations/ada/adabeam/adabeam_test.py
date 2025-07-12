@@ -30,7 +30,7 @@ def test_adabeam_sanity(skip_repeat_sequences):
     beam_size = 20
     kwargs = AdaBeam.debug_init_args()
     kwargs['model_fn'] = model_fn
-    kwargs['seed_sequence'] = start_seq
+    kwargs['start_sequence'] = start_seq
     kwargs['beam_size'] = beam_size
     kwargs['skip_repeat_sequences'] = skip_repeat_sequences
     adabeam = AdaBeam(**kwargs)
@@ -50,7 +50,7 @@ def test_adabeam_convergence():
 
     kwargs = AdaBeam.debug_init_args()
     kwargs['model_fn'] = model_fn
-    kwargs['seed_sequence'] = start_seq
+    kwargs['start_sequence'] = start_seq
     kwargs['skip_repeat_sequences'] = True
     adabeam = AdaBeam(**kwargs)
 
@@ -73,7 +73,7 @@ def test_positions_to_mutate():
     beam_size = 2
     kwargs = AdaBeam.debug_init_args()
     kwargs['model_fn'] = model_fn
-    kwargs['seed_sequence'] = start_seq
+    kwargs['start_sequence'] = start_seq
     kwargs['skip_repeat_sequences'] = True
     kwargs['beam_size'] = beam_size
     adabeam = AdaBeam(**kwargs, positions_to_mutate=list(range(20)))
@@ -98,7 +98,7 @@ def test_eval_batch_size_sanity(eval_batch_size):
 
     kwargs = AdaBeam.debug_init_args()
     kwargs['model_fn'] = model_fn
-    kwargs['seed_sequence'] = start_seq
+    kwargs['start_sequence'] = start_seq
     kwargs['eval_batch_size'] = eval_batch_size
     adabeam = AdaBeam(**kwargs)
 
@@ -117,7 +117,7 @@ def test_eval_batch_size_consistency():
 
     kwargs = AdaBeam.debug_init_args()
     kwargs['model_fn'] = model_fn
-    kwargs['seed_sequence'] = 'A' * 100
+    kwargs['start_sequence'] = 'A' * 100
     
     kwargs['eval_batch_size'] = 1
     adabeam1 = AdaBeam(**kwargs)

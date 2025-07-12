@@ -3,7 +3,7 @@
 To test this locally, writing locally:
 ```zsh
 python -m docker_entrypoint \
-    --seed_sequence GATAAGTGACACGGTGCAGCTCGGGTATCGTCTACGGGTGAAAACGGAAGGGTTCTATCCCATGTGGCCTGCTGACCTACGCACGATAATGAGCATTTAAGTAAGTCGGTGGGCTTTCACATGTTTACCGTCGGGCTCGAAGGCGGGTCCGGAAAACTAATTTCGGATCACCCTACCCAGGACGAACGTCGGGGGTGGCC \
+    --start_sequence GATAAGTGACACGGTGCAGCTCGGGTATCGTCTACGGGTGAAAACGGAAGGGTTCTATCCCATGTGGCCTGCTGACCTACGCACGATAATGAGCATTTAAGTAAGTCGGTGGGCTTTCACATGTTTACCGTCGGGCTCGAAGGCGGGTCCGGAAAACTAATTTCGGATCACCCTACCCAGGACGAACGTCGGGGGTGGCC \
     --model malinois \
         --target_feature 1 \
         --bending_factor 1.0 \
@@ -178,13 +178,13 @@ def _get_dict_to_write(
     # Check that positions to mutate are respected.
     if all_args.main_args.optimization not in optimizations.SAMPLING_IGNORES_POSITIONS_TO_MUTATE_:
         try:
-            seed_sequence = all_args.main_args.seed_sequence
+            start_sequence = all_args.main_args.start_sequence
             pos_to_mutate = all_args.main_args.positions_to_mutate
         except AttributeError as e:
             raise ValueError(all_args.main_args) from e
         for proposal in proposals:
             testing_utils.assert_proposal_respects_positions_to_mutate(
-                seed_sequence, proposal, pos_to_mutate)
+                start_sequence, proposal, pos_to_mutate)
 
     # Calculate their energies.
     # TODO(joelshor): Figure out how to add arbitrary debug info. Until then, disable
@@ -221,7 +221,7 @@ def parse_all(argv: list) -> tuple[mc.ModelClass, oc.SequenceOptimizer, argparse
     parser = argparse.ArgumentParser(description="", add_help=False)
     group = parser.add_argument_group('Main args')
 
-    group.add_argument('--seed_sequence', type=str, required=False, help='')
+    group.add_argument('--start_sequence', type=str, required=False, help='')
     group.add_argument('--positions_to_mutate', default=None, required=False, help='String for file, or comma delimited list of ints.')
     group.add_argument('--model', type=str, required=True, help='',
                        choices=models.MODELS_.keys())
@@ -256,7 +256,7 @@ def parse_all(argv: list) -> tuple[mc.ModelClass, oc.SequenceOptimizer, argparse
 
     # Some start sequences are too long to pass via cmd (they are ~200K bp), so we use 
     # local or gcp files instead.
-    if known_args.seed_sequence.startswith('local://'):
+    if known_args.start_sequence.startswith('local://'):
         known_args = argparse_lib.parse_long_start_sequence(known_args)
     known_args = argparse_lib.possibly_parse_positions_to_mutate(known_args)
 
@@ -264,7 +264,7 @@ def parse_all(argv: list) -> tuple[mc.ModelClass, oc.SequenceOptimizer, argparse
     model_fn = model_obj(**vars(model_init_args))
     opt = opt_obj(
         model_fn=model_fn, 
-        seed_sequence=known_args.seed_sequence, 
+        start_sequence=known_args.start_sequence, 
         positions_to_mutate=known_args.positions_to_mutate,
         **vars(opt_init_args))
 

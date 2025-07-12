@@ -22,7 +22,7 @@ class DirectedGreedyEvolution(oc.SequenceOptimizer):
 
     def __init__(self, 
                  model_fn: ModelType, 
-                 seed_sequence: SequenceType,
+                 start_sequence: SequenceType,
                  positions_to_mutate: Optional[PositionsToMutateType] = None,
                  batch_size: int = 1,
                  use_tism: bool = False,
@@ -39,8 +39,8 @@ class DirectedGreedyEvolution(oc.SequenceOptimizer):
         self.rnd_seed = rnd_seed
         self.vocab = vocab
         self.model_fn = model_fn
-        self.seed_sequence = seed_sequence
-        self.current_sequence = [seed_sequence]
+        self.start_sequence = start_sequence
+        self.current_sequence = [start_sequence]
         self.batch_size = batch_size
         self.verbose = verbose
         self.positions_to_mutate = positions_to_mutate
@@ -117,6 +117,6 @@ class DirectedGreedyEvolution(oc.SequenceOptimizer):
     def debug_init_args():
         return {
             'model_fn': testing_utils.CountLetterModel(),
-            'seed_sequence': 'AA',
+            'start_sequence': 'AA',
             'rnd_seed': 0,
         }

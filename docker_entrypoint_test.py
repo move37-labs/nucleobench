@@ -76,13 +76,13 @@ def test_run_loop_with_all_combos(model, optimization):
         [int(x) for x in np.random.choice(range(200), size=128, replace=False)])
     opt_init_args["positions_to_mutate"] = pos_to_mutate
     if model == "malinois":
-        opt_init_args["seed_sequence"] = "AT" * 100
+        opt_init_args["start_sequence"] = "AT" * 100
     elif model == 'bpnet':
-        opt_init_args["seed_sequence"] = "AT" * 1000
+        opt_init_args["start_sequence"] = "AT" * 1000
     elif model == 'enformer':
-        opt_init_args["seed_sequence"] = "A" * 82_000
+        opt_init_args["start_sequence"] = "A" * 82_000
     else:
-        opt_init_args["seed_sequence"] = "AT" * 100
+        opt_init_args["start_sequence"] = "AT" * 100
     
     opt_obj = opt_class(**opt_init_args)
 
@@ -99,7 +99,7 @@ def test_run_loop_with_all_combos(model, optimization):
                     proposals_per_round=1,
                     output_path=tmpdirname,
                     trace_memory=False,
-                    seed_sequence=opt_init_args["seed_sequence"],
+                    start_sequence=opt_init_args["start_sequence"],
                     positions_to_mutate=opt_init_args["positions_to_mutate"],
                 ),
                 model_init_args=None,
@@ -125,7 +125,7 @@ def test_run_loop_with_flank_length(optimization, flank_length):
 
     opt_init_args = opt_class.debug_init_args()
     opt_init_args["model_fn"] = model_obj
-    opt_init_args["seed_sequence"] = "A" * seq_len
+    opt_init_args["start_sequence"] = "A" * seq_len
     opt_obj = opt_class(**opt_init_args)
 
     with tempfile.TemporaryDirectory() as tmpdirname:
@@ -163,11 +163,11 @@ def test_read_seed_sequence_from_local_file():
             '--model', 'dummy',
             '--optimization', 'dummy',
             '--output_path', 'dont use',
-            '--seed_sequence', f'local://{seed_seq_filename}',
+            '--start_sequence', f'local://{seed_seq_filename}',
             '--positions_to_mutate', f'local://{pos_to_mutate_filename}',
             ])
         assert parsed_args.main_args.output_path == 'dont use'
-        assert len(parsed_args.main_args.seed_sequence) == 196_608
+        assert len(parsed_args.main_args.start_sequence) == 196_608
         assert parsed_args.main_args.positions_to_mutate == positions_to_mutate
 
 
@@ -182,7 +182,7 @@ def test_empty_positions_to_mutate(pos_to_mutate_type):
         '--model', 'dummy',
         '--optimization', 'dummy',
         '--output_path', 'dont use',
-        '--seed_sequence', 'AAA',
+        '--start_sequence', 'AAA',
         '--positions_to_mutate', pos_to_mutate,
         ])
     if pos_to_mutate_type in ['empty', 'none']:
@@ -201,11 +201,11 @@ def test_no_intermediate_records():
     opt_init_args = opt_class.debug_init_args()
     opt_init_args["model_fn"] = model_obj
     if model == "malinois":
-        opt_init_args["seed_sequence"] = "AT" * 100
+        opt_init_args["start_sequence"] = "AT" * 100
     elif model == 'bpnet':
-        opt_init_args["seed_sequence"] = "AT" * 1000
+        opt_init_args["start_sequence"] = "AT" * 1000
     elif model == 'enformer':
-        opt_init_args["seed_sequence"] = "A" * 82_000
+        opt_init_args["start_sequence"] = "A" * 82_000
     opt_obj = opt_class(**opt_init_args)
 
     with tempfile.TemporaryDirectory() as tmpdirname:
@@ -221,7 +221,7 @@ def test_no_intermediate_records():
                     proposals_per_round=1,
                     output_path=tmpdirname,
                     trace_memory=False,
-                    seed_sequence=opt_init_args["seed_sequence"],
+                    start_sequence=opt_init_args["start_sequence"],
                     positions_to_mutate=None,
                 ),
                 model_init_args=None,
@@ -238,7 +238,7 @@ def test_optimization_pos_to_mutate(optimization):
         return
     
     seq_len = 1000
-    seed_sequence = 'A' * seq_len
+    start_sequence = 'A' * seq_len
     np.random.seed(0)
     pos_to_mutate = sorted(
         [int(x) for x in np.random.choice(range(seq_len), size=256, replace=False)])
@@ -247,7 +247,7 @@ def test_optimization_pos_to_mutate(optimization):
     _ = opt_class.init_parser()
     init_args = opt_class.debug_init_args()
     init_args['positions_to_mutate'] = pos_to_mutate
-    init_args['seed_sequence'] = seed_sequence
+    init_args['start_sequence'] = start_sequence
     opt_obj = opt_class(**init_args)
 
     # Check that obj has required run functions.
@@ -257,4 +257,4 @@ def test_optimization_pos_to_mutate(optimization):
         # Check that all algorithms obey the `positions_to_mutate` argument.
         proposal = opt_obj.get_samples(1)[0]
         testing_utils.assert_proposal_respects_positions_to_mutate(
-            seed_sequence, proposal, pos_to_mutate)
+            start_sequence, proposal, pos_to_mutate)

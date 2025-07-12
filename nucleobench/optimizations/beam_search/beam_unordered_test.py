@@ -23,7 +23,7 @@ def test_beamsearch_init(edit_location_algo, edit_proposal_algo):
     beamsearch = beam_unordered.UnorderedBeamSearch(
         model_fn=testing_utils.CountLetterModel(
             vocab_i=1, flip_sign=True),  # Count 'C'
-        seed_sequence='ACTG',
+        start_sequence='ACTG',
         beam_size=10,
         edit_location_algo=edit_location_algo,
         edit_proposal_algo=edit_proposal_algo,
@@ -43,7 +43,7 @@ def test_beam_run_correctness(edit_location_algo, edit_proposal_algo):
     beamsearch = beam_unordered.UnorderedBeamSearch(
         model_fn=testing_utils.CountLetterModel(
             vocab_i=1, flip_sign=True),  # Count 'C'
-        seed_sequence='ACTG',
+        start_sequence='ACTG',
         beam_size=5,
         edit_location_algo=edit_location_algo,
         edit_proposal_algo=edit_proposal_algo,
@@ -67,7 +67,7 @@ def test_locations_to_mutate(edit_location_algo):
     beamsearch = beam_unordered.UnorderedBeamSearch(
         model_fn=testing_utils.CountLetterModel(
             vocab_i=1, flip_sign=True),  # Count 'C'
-        seed_sequence='AAAAAA',
+        start_sequence='AAAAAA',
         positions_to_mutate=[1, 2],
         beam_size=5,
         edit_location_algo=edit_location_algo,

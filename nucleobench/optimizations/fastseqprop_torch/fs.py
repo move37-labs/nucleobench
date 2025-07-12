@@ -28,7 +28,7 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
     
     def __init__(self, 
                  model_fn: PyTorchDifferentiableModel, 
-                 seed_sequence: SequenceType,
+                 start_sequence: SequenceType,
                  positions_to_mutate: Optional[PositionsToMutateType] = None,
                  learning_rate: float = 0.5,
                  eta_min: float = 1e-6,
@@ -41,7 +41,7 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
         self.rnd_seed = rnd_seed
         self.vocab = vocab
         self.model_fn = model_fn
-        self.reset(seed_sequence, positions_to_mutate)
+        self.reset(start_sequence, positions_to_mutate)
         
         self.learning_rate = learning_rate
         self.eta_min = eta_min
@@ -53,7 +53,7 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
             raise ValueError('FastSeqProp model must be pytorch.')
         
     def reset(self, seq: SequenceType, positions_to_mutate: Optional[list[int]] = None):
-        self.seed_sequence = seq
+        self.start_sequence = seq
         cur_tensor = string_utils.dna2tensor(seq, vocab_list=self.vocab)
         cur_tensor = torch.unsqueeze(cur_tensor, dim=0)
         assert cur_tensor.ndim == 3
@@ -156,7 +156,7 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
     def debug_init_args():
         return {
             'model_fn': testing_utils.CountLetterModel(),
-            'seed_sequence': 'AA',
+            'start_sequence': 'AA',
             'positions_to_mutate': [1],
             'rnd_seed': 0,
         }

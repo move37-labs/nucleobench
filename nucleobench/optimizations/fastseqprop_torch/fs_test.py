@@ -32,13 +32,13 @@ def test_fs_opt_param_init():
 
 def test_reset_sanity():
     fs_opt = fs.FastSeqProp(testing_utils.CountLetterModel(), 'AAAA')
-    assert fs_opt.seed_sequence == 'AAAA'
+    assert fs_opt.start_sequence == 'AAAA'
     _ = fs_opt.get_samples(1)[0]
 
 def test_opt_changes_param():
     fs_opt = fs.FastSeqProp(
         model_fn=testing_utils.CountLetterModel(),
-        seed_sequence='AAAA')
+        start_sequence='AAAA')
 
     start_params = fs_opt.opt_module.params.detach().clone().numpy()
     fs_opt.run(n_steps=1, batch_size=1)
@@ -57,7 +57,7 @@ def test_correctness():
 
     fs_opt = fs.FastSeqProp(
         model_fn=ToOptimize(),
-        seed_sequence='AA')
+        start_sequence='AA')
 
     start_params = fs_opt.opt_module.params.detach().clone().numpy()
     start_energy = fs_opt.energy(batch_size=8).detach().clone().numpy().mean()

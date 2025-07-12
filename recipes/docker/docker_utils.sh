@@ -27,7 +27,7 @@ function docker_run_dummy_malinois() {
     local fullpath="$(realpath $output)"
 
     docker run -v "${fullpath}":"${fullpath}"  "${DOCKER_IMG_NAME}" \
-        --seed_sequence AAAAAAAAA \
+        --start_sequence AAAAAAAAA \
         --model dummy \
         --optimization dummy \
         --optimization_steps_per_output 20 \
@@ -42,7 +42,7 @@ function docker_run_fsp_malinois() {
     local fullpath="$(realpath $output)"
 
     docker run -v "${fullpath}":"${fullpath}"  "${DOCKER_IMG_NAME}" \
-        --seed_sequence ${NT_200} \
+        --start_sequence ${NT_200} \
         --model malinois \
             --target_feature 0 \
             --bending_factor 1.0 \
@@ -62,7 +62,7 @@ function docker_run_ledidi_gata2() {
     local fullpath="$(realpath $output)"
 
     docker run -v "${fullpath}":"${fullpath}"  "${DOCKER_IMG_NAME}" \
-        --seed_sequence ${NT_200} \
+        --start_sequence ${NT_200} \
         --model bpnet \
             --protein "GATA2" \
         --optimization ledidi \
@@ -80,7 +80,7 @@ function docker_run_simanneal_malinois() {
     local fullpath="$(realpath $output)"
 
     docker run -v "${fullpath}":"${fullpath}"  "${DOCKER_IMG_NAME}" \
-        --seed_sequence ${NT_200} \
+        --start_sequence ${NT_200} \
         --model malinois \
             --target_feature 0 \
             --bending_factor 1.0 \

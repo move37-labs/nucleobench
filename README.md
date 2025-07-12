@@ -113,7 +113,7 @@ python -m docker_entrypoint \
     --optimization_steps_per_output 5 \
     --proposals_per_round 2 \
     --output_path ./python_recipe/adabeam_atac \
-    --seed_sequence {YOUR START SEQUENCE}
+    --start_sequence {YOUR START SEQUENCE}
 ```
 ### Docker, commandline
 
@@ -139,7 +139,7 @@ docker run \
     --optimization_steps_per_output 5 \
     --proposals_per_round 2 \
     --output_path ${fullpath} \
-    --seed_sequence {YOUR START SEQUENCE}
+    --start_sequence {YOUR START SEQUENCE}
 ```
 
 ### Python, code
@@ -169,7 +169,7 @@ opt_obj = optimizations.get_optimization('adabeam')
 # demonstrate.
 opt_init_args = opt_obj.debug_init_args()
 opt_init_args['model_fn'] = model_fn
-opt_init_args['seed_sequence'] = 'A' * 100
+opt_init_args['start_sequence'] = 'A' * 100
 designer = opt_obj(**opt_init_args)
 
 """Run the designer and show the results."""

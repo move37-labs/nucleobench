@@ -14,11 +14,11 @@ class RandomPerturbation(oc.SequenceOptimizer):
 
     def __init__(self, 
                  model_fn: ModelType, 
-                 seed_sequence: SequenceType,
+                 start_sequence: SequenceType,
                  positions_to_mutate: Optional[PositionsToMutateType] = None,
                  ):
         del model_fn
-        self.seq = list(seed_sequence)
+        self.seq = list(start_sequence)
         self.positions_to_mutate = positions_to_mutate
         
     @staticmethod
@@ -30,7 +30,7 @@ class RandomPerturbation(oc.SequenceOptimizer):
     def debug_init_args():
         return {
             'model_fn': None,
-            'seed_sequence': 'AA',
+            'start_sequence': 'AA',
         }
         
     @staticmethod

@@ -26,7 +26,7 @@ class OrderedBeamSearch(oc.SequenceOptimizer):
     def __init__(
         self, 
         model_fn: TISMModelClass, 
-        seed_sequence: SequenceType,
+        start_sequence: SequenceType,
         beam_size: int,
         init_order_method: str,
         positions_to_mutate: Optional[PositionsToMutateType] = None,
@@ -37,18 +37,18 @@ class OrderedBeamSearch(oc.SequenceOptimizer):
         vocab: list[str] = constants.VOCAB,
         minibatch_size: int = 1,
         ):
-        assert isinstance(seed_sequence, str)
+        assert isinstance(start_sequence, str)
         assert init_order_method in INIT_ORDER_METHODS_
-        self.positions_to_mutate = positions_to_mutate or list(range(len(seed_sequence)))
+        self.positions_to_mutate = positions_to_mutate or list(range(len(start_sequence)))
         assert min(self.positions_to_mutate) >= 0
-        assert max(self.positions_to_mutate) < len(seed_sequence)
+        assert max(self.positions_to_mutate) < len(start_sequence)
         
         random.seed(rng_seed)
         np.random.seed(rng_seed)
         
         self.model_fn = model_fn
         self.beam_size = beam_size
-        self.seed_sequence = seed_sequence
+        self.start_sequence = start_sequence
         
         self.init_order_method = init_order_method
         
@@ -60,9 +60,9 @@ class OrderedBeamSearch(oc.SequenceOptimizer):
         # Set up the initial queue with the right number of elements.
         # TODO(joelshor): Consider using a priority tree, but probably not,
         # since it's not that helpful.
-        self.seed_energy = self.model_fn([self.seed_sequence])[0]
+        self.seed_energy = self.model_fn([self.start_sequence])[0]
         self.beam = beam_utils.Beam(max_items=self.beam_size)
-        self.beam.put([(self.seed_energy, self.seed_sequence)])
+        self.beam.put([(self.seed_energy, self.start_sequence)])
         
         # Optionally set up the queue for the best seen.
         if self.use_priority_queue:
@@ -70,7 +70,7 @@ class OrderedBeamSearch(oc.SequenceOptimizer):
             self.q.push(priority_queue.SearchQItem(
                 # Higher is better in the queue, so flip the sign.
                 fitness=-1 * self.seed_energy,
-                state=self.seed_sequence,
+                state=self.start_sequence,
                 num_edits=0,
             ))
         
@@ -79,12 +79,12 @@ class OrderedBeamSearch(oc.SequenceOptimizer):
             order = sorted(order, key=lambda x: x[1])
             return [x[0] for x in order]
         if self.init_order_method == 'sequential':
-            self._search_order = self.positions_to_mutate or list(range(len(self.seed_sequence)))
+            self._search_order = self.positions_to_mutate or list(range(len(self.start_sequence)))
         elif self.init_order_method == 'random':
-            self._search_order = self.positions_to_mutate or list(range(len(self.seed_sequence)))
+            self._search_order = self.positions_to_mutate or list(range(len(self.start_sequence)))
             random.shuffle(self._search_order)
         elif self.init_order_method in ['tism_fixed', 'tism_reverse']:
-            _, tism = model_fn.tism(self.seed_sequence)
+            _, tism = model_fn.tism(self.start_sequence)
             self._search_order = _get_order(tism, min)
             if self.init_order_method == 'tism_reverse':
                 self._search_order = self._search_order[::-1]
@@ -94,9 +94,9 @@ class OrderedBeamSearch(oc.SequenceOptimizer):
         
     
     def run(self, n_steps: int):
-        if self.n_edits >= len(self.seed_sequence):
+        if self.n_edits >= len(self.start_sequence):
             return
-        last_index_this_run = min(len(self.seed_sequence), self.n_edits + n_steps)
+        last_index_this_run = min(len(self.start_sequence), self.n_edits + n_steps)
         locations_to_edit_this_run = self._search_order[self.n_edits: last_index_this_run]
         
         for loc_to_edit in locations_to_edit_this_run:
@@ -199,7 +199,7 @@ class OrderedBeamSearch(oc.SequenceOptimizer):
     def debug_init_args():
         return {
             'model_fn': testing_utils.CountLetterModel(),
-            'seed_sequence': 'AA',
+            'start_sequence': 'AA',
             'beam_size': 5,
             'init_order_method': 'sequential',
             'minibatch_size': 1,
@@ -218,7 +218,7 @@ class OrderedBeamSearch(oc.SequenceOptimizer):
         }
     
     def is_finished(self) -> bool:
-        return self.n_edits >= len(self.seed_sequence)
+        return self.n_edits >= len(self.start_sequence)
     
 
 def get_potential_moves(beam: beam_utils.Beam, loc_to_edit: int, 
