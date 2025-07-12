@@ -31,12 +31,8 @@ class RandomPerturbation(oc.SequenceOptimizer):
         return {
             'model_fn': None,
             'start_sequence': 'AA',
+            'positions_to_mutate': [1],
         }
-        
-    @staticmethod
-    def run_parser():
-        parser = argparse.ArgumentParser(description="", add_help=False)
-        return parser
 
     def run(self, n_steps: int):
         positions = self.positions_to_mutate or list(range(len(self.seq)))
@@ -45,10 +41,6 @@ class RandomPerturbation(oc.SequenceOptimizer):
             new_nt = random.choice(constants.VOCAB)
             self.seq[i] = new_nt
             
-    @staticmethod
-    def debug_run_args():
-        return {}
-        
     def get_samples(self, n_samples: int) -> SamplesType:
         """Get samples."""
         return [''.join(self.seq)] * n_samples

@@ -22,10 +22,6 @@ class SequenceOptimizer(object):
     @staticmethod
     def init_parser():
         raise ValueError("Not implemented.")
-
-    @staticmethod
-    def run_parser():
-        raise ValueError("Not implemented.")
     
     def is_finished(self) -> bool:
         raise ValueError("Not implemented.")

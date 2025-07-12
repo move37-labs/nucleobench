@@ -190,15 +190,6 @@ class AdaBeam(oc.SequenceOptimizer):
             "rng_seed": 42,
         }
 
-    @staticmethod
-    def run_parser():
-        parser = argparse.ArgumentParser(description="", add_help=False)
-        return parser
-
-    @staticmethod
-    def debug_run_args():
-        return {}
-
     def run(self, n_steps: int):
         for _step in range(n_steps):
             self.current_nodes = self.propose_sequences(self.current_nodes)

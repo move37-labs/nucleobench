@@ -167,16 +167,6 @@ class UnorderedBeamSearch(oc.SequenceOptimizer):
         if n_samples > self.beam_size:
             raise ValueError(f'Number of samples requested too large: {n_samples} {len(self.beam)}')
         return list(self.beam.get_items())[:n_samples]
-
-    @staticmethod
-    def run_parser():
-        parser = argparse.ArgumentParser(description="", add_help=False)
-        return parser
-    
-    @staticmethod
-    def debug_run_args():
-        return {
-        }
     
     def is_finished(self) -> bool:
         return self.n_edits >= len(self.start_sequence)

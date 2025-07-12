@@ -141,15 +141,6 @@ class SimulatedAnnealing(oc.SequenceOptimizer):
             rng_seed=rng_seed,
         )
 
-    @staticmethod
-    def run_parser():
-        parser = argparse.ArgumentParser(description="", add_help=False)
-        return parser
-
-    @staticmethod
-    def debug_run_args():
-        return {}
-
     def get_samples(self, n_samples: int) -> SamplesType:
         return self.sa.get_samples(n_samples)
 

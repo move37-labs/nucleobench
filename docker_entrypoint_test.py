@@ -49,7 +49,7 @@ def test_optimization_required_fns(optimization):
     opt_obj = opt_class(**init_args)
 
     # Check that obj has required run functions.
-    opt_obj.run(n_steps=1, **opt_class.debug_run_args())
+    opt_obj.run(n_steps=1)
 
 
 @pytest.mark.parametrize("model,optimization", _valid_model_opt_pairs)
@@ -104,7 +104,6 @@ def test_run_loop_with_all_combos(model, optimization):
                 ),
                 model_init_args=None,
                 opt_init_args=None,
-                opt_run_args=argparse.Namespace(**opt_class.debug_run_args()),
             ),
             ignore_errors=False,
         )
@@ -144,7 +143,6 @@ def test_run_loop_with_flank_length(optimization, flank_length):
                 ),
                 model_init_args=None,
                 opt_init_args=None,
-                opt_run_args=argparse.Namespace(**opt_class.debug_run_args()),
             ),
             ignore_errors=False,
         )
@@ -226,7 +224,6 @@ def test_no_intermediate_records():
                 ),
                 model_init_args=None,
                 opt_init_args=None,
-                opt_run_args=argparse.Namespace(**opt_class.debug_run_args()),
             ),
             ignore_errors=False,
         )
@@ -252,7 +249,7 @@ def test_optimization_pos_to_mutate(optimization):
 
     # Check that obj has required run functions.
     for _ in range(5):
-        opt_obj.run(n_steps=2, **opt_class.debug_run_args())
+        opt_obj.run(n_steps=2)
     
         # Check that all algorithms obey the `positions_to_mutate` argument.
         proposal = opt_obj.get_samples(1)[0]

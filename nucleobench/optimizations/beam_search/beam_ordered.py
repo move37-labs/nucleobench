@@ -207,16 +207,6 @@ class OrderedBeamSearch(oc.SequenceOptimizer):
             'priority_queue_size': 4,
         }
 
-    @staticmethod
-    def run_parser():
-        parser = argparse.ArgumentParser(description="", add_help=False)
-        return parser
-    
-    @staticmethod
-    def debug_run_args():
-        return {
-        }
-    
     def is_finished(self) -> bool:
         return self.n_edits >= len(self.start_sequence)
     

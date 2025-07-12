@@ -10,7 +10,6 @@ class ParsedArgs:
     main_args: argparse.Namespace
     model_init_args: argparse.Namespace
     opt_init_args: argparse.Namespace
-    opt_run_args: argparse.Namespace
     
     
 def parse_long_start_sequence(known_args: argparse.Namespace) -> argparse.Namespace:

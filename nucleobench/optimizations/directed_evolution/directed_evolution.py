@@ -57,16 +57,6 @@ class DirectedGreedyEvolution(oc.SequenceOptimizer):
         print(f'Parsed TISM args: {self.tism_args}')
                  
         
-    @staticmethod
-    def run_parser():
-        parser = argparse.ArgumentParser(description="", add_help=False)
-        return parser
-    
-    @staticmethod
-    def debug_run_args():
-        return {
-        }
-        
     def run(self, 
             n_steps: int,
             ) -> list[np.ndarray]:

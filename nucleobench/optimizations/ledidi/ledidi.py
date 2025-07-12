@@ -91,18 +91,15 @@ class Ledidi(oc.SequenceOptimizer):
         
         
     @staticmethod
-    def run_parser():
-        parser = argparse.ArgumentParser(description="", add_help=False)
-        return parser
-    
-    @staticmethod
-    def debug_run_args():
+    def debug_init_args():
         return {
+            'model_fn': testing_utils.CountLetterModel(),
+            'start_sequence': 'AA',
+            'positions_to_mutate': [1],
+            'rnd_seed': 0,
         }
-        
-    def run(self, 
-            n_steps: int,
-            ) -> list[np.ndarray]:
+
+    def run(self, n_steps: int):
         """Runs the optimization."""
         self.designer.max_iter = n_steps
         

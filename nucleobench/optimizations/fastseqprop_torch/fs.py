@@ -74,20 +74,6 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
         return self.model_fn.inference_on_tensor(sampled_nts_onehot)
         
         
-    @staticmethod
-    def run_parser():
-        parser = argparse.ArgumentParser(description="", add_help=False)
-        group = parser.add_argument_group('FastSeqprop run args')
-        
-        group.add_argument('--batch_size', type=int, default=256, required=True, help='')
-        
-        return parser
-    
-    @staticmethod
-    def debug_run_args():
-        return {
-        }
-        
     def run(self, n_steps: int) -> list[np.ndarray]:
         """Runs the optimization.
         

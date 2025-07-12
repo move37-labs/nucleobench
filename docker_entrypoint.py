@@ -97,7 +97,7 @@ def run_loop(
 
             # Take some optimization steps.
             s_time = time.time()
-            opt.run(n_steps=optimization_steps_per_output_effective, **vars(all_args.opt_run_args))
+            opt.run(n_steps=optimization_steps_per_output_effective)
             e_time = time.time()
             opt_time += (e_time - s_time)
 
@@ -250,7 +250,6 @@ def parse_all(argv: list) -> tuple[mc.ModelClass, oc.SequenceOptimizer, argparse
     # Now parse additional args, as required by model or optimization method.
     model_init_args, leftover_args = model_obj.init_parser().parse_known_args(leftover_args)
     opt_init_args, leftover_args = opt_obj.init_parser().parse_known_args(leftover_args)
-    opt_run_args, leftover_args = opt_obj.run_parser().parse_known_args(leftover_args)
     if len(leftover_args) > 0:
         argparse_lib.handle_leftover_args(known_args, leftover_args)
 
@@ -269,17 +268,15 @@ def parse_all(argv: list) -> tuple[mc.ModelClass, oc.SequenceOptimizer, argparse
         **vars(opt_init_args))
 
     return model_fn, opt, argparse_lib.ParsedArgs(
-        main_args=known_args, 
-        model_init_args=model_init_args, 
-        opt_init_args=opt_init_args, 
-        opt_run_args=opt_run_args)
+        main_args=known_args,
+        model_init_args=model_init_args,
+        opt_init_args=opt_init_args)
 
 
 def main(dry_run: bool = False):
     model_fn, opt, all_args = parse_all(sys.argv[1:])
     
     print(f'[main] main_args: {all_args.main_args}')
-    print(f'[main] opt_run_args: {all_args.opt_run_args}')
     print('[main] Running...')
 
     if dry_run: return True
