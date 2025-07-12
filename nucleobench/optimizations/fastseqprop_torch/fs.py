@@ -29,9 +29,10 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
     def __init__(self, 
                  model_fn: PyTorchDifferentiableModel, 
                  start_sequence: SequenceType,
-                 positions_to_mutate: Optional[PositionsToMutateType] = None,
-                 learning_rate: float = 0.5,
+                 learning_rate: float,
+                 batch_size: int,
                  eta_min: float = 1e-6,
+                 positions_to_mutate: Optional[PositionsToMutateType] = None,
                  vocab: list[str] = constants.VOCAB,
                  rnd_seed: int = 10,
                  ):
@@ -44,6 +45,7 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
         self.reset(start_sequence, positions_to_mutate)
         
         self.learning_rate = learning_rate
+        self.batch_size = batch_size
         self.eta_min = eta_min
         
         # Test that model_fn is PyTorch, and accepts PyTorch tensors.
@@ -84,13 +86,9 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
     @staticmethod
     def debug_run_args():
         return {
-            'batch_size': 2,
         }
         
-    def run(self, 
-            n_steps: int,
-            batch_size: int,
-            ) -> list[np.ndarray]:
+    def run(self, n_steps: int) -> list[np.ndarray]:
         """Runs the optimization.
         
         Default hparams come from https://www.nature.com/articles/s41586-024-08070-z.
@@ -105,8 +103,8 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
         energies = []
         for _ in tqdm.tqdm(range(n_steps)):
             optimizer.zero_grad()
-            energy = self.energy(batch_size).double()
-            assert list(energy.shape) == [batch_size]
+            energy = self.energy(self.batch_size).double()
+            assert list(energy.shape) == [self.batch_size]
             
             energies.append(energy.detach().cpu().numpy())
             energy = energy.mean()
@@ -147,8 +145,9 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
         group = parser.add_argument_group('FastSeqprop init args')
         
         group.add_argument('--learning_rate', type=float, default=0.5, required=True, help='')
-        group.add_argument('--eta_min', type=float, default=1e-6, required=True, help='')
-        group.add_argument('--rnd_seed', type=int, default=10, required=False, help='')
+        group.add_argument('--eta_min', type=float, required=True, help='')
+        group.add_argument('--rnd_seed', type=int, required=True, help='')
+        group.add_argument('--batch_size', type=int, required=True, help='')
         
         return parser
     
@@ -159,4 +158,7 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
             'start_sequence': 'AA',
             'positions_to_mutate': [1],
             'rnd_seed': 0,
+            'learning_rate': 0.5,
+            'eta_min': 1e-6,
+            'batch_size': 4,
         }

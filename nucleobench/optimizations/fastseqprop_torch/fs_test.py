@@ -16,11 +16,14 @@ from nucleobench.optimizations.fastseqprop_torch import fs
 
 
 def test_init_sanity():
-    fs.FastSeqProp(testing_utils.CountLetterModel(), 'AAAA')
+    init_args = fs.FastSeqProp.debug_init_args()
+    fs.FastSeqProp(**init_args)
 
 
 def test_fs_opt_param_init():
-    fs_opt = fs.FastSeqProp(testing_utils.CountLetterModel(), 'AAAA')
+    init_args = fs.FastSeqProp.debug_init_args()
+    init_args['start_sequence'] = 'AAAA'
+    fs_opt = fs.FastSeqProp(**init_args)
     actual = fs_opt.opt_module.params.detach().numpy().squeeze(0)
     expected = string_utils.dna2tensor('AAAA').numpy()
     assert np.all(np.array_equal(actual, expected)), (actual, expected)
@@ -31,17 +34,18 @@ def test_fs_opt_param_init():
     assert np.all(np.array_equal(actual, expected)), (actual, expected)
 
 def test_reset_sanity():
-    fs_opt = fs.FastSeqProp(testing_utils.CountLetterModel(), 'AAAA')
+    init_args = fs.FastSeqProp.debug_init_args()
+    init_args['start_sequence'] = 'AAAA'
+    fs_opt = fs.FastSeqProp(**init_args)
     assert fs_opt.start_sequence == 'AAAA'
     _ = fs_opt.get_samples(1)[0]
 
 def test_opt_changes_param():
-    fs_opt = fs.FastSeqProp(
-        model_fn=testing_utils.CountLetterModel(),
-        start_sequence='AAAA')
+    init_args = fs.FastSeqProp.debug_init_args()
+    fs_opt = fs.FastSeqProp(**init_args)
 
     start_params = fs_opt.opt_module.params.detach().clone().numpy()
-    fs_opt.run(n_steps=1, batch_size=1)
+    fs_opt.run(n_steps=1)
     end_params = fs_opt.opt_module.params.detach().numpy()
 
     assert np.any(np.not_equal(start_params, end_params))
@@ -55,14 +59,14 @@ def test_correctness():
         def inference_on_tensor(self, x):
             return -1 * super().inference_on_tensor(x)
 
-    fs_opt = fs.FastSeqProp(
-        model_fn=ToOptimize(),
-        start_sequence='AA')
+    init_args = fs.FastSeqProp.debug_init_args()
+    init_args['model_fn'] = ToOptimize()
+    fs_opt = fs.FastSeqProp(**init_args)
 
     start_params = fs_opt.opt_module.params.detach().clone().numpy()
     start_energy = fs_opt.energy(batch_size=8).detach().clone().numpy().mean()
 
-    energies = fs_opt.run(n_steps=10, batch_size=8)
+    energies = fs_opt.run(n_steps=10)
 
     final_params = fs_opt.opt_module.params.detach().numpy()
     final_energy = energies[-1].mean()
