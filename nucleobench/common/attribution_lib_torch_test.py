@@ -173,3 +173,59 @@ def test_apply_gradient_mask():
     assert x_grad.shape == (1, 1, 2)
     
     assert (x1 == x2).all(), x1 == x2
+    
+    
+def test_smoothgrad_to_tism():
+    pass
+
+def test_smoothgrad_to_tism_realistic():
+    # Example 1: 3bp sequence, vocab ACGT, simple values
+    base_seq = "ACG"
+    # Each position: dict of {nt: value}, values as torch.Tensor (simulate output of smoothgrad_tensor_to_dict)
+    sg = [
+        {"A": torch.tensor(1.0), "C": torch.tensor(2.0), "G": torch.tensor(3.0), "T": torch.tensor(4.0)},
+        {"A": torch.tensor(0.5), "C": torch.tensor(1.5), "G": torch.tensor(2.5), "T": torch.tensor(3.5)},
+        {"A": torch.tensor(-1.0), "C": torch.tensor(0.0), "G": torch.tensor(1.0), "T": torch.tensor(2.0)},
+    ]
+    tism = attribution_lib_torch.smoothgrad_to_tism(sg, base_seq)
+    # Should be a list of dicts, one per base
+    assert isinstance(tism, list)
+    assert len(tism) == 3
+    for d in tism:
+        assert isinstance(d, dict)
+    # Check values: for each position, only non-base keys, value = float(sg[nt] - sg[base_nt])
+    # Position 0: base A, so keys C,G,T
+    assert set(tism[0].keys()) == {"C", "G", "T"}
+    assert tism[0]["C"] == float(2.0 - 1.0)
+    assert tism[0]["G"] == float(3.0 - 1.0)
+    assert tism[0]["T"] == float(4.0 - 1.0)
+    # Position 1: base C, so keys A,G,T
+    assert set(tism[1].keys()) == {"A", "G", "T"}
+    assert tism[1]["A"] == float(0.5 - 1.5)
+    assert tism[1]["G"] == float(2.5 - 1.5)
+    assert tism[1]["T"] == float(3.5 - 1.5)
+    # Position 2: base G, so keys A,C,T
+    assert set(tism[2].keys()) == {"A", "C", "T"}
+    assert tism[2]["A"] == float(-1.0 - 1.0)
+    assert tism[2]["C"] == float(0.0 - 1.0)
+    assert tism[2]["T"] == float(2.0 - 1.0)
+
+    # Example 2: 2bp sequence, different vocab order, negative values
+    base_seq2 = "GT"
+    sg2 = [
+        {"A": torch.tensor(-2.0), "C": torch.tensor(0.0), "G": torch.tensor(2.0), "T": torch.tensor(4.0)},
+        {"A": torch.tensor(1.0), "C": torch.tensor(-1.0), "G": torch.tensor(0.5), "T": torch.tensor(-0.5)},
+    ]
+    tism2 = attribution_lib_torch.smoothgrad_to_tism(sg2, base_seq2)
+    assert isinstance(tism2, list)
+    assert len(tism2) == 2
+    # Position 0: base G, keys A,C,T
+    assert set(tism2[0].keys()) == {"A", "C", "T"}
+    assert tism2[0]["A"] == float(-2.0 - 2.0)
+    assert tism2[0]["C"] == float(0.0 - 2.0)
+    assert tism2[0]["T"] == float(4.0 - 2.0)
+    # Position 1: base T, keys A,C,G
+    assert set(tism2[1].keys()) == {"A", "C", "G"}
+    assert tism2[1]["A"] == float(1.0 - (-0.5))
+    assert tism2[1]["C"] == float(-1.0 - (-0.5))
+    assert tism2[1]["G"] == float(0.5 - (-0.5))
