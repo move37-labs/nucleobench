@@ -22,20 +22,19 @@ def dna2tensor(sequence_str: str, vocab_list: list[str] = constants.VOCAB) -> to
     Returns:
         torch.Tensor: One-hot encoded tensor representation of the sequence.
     """
-    # Dictionary lookup is faster. Can matter in performance, since this method can be bottleneck.
-    vocab_map = {nt: i for i, nt in enumerate(vocab_list)}
-    
-    # 1. Convert the string sequence to a tensor of integer indices.
-    # The dictionary lookup is O(1) and faster than list.index().
-    int_tensor = torch.tensor([vocab_map[c] for c in sequence_str], dtype=torch.long)
-
-    # 2. Use F.one_hot for efficient conversion.
-    # It creates a tensor of shape (sequence_length, num_classes).
+    int_tensor = dna2tensor_integer(sequence_str, vocab_list)
     one_hot_tensor = F.one_hot(int_tensor, num_classes=len(vocab_list))
-
-    # 3. Transpose to (num_classes, sequence_length) and convert to float
-    # to match the original function's output format.
     return one_hot_tensor.T.float()
+
+
+def dna2tensor_integer(sequence_str: str, vocab_list: list[str] = constants.VOCAB) -> torch.Tensor:
+    """
+    Convert a DNA sequence to an integer encoded tensor.
+    """
+    # Convert the string sequence to a tensor of integer indices.
+    # The dictionary lookup is O(1) and faster than list.index().
+    vocab_map = {nt: i for i, nt in enumerate(vocab_list)}
+    return torch.tensor([vocab_map[c] for c in sequence_str], dtype=torch.long)
 
 
 def dna2tensor_batch(sequence_strs: list[str], vocab_list: list[str] = constants.VOCAB) -> torch.Tensor:
