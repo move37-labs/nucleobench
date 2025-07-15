@@ -142,6 +142,8 @@ def test_smoothgrad_torch_idx_sanity():
         model=model.inference_on_tensor,
         noise_stdev=0.0,
         times=1)
+    assert isinstance(grad, torch.Tensor)
+    grad = grad.cpu().numpy()
     assert grad.shape == (4, 5)
     
     for idx in range(5):
@@ -151,6 +153,8 @@ def test_smoothgrad_torch_idx_sanity():
             noise_stdev=0.25,
             times=5,
             idxs=[idx])
+        assert isinstance(grad_singlebp, torch.Tensor)
+        grad_singlebp = grad_singlebp.cpu().numpy()
         assert grad_singlebp.shape == (4, 1)
         assert np.all(grad[:, idx] == grad_singlebp[:, 0])
         

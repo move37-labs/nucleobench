@@ -17,7 +17,6 @@ python -m nucleobench.common.attribution_lib
 """
 
 import gc
-import numpy as np
 import torch
 from typing import Callable, Optional
 
@@ -62,6 +61,7 @@ def noisy_grads_torch(
         noise_stdev: float, 
         times: int,
         idxs: Optional[TISMLocationsType] = None,
+        force_mem_clear: bool = False,
         ) -> torch.Tensor:
     """Generates noisy gradients from a function.
 
@@ -95,10 +95,11 @@ def noisy_grads_torch(
     y = model(x)
     y_sum = y.sum()
     y_sum.backward(retain_graph=False)
-    noisy_grads = x_grad.grad.numpy()
+    noisy_grads = x_grad.grad.cpu().detach()
 
-    gc.collect()
-    torch.cuda.empty_cache()
+    if force_mem_clear:
+        gc.collect()
+        torch.cuda.empty_cache()
 
     assert noisy_grads.shape == x_grad.shape
     return noisy_grads
@@ -140,7 +141,7 @@ def smoothgrad_torch(
         idxs=idxs,
     )
 
-    return np.mean(noisy_grads, axis=0)
+    return torch.mean(noisy_grads, dim=0)
 
 
 # TODO(joelshor): Add `attribution_lib.py` test, taken from `malinois/model_def_test.py`.
