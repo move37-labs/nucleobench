@@ -9,7 +9,7 @@ import subprocess
 from nucleobench.common import constants
 
 
-def dna2tensor(sequence_str: str, vocab_list=constants.VOCAB) -> torch.Tensor:
+def dna2tensor(sequence_str: str, vocab_list: list[str] = constants.VOCAB) -> torch.Tensor:
     """
     Convert a DNA sequence to a one-hot encoded tensor.
 
@@ -20,11 +20,20 @@ def dna2tensor(sequence_str: str, vocab_list=constants.VOCAB) -> torch.Tensor:
     Returns:
         torch.Tensor: One-hot encoded tensor representation of the sequence.
     """
-    seq_tensor = np.zeros((len(vocab_list), len(sequence_str)))
-    for letterIdx, letter in enumerate(sequence_str):
-        seq_tensor[vocab_list.index(letter), letterIdx] = 1
-    seq_tensor = torch.Tensor(seq_tensor)
-    return seq_tensor
+    # Dictionary lookup is faster. Can matter in performance, since this method can be bottleneck.
+    vocab_map = {nt: i for i, nt in enumerate(vocab_list)}
+    
+    # 1. Convert the string sequence to a tensor of integer indices.
+    # The dictionary lookup is O(1) and faster than list.index().
+    int_tensor = torch.tensor([vocab_map[c] for c in sequence_str], dtype=torch.long)
+
+    # 2. Use F.one_hot for efficient conversion.
+    # It creates a tensor of shape (sequence_length, num_classes).
+    one_hot_tensor = torch.nn.functional.one_hot(int_tensor, num_classes=len(vocab_list))
+
+    # 3. Transpose to (num_classes, sequence_length) and convert to float
+    # to match the original function's output format.
+    return one_hot_tensor.T.float()
 
 
 def dna2tensor_batch(
