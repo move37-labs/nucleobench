@@ -1,4 +1,4 @@
-"""Wrapper around gRelu Ledidi."""
+"""Wrapper around Ledidi."""
 
 from typing import Optional
 
@@ -6,6 +6,7 @@ import argparse
 import numpy as np
 import torch
 
+from nucleobench.common import argparse_lib
 from nucleobench.common import constants
 from nucleobench.common import string_utils
 from nucleobench.common import testing_utils
@@ -129,6 +130,7 @@ class Ledidi(oc.SequenceOptimizer):
         group.add_argument('--train_batch_size', type=int, default=256, required=True, help='')
         group.add_argument('--lr', type=float, default=0.1, required=True, help='')
         group.add_argument('--rng_seed', type=int, default=0, required=False, help='')
+        group.add_argument('--debug', type=argparse_lib.str_to_bool, default=None, required=False, help='')
         
         return parser
     
