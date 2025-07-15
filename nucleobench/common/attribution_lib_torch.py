@@ -154,38 +154,6 @@ def smoothgrad_tensor_to_dict(smooth_grad: torch.Tensor, vocab: list[str]) -> Sm
     return [_to_dict(x) for x in smooth_grad.T]
 
 
-def smoothgrad_torch_to_tism_torch(sg_tensor: torch.Tensor, base_seq: torch.Tensor) -> torch.Tensor:
-    """Returns result according to Taylor in-silico mutagenesis.
-    
-    Paper: https://www.cell.com/iscience/fulltext/S2589-0042(24)02032-7
-    
-    Identical to `smoothgrad_to_tism`, but for torch tensors. Avoids converting to strings.
-    
-    Args:
-        sg_tensor: (vocab_size, seq_len) tensor, smoothgrad values for each base at each position.
-        base_seq_onehot: (seq_len,) tensor, integer encoding of the reference sequence.
-    Returns:
-        tism_tensor: (vocab_size, seq_len) tensor, where for each position, the value for the reference base is zero,
-        and for other bases is sg_tensor[nt, pos] - sg_tensor[ref_nt, pos].
-    """
-    assert sg_tensor.ndim == 2
-    assert base_seq.ndim == 1
-    assert sg_tensor.shape[1] == base_seq.shape[0]
-    
-    vocab_size, seq_len = sg_tensor.shape
-    # Gather the smoothgrad value for the reference base at each position: (seq_len,)
-    ref_vals = sg_tensor[base_seq, torch.arange(seq_len)]  # (seq_len,)
-    # Expand to (vocab_size, seq_len) for broadcasting
-    ref_vals_expanded = ref_vals.unsqueeze(0).expand(vocab_size, seq_len)
-    # Subtract reference value from all
-    tism_tensor = sg_tensor - ref_vals_expanded
-    # Set the reference base positions to zero.
-    # Not strictly necessary, but possibly relevant for numerical stability.
-    tism_tensor[base_seq, torch.arange(seq_len)] = 0.0
-    
-    return tism_tensor
-
-
 def smoothgrad_to_tism(sg: SmoothgradVocabType, base_seq: str) -> TISMOutputType:
     """Returns result according to Taylor in-silico mutagenesis.
     
