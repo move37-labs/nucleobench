@@ -63,7 +63,7 @@ class CountSubstringModel(torch.nn.Module, mc.PyTorchDifferentiableModel, mc.TIS
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         assert x.ndim == 3
-        assert x.shape[1] == len(self.vocab), x.shape
+        assert x.shape[1] == 4, x.shape
         out_tensor = F.conv1d(x, self.substr_tensor)
         out_tensor = torch.squeeze(out_tensor, 1)
         # We square it so it's nonlinear. That is, getting all 3 in one window should be
