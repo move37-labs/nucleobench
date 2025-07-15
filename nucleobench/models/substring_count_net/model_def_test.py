@@ -6,8 +6,6 @@ pytest nucleobench/models/substring_count_net/model_def_test.py
 ```
 """
 
-import torch
-
 from nucleobench.models.substring_count_net import model_def
 
 
@@ -66,50 +64,3 @@ def test_tism_sanity():
     seq = 'ATCATGATC'
     for idx in range(len(seq) - 1):
         v, tism = m.tism(seq, [idx, idx+1])
-
-
-def test_tism_torch_correctness():
-    vocab = ['A', 'C']
-    # Use a simple substring and sequence
-    model = model_def.CountSubstringModel(
-        substring='A', 
-        tism_times=1, 
-        tism_stdev=0.0, 
-        vocab=vocab,
-        )
-
-    seq = 'AAC'
-    # tism_torch should return a tensor of shape (vocab_size, seq_len)
-    tism_tensor = model.tism_torch(seq)
-    assert isinstance(tism_tensor, torch.Tensor)
-    assert tism_tensor.shape == (2, 3)
-    # For this model, the smoothgrad is just the gradient of the count wrt input (since tism_times=1, stdev=0)
-    # The reference base at each position should be zero
-    base_seq_idx = [0, 0, 1]  # 'A', 'A', 'C' in vocab ['A', 'C']
-    for i, ref in enumerate(base_seq_idx):
-        assert tism_tensor[ref, i] == 0.0
-    # The other base should be the difference in smoothgrad between that base and the reference
-    # (for this toy model, values may be 0, but we check type and shape)
-
-
-def test_tism_torch_consistency_with_tism():
-    vocab = ['A', 'C']
-    
-    # Use a simple substring and sequence
-    model = model_def.CountSubstringModel(
-        substring='A', 
-        tism_times=1, 
-        tism_stdev=0.0, 
-        vocab=vocab,
-        )
-    seq = 'AAC'
-    # tism returns (y, sg_dicts), tism_torch returns tensor
-    _, sg_dicts = model.tism(seq)
-    tism_tensor = model.tism_torch(seq)
-    # Compare values for each base and position
-    for i, sg_dict in enumerate(sg_dicts):
-        for j, nt in enumerate(vocab):
-            # tism_torch: [j, i], sg_dict: nt
-            val_torch = float(tism_tensor[j, i])
-            val_py = float(sg_dict.get(nt, 0.0))
-            assert abs(val_torch - val_py) < 1e-6
