@@ -63,7 +63,7 @@ class CountSubstringModel(torch.nn.Module, mc.PyTorchDifferentiableModel, mc.TIS
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         assert x.ndim == 3
-        assert x.shape[1] == 4, x.shape
+        assert x.shape[1] == len(self.vocab), x.shape
         out_tensor = F.conv1d(x, self.substr_tensor)
         out_tensor = torch.squeeze(out_tensor, 1)
         # We square it so it's nonlinear. That is, getting all 3 in one window should be
@@ -93,6 +93,21 @@ class CountSubstringModel(torch.nn.Module, mc.PyTorchDifferentiableModel, mc.TIS
         sg = att_lib.smoothgrad_to_tism(sg, x_effective)
         y = self.inference_on_tensor(torch.unsqueeze(input_tensor, dim=0))
         return y, sg
+
+    def tism_torch(self, x: str, idxs: Optional[list[int]] = None) -> torch.Tensor:
+        input_tensor = string_utils.dna2tensor(x, vocab_list=self.vocab)
+        sg_tensor = att_lib.smoothgrad_torch(
+            input_tensor=input_tensor,
+            model=self.inference_on_tensor,
+            noise_stdev=self.tism_stdev,
+            times=self.tism_times,
+            idxs=idxs,
+        )
+        # Determine the effective sequence (full or subset by idxs).
+        x_effective = x if idxs is None else [x[idx] for idx in idxs]
+        base_seq_idx = string_utils.dna2tensor_integer(x_effective, vocab_list=self.vocab)
+
+        return att_lib.smoothgrad_torch_to_tism_torch(sg_tensor, base_seq_idx)
 
     def __call__(self, seqs: list[str], return_debug_info: bool = False):
         torch_seq = string_utils.dna2tensor_batch(seqs)
