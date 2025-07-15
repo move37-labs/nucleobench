@@ -178,9 +178,6 @@ def test_apply_gradient_mask():
     
     assert (x1 == x2).all(), x1 == x2
     
-    
-def test_smoothgrad_to_tism():
-    pass
 
 def test_smoothgrad_to_tism_realistic():
     # Example 1: 3bp sequence, vocab ACGT, simple values
