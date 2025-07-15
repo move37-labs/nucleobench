@@ -229,3 +229,57 @@ def test_smoothgrad_to_tism_realistic():
     assert tism2[1]["A"] == float(1.0 - (-0.5))
     assert tism2[1]["C"] == float(-1.0 - (-0.5))
     assert tism2[1]["G"] == float(0.5 - (-0.5))
+
+def test_smoothgrad_torch_to_tism_torch_correctness():
+    # Example: vocab_size=4 (A,C,G,T), seq_len=3
+    sg_tensor = torch.tensor([
+        [1.0, 0.5, -1.0],   # A
+        [2.0, 1.5, 0.0],    # C
+        [3.0, 2.5, 1.0],    # G
+        [4.0, 3.5, 2.0],    # T
+    ])  # shape (4, 3)
+    # Reference sequence: A, C, G (encoded as 0, 1, 2)
+    base_seq = torch.tensor([0, 1, 2])
+    tism = attribution_lib_torch.smoothgrad_torch_to_tism_torch(sg_tensor, base_seq)
+    # For each position, reference base should be zero, others should be sg_tensor[nt, i] - sg_tensor[ref, i]
+    expected = torch.tensor([
+        [0.0, 0.5-1.5, -1.0-1.0],
+        [2.0-1.0, 0.0, 0.0-1.0],
+        [3.0-1.0, 2.5-1.5, 0.0],
+        [4.0-1.0, 3.5-1.5, 2.0-1.0],
+    ])
+    assert torch.allclose(tism, expected)
+    # Reference base is exactly zero
+    for i, ref in enumerate(base_seq):
+        assert tism[ref, i] == 0.0
+
+def test_smoothgrad_torch_to_tism_torch_matches_python():
+    # Vocab and mapping
+    vocab = ['A', 'C', 'G', 'T']
+    vocab_idx = {nt: i for i, nt in enumerate(vocab)}
+    # Example: seq_len=4
+    base_seq = 'ACGT'
+    sg_tensor = torch.tensor([
+        [1.0, 0.5, -1.0, 2.0],   # A
+        [2.0, 1.5, 0.0, 3.0],    # C
+        [3.0, 2.5, 1.0, 4.0],    # G
+        [4.0, 3.5, 2.0, 5.0],    # T
+    ])  # shape (4, 4)
+    # Integer encoding of base_seq
+    base_seq_idx = torch.tensor([vocab_idx[nt] for nt in base_seq])
+    # Run torch version
+    tism_torch = attribution_lib_torch.smoothgrad_torch_to_tism_torch(sg_tensor, base_seq_idx)
+    # Run python version
+    # Build SmoothgradVocabType
+    sg_dicts = []
+    for i in range(4):
+        sg_dicts.append({nt: torch.tensor(float(sg_tensor[vocab_idx[nt], i])) for nt in vocab})
+    tism_py = attribution_lib_torch.smoothgrad_to_tism(sg_dicts, base_seq)
+    # Compare
+    for i, nt in enumerate(vocab):
+        for j in range(4):
+            if nt == base_seq[j]:
+                assert tism_torch[vocab_idx[nt], j] == 0.0
+            else:
+                # Should match python version
+                assert abs(tism_torch[vocab_idx[nt], j] - tism_py[j].get(nt, 0.0)) < 1e-6
