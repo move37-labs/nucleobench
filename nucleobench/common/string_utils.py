@@ -83,25 +83,16 @@ def tensor2dna(
         torch.Tensor: One-hot encoded tensor representation of the sequence.
     """
     if isinstance(tensor, torch.Tensor):
-        tensor = tensor.numpy()
+        tensor = tensor.cpu().numpy()
 
-    if tensor.ndim != 2:
-        raise ValueError(f"Expected dim 2: {tensor.ndim}")
-    if tensor.shape[0] != len(vocab_list):
-        raise ValueError(f"Expected vocab dim to be {len(vocab_list)}): {tensor.shape}")
-    if not np.all(np.isin(tensor, [0, 1])):
-        raise ValueError(f"Expected values to be 0 or 1: {tensor}")
-    col_sum = np.sum(tensor, axis=0)
-    if not np.all(col_sum == np.ones_like(col_sum)):
-        raise ValueError(f"Not onehot: {tensor}")
+    if tensor.ndim != 2 or tensor.shape[0] != len(vocab_list):
+        raise ValueError("Invalid tensor shape for the given vocabulary.")
 
-    # Convert one-hot tensors to string sequence.
-    seq = []
-    for idx in range(tensor.shape[1]):
-        cur_onehot = tensor[:, idx]
-        cur_char = vocab_list[np.nonzero(cur_onehot)[0][0]]
-        seq.append(cur_char)
-    return "".join(seq)
+
+    indices = np.argmax(tensor, axis=0)
+    vocab_array = np.array(vocab_list)
+    char_array = vocab_array[indices]
+    return "".join(char_array)
 
 
 def tensor2dna_batch(
@@ -118,11 +109,15 @@ def tensor2dna_batch(
         torch.Tensor: One-hot encoded tensor representation of the sequence.
     """
     if isinstance(tensor, torch.Tensor):
-        tensor = tensor.numpy()
-    if tensor.ndim != 3:
-        raise ValueError(f"Expected dim 3: {tensor.ndim}")
+        tensor = tensor.cpu().numpy()
 
-    return [tensor2dna(t, vocab_list) for t in tensor]
+    if tensor.ndim != 3:
+        raise ValueError(f"Expected a 3D tensor, but got {tensor.ndim} dimensions.")
+
+    indices = np.argmax(tensor, axis=1)
+    vocab_array = np.array(vocab_list)
+    char_array = vocab_array[indices]
+    return ["".join(row) for row in char_array]
 
 
 def str2np(sequence_str: str, vocab_list=constants.VOCAB) -> np.ndarray:
