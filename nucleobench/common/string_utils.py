@@ -1,9 +1,11 @@
 """Utils for manipulating stringsl."""
 
 import os
+from typing import Union
+
 import numpy as np
 import torch
-from typing import Union
+import torch.nn.functional as F
 import subprocess
 
 from nucleobench.common import constants
@@ -29,28 +31,42 @@ def dna2tensor(sequence_str: str, vocab_list: list[str] = constants.VOCAB) -> to
 
     # 2. Use F.one_hot for efficient conversion.
     # It creates a tensor of shape (sequence_length, num_classes).
-    one_hot_tensor = torch.nn.functional.one_hot(int_tensor, num_classes=len(vocab_list))
+    one_hot_tensor = F.one_hot(int_tensor, num_classes=len(vocab_list))
 
     # 3. Transpose to (num_classes, sequence_length) and convert to float
     # to match the original function's output format.
     return one_hot_tensor.T.float()
 
 
-def dna2tensor_batch(
-    sequence_strs: list[str], vocab_list=constants.VOCAB
-) -> torch.Tensor:
+def dna2tensor_batch(sequence_strs: list[str], vocab_list: list[str] = constants.VOCAB) -> torch.Tensor:
     """
-    Convert a DNA sequence to a one-hot encoded tensor.
+    Efficiently convert a batch of DNA sequences to a one-hot encoded tensor.
+    Assumes all sequences in the batch are the same length.
 
     Args:
-        sequence_str (str): DNA sequence string.
-        vocab_list (list): List of DNA nucleotide characters.
+        sequence_strs (list[str]): A list of DNA sequence strings.
 
     Returns:
-        torch.Tensor: One-hot encoded tensor representation of the sequence.
+        torch.Tensor: One-hot encoded tensor of shape
+                      (batch_size, vocab_size, sequence_length).
     """
-    seq_tensors = [dna2tensor(x, vocab_list) for x in sequence_strs]
-    return torch.stack(seq_tensors)
+    # Dictionary lookup is faster. Can matter in performance, since this method can be bottleneck.
+    vocab_map = {nt: i for i, nt in enumerate(vocab_list)}
+    
+    # 1. Convert the list of strings to a 2D tensor of integer indices.
+    # This is done in a single tensor creation call.
+    int_tensor = torch.tensor([[vocab_map[c] for c in seq] for seq in sequence_strs],
+                              dtype=torch.long)
+    # The resulting tensor has shape: (batch_size, sequence_length)
+
+    # 2. Apply one-hot encoding to the entire batch tensor at once.
+    # F.one_hot adds a new dimension at the end.
+    # Output shape: (batch_size, sequence_length, vocab_size)
+    one_hot_tensor = F.one_hot(int_tensor, num_classes=len(vocab_list))
+
+    # 3. Permute the dimensions to match the desired output shape and set type.
+    # We swap the last two dimensions to get (batch_size, vocab_size, sequence_length)
+    return one_hot_tensor.permute(0, 2, 1).float()
 
 
 def tensor2dna(
