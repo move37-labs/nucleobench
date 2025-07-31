@@ -60,7 +60,7 @@ print(f'Final sequence: {ret[0]}')
 ```
 
 Output:
-```console
+```bash
 Step 99 current scores: [np.float64(508.0), np.float64(507.0), np.float64(506.0), np.float64(505.0), np.float64(504.0), np.float64(503.0), np.float64(503.0), np.float64(502.0), np.float64(502.0), np.float64(502.0)]
 Final score: -508.0
 Final sequence: AGATGTCATATATGATGTCATGTCATGTCGTCATGTCTGTCTCTCATGTATGTCATGTCTATGTCTGTCTATGTCTATGTCTATGTCATGTCTATGTCTC
@@ -76,7 +76,7 @@ docker image pull joelshor/nucleobench:latest
 ```
 
 Output:
-```console
+```bash
 latest: Pulling from joelshor/nucleobench
 Digest: sha256:602230b568c0f15acfa7a0b6723ffb16fab6f32c37ae5b88c71763fb722ab5c3
 Status: Image is up to date for joelshor/nucleobench:latest
@@ -110,7 +110,7 @@ docker run \
 ```
 
 Output:
-```console
+```bash
 Completed round 3441 (5 steps) took 0.00s. Avg 0.00s per step.
 Proposals deposited at:
 	/Users/joelshor/Desktop/docker_test/output/docker_recipe/adabeam_atac/adabeam_substring_count/20250731_194857/20250731_194912.pkl
@@ -146,7 +146,7 @@ python -m docker_entrypoint \
 ```
 
 Output:
-```console
+```bash
 ...
 Completed round 3820 (5 steps) took 0.00s. Avg 0.00s per step.
   0%|                              | 3821/99999999 [00:14<109:01:33, 254.77it/s]
