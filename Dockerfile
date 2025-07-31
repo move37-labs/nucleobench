@@ -54,7 +54,6 @@ RUN micromamba install -y -n base -f /tmp/environment.yml && \
 
 # Copy only the needed subset of files.
 COPY --chown=${APP_USER_NAME}:${APP_USER_NAME} docker_entrypoint.py /nucleobench/
-COPY --chown=${APP_USER_NAME}:${APP_USER_NAME} docker_entrypoint_multi.py /nucleobench/
 COPY --chown=${APP_USER_NAME}:${APP_USER_NAME} nucleobench /nucleobench/nucleobench
 # These starting sequences for enformer are too long to include in the csv.
 # NOTE: This should be removed in the final docker image, since it is 95% the size of the image.
