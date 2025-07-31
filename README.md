@@ -5,9 +5,9 @@
 [comment]: <> (Consider an image here.)
 
 We describe NucleoBench and AdaBeam in the paper ["NucleoBench: A Large-Scale Benchmark of Neural Nucleic Acid Design
-Algorithms"](https://www.biorxiv.org/content/10.1101/2025.06.20.660785), appeared in the 2025 ICML GenBio Workshop.
+Algorithms"](https://www.biorxiv.org/content/10.1101/2025.06.20.660785), appearing in the 2025 ICML GenBio Workshop.
 
-This repo is intended to be used in a few days:
+This repo is intended to be used in a few ways:
 1. Run any of the NucleoBench design algorithms on a new design problem.
 1. Run AdaBeam on a new design problem.
 1. Run a new design algorithm on NucleoBench tasks, and avoid recomputing performances for existing designers.
@@ -116,7 +116,7 @@ Proposals deposited at:
 	/Users/joelshor/Desktop/docker_test/output/docker_recipe/adabeam_atac/adabeam_substring_count/20250731_194857/20250731_194912.pkl
 ```
 
-This "recipe" can be found under [`recipes/docker/adabeam_atac.sh`](https://github.com/move37-labs/nucleobench/blob/main/recipes/docker/adabeam_atac.py).
+This "recipe" can be found under [`recipes/docker/adabeam_atac.sh`](https://github.com/move37-labs/nucleobench/blob/main/recipes/docker/adabeam_atac.sh).
 
 ### Get started in 5 minutes (git clone)
 
@@ -163,15 +163,51 @@ This "recipe" can be found under [`recipes/python/adabeam_atac.py`](https://gith
 
 ## Details
 
-**NucleBench** is a large-scale comparison of modern sequence design algorithms across 16 biological tasks (such as transcription factor binding and gene expression) and 9 design algorithms. NucleoBench, compares design algorithms on the same tasks and start sequences across more than 400K experiments, allowing us to derive unique modeling insights on the importance of using gradient information, the role of randomness, scaling properties, and reasonable starting hyperparameters on new problems. We use these insights to present a novel hybrid design algorithm, **AdaBeam**, that outperforms existing algorithms on 11 of 16 tasks and demonstrates superior scaling properties on long sequences and large predictors. Our benchmark and algorithms are freely available online.
+**NucleoBench** is a large-scale comparison of modern sequence design algorithms across 16 biological tasks (such as transcription factor binding and gene expression) and 9 design algorithms. NucleoBench, compares design algorithms on the same tasks and start sequences across more than 400K experiments, allowing us to derive unique modeling insights on the importance of using gradient information, the role of randomness, scaling properties, and reasonable starting hyperparameters on new problems. We use these insights to present a novel hybrid design algorithm, **AdaBeam**, that outperforms existing algorithms on 11 of 16 tasks and demonstrates superior scaling properties on long sequences and large predictors. Our benchmark and algorithms are freely available online.
 
 ![results](assets/images/results_summary.png)
 
-![results](assets/images/benchmarks.png)
+### Comparison of nucleic acid design benchmarks
 
-![results](assets/images/tasks.png)
+| NAME | YEAR | ALGOS | TASKS | SEQ. LENGTH (BP) | DESIGN BENCHMARK | LONG SEQS | LARGE MODELS | PAIRED START SEQS. |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Fitness Landscape Exploration Sandbox | 2020 | 4-6 | 9 | Most <100 | ✅ | ❌ | ❌ | ✅ |
+| Computational Optimization of DNA Activity | 2024 | 3 | 3 | 200 | ✅ | ❌ | ❌ | ✅ |
+| gRelu | 2024 | 2 | 5 | 500K (20 edit) | ❌ | ❌ | ✅ | ❌ |
+| Linder et al repos | 2021 | 2 | 20 | <600 | ✅ | ❌ | ❌ | ❌ |
+| NucleoBench (ours) | 2025 | 9 | 16 | 256-3K | ✅ | ✅ | ✅ | ✅ |
 
-![results](assets/images/designers.png)
+<small>Table: Nucleic acid design from sequence benchmarks. All benchmarks prior to NucleoBench are limited either in the range of tasks
+they measure against, the range of optimizations they compare, or the complexity of the task.</small>
+
+### Summary of tasks in NucleoBench
+
+| TASK CATEGORY | MODEL | DESCRIPTION | NUM TASKS | SEQ LEN (BP) | SPEED (MS / EXAMPLE) |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Cell-type specific cis-regulatory activity | Malinois | How DNA sequences control gene expression from the same DNA molecule. Cell types are: precursor blood cells, liver cells, neuronal cells. | 3 | 200 | 2 |
+| Transcription factor binding | BPNet-lite | How likely a specific transcription factor (TF) will bind to a particular stretch of DNA. | 12 | 3000 | 55 / 260** |
+| Selective gene expression | Enformer | Prediction of gene expression. | 1 | 196,608 / 256 * | 15,000 |
+
+<small>*Input length is 200K, but only 256 bp are edited. **All models are 55ms except the ATAC model, which is 260.</small>
+
+### Summary of designers in NucleoBench
+
+| Algo | Description | Gradient-based |
+| :--- | :--- | :--- |
+| Directed Evolution | Random mutations, track the best. | ❌ |
+| Simulated Annealing | Greedy optimization with random jumps. | ❌ |
+| [AdaLead](https://arxiv.org/abs/2010.02141) | Iterative combining and mutating of a population of sequences. | ❌ |
+| [FastSeqProp](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-021-04437-5) | Sampling and the straight-through estimator for maximal input. | ✅ |
+| [Ledidi](https://www.biorxiv.org/content/10.1101/2020.05.21.109686v1) | Sampling and the gumbel softmax estimator for maximal input. | ✅ |
+| --- |
+| Ordered Beam | Greedy search, in fixed sequence order, with cache. | ❌ |
+| Unordered Beam | Greedy search with cache. | ❌ |
+| Gradient Evo | Directed Evolution, guided by model gradients. | ✅ |
+| AdaBeam (ours) | Hybrid of Unordered Beam and improved AdaLead. | ❌ |
+
+<small>Table: Summary of designers in NucleoBench. Above the solid line are designers already found in the nucleic acid design literature.
+Below the line are designers from the search literature not previously used to benchmark nucleic acid sequence design and hybrid
+algorithms devised in this work.</small>
 
 ### Docker
 
