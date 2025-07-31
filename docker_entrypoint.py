@@ -22,7 +22,6 @@ import argparse
 import datetime
 import os
 import sys
-import tracemalloc
 import time
 import tqdm
 from typing import Any
@@ -79,11 +78,6 @@ def run_loop(
         round_i=-1)
     all_dicts_to_write.append(to_write)
 
-    # Optionally start debug.
-    if args.trace_memory:
-        tracemalloc.start()
-        base_snapshot = tracemalloc.take_snapshot()
-
     print('Starting loop...')
     for round_i in tqdm.tqdm(range(args.max_number_of_rounds)):
         try:
@@ -115,24 +109,12 @@ def run_loop(
             tot_steps = (round_i+1) * optimization_steps_per_output_effective
             tot_time = time.time() - exp_start_time
             print(f'Completed round {round_i} ({optimization_steps_per_output_effective} steps) took {(e_time - s_time):.2f}s. Avg {tot_time/tot_steps:.2f}s per step.')
-            if args.trace_memory:
-                cur_mem_usage, peak_mem_usage = tracemalloc.get_traced_memory()
-                print(f'Memory usage: {cur_mem_usage/1024**2:.2f} MB, peak: {peak_mem_usage/1024**2:.2f} MB')
-                snapshot = tracemalloc.take_snapshot()
-                top_stats = snapshot.compare_to(base_snapshot, 'lineno')
-                print("[Top 10 memory usage]")
-                for stat in top_stats[:10]:
-                    print(stat)
         except Exception as e:
             print(e)
             if ignore_errors:
                 continue
             else:
                 raise e
-
-    # End debugging.
-    if args.trace_memory:
-        tracemalloc.stop()
 
     # Add one more entry at the end, that includes the proposals.
     to_write = _get_dict_to_write(
@@ -234,7 +216,6 @@ def parse_all(argv: list) -> tuple[mc.ModelClass, oc.SequenceOptimizer, argparse
         help='The number of optimization steps to run before recording a step. Note that `-1` means "do not record any intermediate steps."')
     group.add_argument('--proposals_per_round', type=int, default=1, help='')
     group.add_argument('--ignore_errors', type=argparse_lib.str_to_bool, default=False, help='')
-    group.add_argument('--trace_memory', type=argparse_lib.str_to_bool, default=False, help='')
     group.add_argument(
         '--ignore_empty_cmd_args', type=argparse_lib.str_to_bool, default=False, 
         help='Ignore empty commandline args. Useful to have one script for all models/optimizers.')
