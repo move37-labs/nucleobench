@@ -1,11 +1,15 @@
+## NucleoBench
+
 **A large-scale benchmark for modern nucleic acid sequence design algorithms (NucleoBench), and a new design algorithm that outperforms existing designers (AdaBeam).  Link to ICML GenBio 2025 workshop paper [here](https://www.biorxiv.org/content/10.1101/2025.06.20.660785).**
 
 [comment]: <> (Consider an image here.)
 
 This repo is intended to be used in a few ways:
-1. Run any of the NucleoBench design algorithms on a new design problem.
-1. Run AdaBeam on a new design problem.
-1. Run a new design algorithm on NucleoBench tasks, and avoid recomputing performances for existing designers.
+1. Design a DNA sequence with selective expression in a cell-type (or any other target property in the benchmark, see list [here](#summary-of-tasks-in-nucleobench)), using the AdaBeam algorithm (or any of the ones listed [here](#summary-of-designers-in-nucleobench))
+2. Design a DNA sequence with high binding affinity for a specific transcription factor (such as the ones listed [here](#summary-of-tasks-in-nucleobench)), using the AdaBeam algorithm (or any of the ones listed [here](#summary-of-designers-in-nucleobench))
+1. Design a DNA or RNA sequence for a new task, using any designer (see tutorial [here](https://github.com/move37-labs/nucleobench/blob/documentation/recipes/colab/custom_task.ipynb))
+1. Run a new design algorithm on NucleoBench tasks.
+
 
 ### Citation
 
@@ -30,6 +34,7 @@ Please cite the following publication when referencing NucleoBench or AdaBeam:
   - [3  minute install w/ docker](#get-started-in-3-minutes-docker-image-pull)
   - [5 minute install w/ source](#get-started-in-5-minutes-git-clone)
 - [Details](#details)
+- [FAQ](#faq)
 
 ## Quick Start
 
@@ -169,7 +174,7 @@ This "recipe" can be found under [`recipes/python/adabeam_atac.py`](https://gith
 
 **NucleoBench** is a large-scale comparison of modern sequence design algorithms across 16 biological tasks (such as transcription factor binding and gene expression) and 9 design algorithms. NucleoBench, compares design algorithms on the same tasks and start sequences across more than 400K experiments, allowing us to derive unique modeling insights on the importance of using gradient information, the role of randomness, scaling properties, and reasonable starting hyperparameters on new problems. We use these insights to present a novel hybrid design algorithm, **AdaBeam**, that outperforms existing algorithms on 11 of 16 tasks and demonstrates superior scaling properties on long sequences and large predictors. Our benchmark and algorithms are freely available online.
 
-![results](assets/images/results_summary.png)
+<img src="assets/images/results_summary.png" alt="results" style="width: 70%; max-width: 800px; height: auto; display: block; margin: auto;" />
 
 ### Comparison of nucleic acid design benchmarks
 
@@ -208,8 +213,13 @@ they measure against, the range of optimizations they compare, or the complexity
 | Ordered Beam | Greedy search, in fixed sequence order, with cache. | ❌ |
 | Unordered Beam | Greedy search with cache. | ❌ |
 | Gradient Evo | Directed Evolution, guided by model gradients. | ✅ |
-| AdaBeam (ours) | Hybrid of Unordered Beam and improved AdaLead. | ❌ |
+| [AdaBeam (ours)](https://www.biorxiv.org/content/10.1101/2025.06.20.660785) | Hybrid of Unordered Beam and improved AdaLead. | ❌ |
 
 <small>Table: Summary of designers in NucleoBench. Above the solid line are designers already found in the nucleic acid design literature.
 Below the line are designers from the search literature not previously used to benchmark nucleic acid sequence design and hybrid
 algorithms devised in this work.</small>
+
+## FAQ
+
+1. How can I add a new task to NucleoBench?
+    A: Follow [this](https://github.com/move37-labs/nucleobench/blob/documentation/recipes/colab/custom_task.ipynb) colab notebook.
