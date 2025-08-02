@@ -174,7 +174,9 @@ This "recipe" can be found under [`recipes/python/adabeam_atac.py`](https://gith
 
 **NucleoBench** is a large-scale comparison of modern sequence design algorithms across 16 biological tasks (such as transcription factor binding and gene expression) and 9 design algorithms. NucleoBench, compares design algorithms on the same tasks and start sequences across more than 400K experiments, allowing us to derive unique modeling insights on the importance of using gradient information, the role of randomness, scaling properties, and reasonable starting hyperparameters on new problems. We use these insights to present a novel hybrid design algorithm, **AdaBeam**, that outperforms existing algorithms on 11 of 16 tasks and demonstrates superior scaling properties on long sequences and large predictors. Our benchmark and algorithms are freely available online.
 
-<img src="assets/images/results_summary.png" alt="results" style="width: 70%; max-width: 800px; height: auto; display: block; margin: auto;" />
+<div align="center">
+<img src="assets/images/results_summary.png" alt="results" style="width: 70%; max-width: 800px; height: auto;" />
+</div>
 
 ### Comparison of nucleic acid design benchmarks
 
