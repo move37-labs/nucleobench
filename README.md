@@ -7,7 +7,7 @@
 This repo is intended to be used in a few ways:
 1. Design a DNA sequence with selective expression in a cell-type (or any other target property in the benchmark, see list [here](#summary-of-tasks-in-nucleobench)), using the AdaBeam algorithm (or any of the ones listed [here](#summary-of-designers-in-nucleobench))
 2. Design a DNA sequence with high binding affinity for a specific transcription factor (such as the ones listed [here](#summary-of-tasks-in-nucleobench)), using the AdaBeam algorithm (or any of the ones listed [here](#summary-of-designers-in-nucleobench))
-1. Design a DNA or RNA sequence for a new task, using any designer (see tutorial [here](https://github.com/move37-labs/nucleobench/blob/documentation/recipes/colab/custom_task.ipynb))
+1. Design a DNA or RNA sequence for a new task, using any designer (see tutorial [here](https://github.com/move37-labs/nucleobench/blob/main/recipes/colab/custom_task.ipynb))
 1. Run a new design algorithm on NucleoBench tasks.
 
 
@@ -224,4 +224,4 @@ algorithms devised in this work.</small>
 ## FAQ
 
 1. How can I add a new task to NucleoBench?
-    A: Follow [this](https://github.com/move37-labs/nucleobench/blob/documentation/recipes/colab/custom_task.ipynb) colab notebook.
+    A: Follow [this](https://github.com/move37-labs/nucleobench/blob/main/recipes/colab/custom_task.ipynb) colab notebook.
