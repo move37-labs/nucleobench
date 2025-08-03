@@ -1,0 +1,49 @@
+# .github/workflows/python-tests.yml
+
+name: Run Python Tests with Mamba
+#
+# This workflow runs the tests for the project.
+# It uses the mamba-org/setup-micromamba action to set up the micromamba environment.
+# It then runs the tests using pytest.
+#
+# This workflow is used to test the project and ensure that it is working as expected.
+#
+
+# Controls when the workflow will run
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+# A workflow run is made up of one or more jobs
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # You can still matrix different python versions
+        # This will override the version in environment.yml
+        python-version: ["3.11"]
+
+    steps:
+      # 1. Checks out your repository's code
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # 2. Sets up micromamba and creates the environment
+      - name: Setup Micromamba
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-file: environment.yml
+          create-args: >-
+            python=${{ matrix.python-version }}
+          cache-environment: true
+          post-cleanup: 'all'
+
+      # 3. Runs pytest inside the activated conda environment
+      # The 'micromamba-shell' automatically activates the environment
+      - name: Run tests with pytest
+        shell: micromamba-shell {0}
+        run: |
+          pytest nucleobench/
