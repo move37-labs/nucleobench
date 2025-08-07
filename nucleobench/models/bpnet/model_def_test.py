@@ -52,7 +52,7 @@ def test_tism_consistency():
         override_model=testing_utils.CountLetterModel(**model_args))
     base_str = 'ATCCA'
     v1, tism1 = m.tism(base_str)
-    single_bp_tisms = [m.tism(base_str, idx) for idx in range(len(base_str))]
+    single_bp_tisms = [m.tism(base_str, [idx]) for idx in range(len(base_str))]
     
     for idx in range(len(single_bp_tisms)):
         v2, tism2 = single_bp_tisms[idx]

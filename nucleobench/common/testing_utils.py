@@ -4,13 +4,12 @@ from typing import Optional
 
 import torch
 
-from nucleobench.common import constants
-from nucleobench.common import attribution_lib_torch as att_lib
 from nucleobench.common import string_utils
+from nucleobench.optimizations import model_class as mc
 
 
-class CountLetterModel(torch.nn.Module):
-    """Count number of occurances of first vocab letter."""
+class CountLetterModel(torch.nn.Module, mc.TISMModelClass):
+    """Count number of occurrences of first vocab letter."""
 
     def __init__(self, 
                  vocab_i: int = 1, 
@@ -42,21 +41,6 @@ class CountLetterModel(torch.nn.Module):
 
     def inference_on_tensor(self, x: torch.Tensor) -> torch.Tensor:
         return self.forward(x)
-
-    def tism(self, x: str, idxs: Optional[int] = None) -> tuple[torch.Tensor, list[dict[str, torch.Tensor]]]:
-        input_tensor = string_utils.dna2tensor(x, vocab_list=constants.VOCAB)
-        sg_tensor = att_lib.smoothgrad_torch(
-            input_tensor=input_tensor,
-            model=self.inference_on_tensor,
-            noise_stdev=0.1,
-            times=3,
-            idxs=idxs,
-        )
-        sg = att_lib.smoothgrad_tensor_to_dict(sg_tensor, vocab=constants.VOCAB)
-        x_effective = x if idxs is None else [x[idx] for idx in idxs]
-        sg = att_lib.smoothgrad_to_tism(sg, x_effective)
-        y = self.inference_on_tensor(torch.unsqueeze(input_tensor, dim=0))
-        return y, sg
     
     def inference_on_strings(self, seqs: list[str]) -> list[float]:
         torch_seq = string_utils.dna2tensor_batch(seqs)

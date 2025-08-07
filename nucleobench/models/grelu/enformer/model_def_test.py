@@ -75,7 +75,7 @@ def test_tism_consistency():
     base_str = [random.choice(['A', 'C', 'T', 'G']) for _ in range(196_608)]
     
     v1, tism1 = m.tism(base_str)
-    single_bp_tisms = [m.tism(base_str, idx) for idx in range(10)]
+    single_bp_tisms = [m.tism(base_str, [idx]) for idx in range(10)]
     
     for idx in range(len(single_bp_tisms)):
         v2, tism2 = single_bp_tisms[idx]

@@ -51,23 +51,18 @@ class FixedNN(nn.Module):
         logits = torch.matmul(x, self.linear_layer)
         return logits
 
-@pytest.mark.parametrize('times', [1, 3, 5])
-def test_expected_gradient(times):
+def test_expected_gradient():
     """Regardless of number of times, noisy grads should be the same for a linear model."""
     input_tensor = torch.randn(2)
     model = FixedNN()
 
-    grads = attribution_lib_torch.noisy_grads_torch(
+    grads = attribution_lib_torch.grad_torch(
         input_tensor=input_tensor,
-        model=model,
-        noise_stdev=1.0,
-        times=times)
+        model=model)
     
-    assert grads.shape == (times, 2)
+    assert grads.shape == (2,)
     # For linear models, grads should all be the linear layer.
-    for i in range(times):
-        assert np.array_equal(grads[i, ...], model.layer_array), (
-            grads[i, ...], model.layer_array, grads)
+    assert np.array_equal(grads, model.layer_array)
         
 def test_callable():
     """Check that additional arguments are used."""
@@ -76,87 +71,25 @@ def test_callable():
 
     def override_callable(x):
         return 2.0 * model(x)
-    grads = attribution_lib_torch.noisy_grads_torch(
+    grads = attribution_lib_torch.grad_torch(
         input_tensor=input_tensor,
         model=override_callable,
-        noise_stdev=1.0,
-        times=3,
     )
     
-    assert grads.shape == (3, 2)
-    # For linear models, grads should all be the linear layer.
-    for i in range(3):
-        assert np.array_equal(grads[i, ...], [2.0, 4.0]), (
-            grads[i, ...], [2.0, 4.0], grads)
-
-def test_noisy_grads():
-    input_tensor = torch.randn(10)
-    model = TestNeuralNetwork()
+    assert grads.shape == (2,)
+    assert np.array_equal(grads, [2.0, 4.0])
     
-    noisy_grads = attribution_lib_torch.noisy_grads_torch(
-        input_tensor=input_tensor,
-        model=model,
-        noise_stdev=0.25,
-        times=5)
-    assert noisy_grads.shape == (5, 10)
-    # For linear models, grads should all be the same.
-    for i in range(5):
-        assert np.array_equal(noisy_grads[i, ...], noisy_grads[0, ...])
-
-
-def test_smoothgrad_torch():
-    input_tensor = torch.randn(10)
-    model = TestNeuralNetwork()
-    
-    grad = attribution_lib_torch.smoothgrad_torch(
-        input_tensor=input_tensor,
-        model=model,
-        noise_stdev=0.25,
-        times=5)
-
-    assert grad.shape == (10,)
-
-
-def test_noisy_grads_different():
-    """In a nonlinear network, gradients should be different."""
-    input_tensor = torch.randn(10)
-    model = Nonlinear()
-    
-    noisy_grads = attribution_lib_torch.noisy_grads_torch(
-        input_tensor=input_tensor,
-        model=model,
-        noise_stdev=1.0,
-        times=5)
-    assert noisy_grads.shape == (5, 10)
-    # For linear models, grads should all be the same.
-    for i in range(1, 5):
-        assert not np.array_equal(noisy_grads[i, ...], noisy_grads[0, ...])
         
 # TODO(joelshor): Add a unit test for nucleotide-specific TISM.
-def test_smoothgrad_torch_idx_sanity():
-    input_tensor = torch.randn(4, 5)
-    model = testing_utils.CountLetterModel()
+def test_grad_torch_idx_sanity():
+    input_tensor = torch.randn(2, 4, 5)
     
-    grad = attribution_lib_torch.smoothgrad_torch(
+    grad = attribution_lib_torch.grad_torch(
         input_tensor=input_tensor,
-        model=model.inference_on_tensor,
-        noise_stdev=0.0,
-        times=1)
+        model=testing_utils.CountLetterModel().inference_on_tensor)
     assert isinstance(grad, torch.Tensor)
     grad = grad.cpu().numpy()
-    assert grad.shape == (4, 5)
-    
-    for idx in range(5):
-        grad_singlebp = attribution_lib_torch.smoothgrad_torch(
-            input_tensor=input_tensor,
-            model=model.inference_on_tensor,
-            noise_stdev=0.25,
-            times=5,
-            idxs=[idx])
-        assert isinstance(grad_singlebp, torch.Tensor)
-        grad_singlebp = grad_singlebp.cpu().numpy()
-        assert grad_singlebp.shape == (4, 1)
-        assert np.all(grad[:, idx] == grad_singlebp[:, 0])
+    assert grad.shape == (2, 4, 5)
         
         
 def test_apply_gradient_mask():
@@ -179,16 +112,16 @@ def test_apply_gradient_mask():
     assert (x1 == x2).all(), x1 == x2
     
 
-def test_smoothgrad_to_tism_realistic():
+def test_grad_to_tism_realistic():
     # Example 1: 3bp sequence, vocab ACGT, simple values
     base_seq = "ACG"
-    # Each position: dict of {nt: value}, values as torch.Tensor (simulate output of smoothgrad_tensor_to_dict)
+    # Each position: dict of {nt: value}, values as torch.Tensor (simulate output of grad_tensor_to_dict)
     sg = [
         {"A": torch.tensor(1.0), "C": torch.tensor(2.0), "G": torch.tensor(3.0), "T": torch.tensor(4.0)},
         {"A": torch.tensor(0.5), "C": torch.tensor(1.5), "G": torch.tensor(2.5), "T": torch.tensor(3.5)},
         {"A": torch.tensor(-1.0), "C": torch.tensor(0.0), "G": torch.tensor(1.0), "T": torch.tensor(2.0)},
     ]
-    tism = attribution_lib_torch.smoothgrad_to_tism(sg, base_seq)
+    tism = attribution_lib_torch.grad_to_tism(sg, base_seq)
     # Should be a list of dicts, one per base
     assert isinstance(tism, list)
     assert len(tism) == 3
@@ -217,7 +150,7 @@ def test_smoothgrad_to_tism_realistic():
         {"A": torch.tensor(-2.0), "C": torch.tensor(0.0), "G": torch.tensor(2.0), "T": torch.tensor(4.0)},
         {"A": torch.tensor(1.0), "C": torch.tensor(-1.0), "G": torch.tensor(0.5), "T": torch.tensor(-0.5)},
     ]
-    tism2 = attribution_lib_torch.smoothgrad_to_tism(sg2, base_seq2)
+    tism2 = attribution_lib_torch.grad_to_tism(sg2, base_seq2)
     assert isinstance(tism2, list)
     assert len(tism2) == 2
     # Position 0: base G, keys A,C,T

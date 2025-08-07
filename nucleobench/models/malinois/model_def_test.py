@@ -77,31 +77,11 @@ def test_smoothgrad_sanity():
           target_feature=0,
           bending_factor=1.0,
           override_model=testing_utils.CountLetterModel(**model_args))
-     y1, smooth_grad = m.smoothgrad_on_string('ATAAG')
+     y1, smooth_grad = m.tism('ATAAG')
      y2 = m.inference_on_strings(['ATAAG'])
      assert y1 == y2
      assert isinstance(smooth_grad, list)
      assert len(smooth_grad) == 5
-
-
-def test_smoothgrad_correctness():
-     """Check that smoothgrad on an C-count network knows that Cs are important."""
-     m = model_def.Malinois(
-          model_artifact=None,
-          target_feature=0,
-          bending_factor=0.0,
-          a_min=None,
-          a_max=None,
-          smoothgrad_stdev=0.01,
-          smoothgrad_times=2,
-          vocab=['A', 'C', 'G', 'T'],
-          override_model=testing_utils.CountLetterModel(vocab_i=1, **model_args))
-     _, smooth_grad = m.smoothgrad_on_string('ATCCA')
-     for smooth_grad_dict in smooth_grad:
-         # Output is energy, which is attempted to be minimized, so sign is negative.
-         assert smooth_grad_dict['C'] < smooth_grad_dict['A']
-         assert smooth_grad_dict['C'] < smooth_grad_dict['G']
-         assert smooth_grad_dict['C'] < smooth_grad_dict['T']
 
 
 def test_tism_correctness():
@@ -112,8 +92,6 @@ def test_tism_correctness():
           bending_factor=0.0,
           a_min=None,
           a_max=None,
-          smoothgrad_stdev=0.01,
-          smoothgrad_times=2,
           vocab=['A', 'C', 'G', 'T'],
           override_model=testing_utils.CountLetterModel(vocab_i=1, **model_args))
      base_str = 'ATCCA'
@@ -140,13 +118,11 @@ def test_tism_consistency():
           bending_factor=0.0,
           a_min=None,
           a_max=None,
-          smoothgrad_stdev=0.01,
-          smoothgrad_times=2,
           vocab=['A', 'C', 'G', 'T'],
           override_model=testing_utils.CountLetterModel(vocab_i=1, **model_args))
      base_str = 'ATCCA'
      v1, tism1 = m.tism(base_str)
-     single_bp_tisms = [m.tism(base_str, idx) for idx in range(len(base_str))]
+     single_bp_tisms = [m.tism(base_str, [idx]) for idx in range(len(base_str))]
      
      for idx in range(len(single_bp_tisms)):
          v2, tism2 = single_bp_tisms[idx]
@@ -167,8 +143,6 @@ def test_flank_length(flank_length: int):
           bending_factor=0.0,
           a_min=None,
           a_max=None,
-          smoothgrad_stdev=0.01,
-          smoothgrad_times=2,
           vocab=['A', 'C', 'G', 'T'],
           override_model=testing_utils.CountLetterModel(**model_args),
           check_input_shape=True)

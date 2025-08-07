@@ -79,21 +79,6 @@ class CountSubstringModel(torch.nn.Module, mc.PyTorchDifferentiableModel, mc.TIS
     def inference_on_tensor(self, x: torch.Tensor) -> torch.Tensor:
         return self.forward(x)
 
-    def tism(self, x: str, idxs: Optional[list[int]] = None) -> tuple[torch.Tensor, list[dict[str, torch.Tensor]]]:
-        input_tensor = string_utils.dna2tensor(x, vocab_list=self.vocab)
-        sg_tensor = att_lib.smoothgrad_torch(
-            input_tensor=input_tensor,
-            model=self.inference_on_tensor,
-            noise_stdev=self.tism_stdev,
-            times=self.tism_times,
-            idxs=idxs,
-        )
-        sg = att_lib.smoothgrad_tensor_to_dict(sg_tensor, vocab=self.vocab)
-        x_effective = x if idxs is None else [x[idx] for idx in idxs]
-        sg = att_lib.smoothgrad_to_tism(sg, x_effective)
-        y = self.inference_on_tensor(torch.unsqueeze(input_tensor, dim=0))
-        return y, sg
-
     def __call__(self, seqs: list[str], return_debug_info: bool = False):
         torch_seq = string_utils.dna2tensor_batch(seqs)
         result = self.inference_on_tensor(torch_seq)

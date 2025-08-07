@@ -49,8 +49,6 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         group.add_argument("--target_alpha", type=float, default=1.0)
         group.add_argument("--flank_length", type=int, default=200)
         # Smoothgrad args.
-        group.add_argument("--smoothgrad_times", type=int, default=10,)
-        group.add_argument("--smoothgrad_stdev", type=float, default=0.25)
         
 
         return parser
@@ -60,8 +58,6 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         return {
             'target_feature': 0,
             'bending_factor': 0.0,
-            'smoothgrad_times': 2,
-            'smoothgrad_stdev': 0.1,
             'check_input_shape': True,
         }
 
@@ -69,8 +65,6 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         self,
         target_feature: int,
         bending_factor: float,
-        smoothgrad_stdev: float = 0.25,
-        smoothgrad_times: int = 10,
         model_artifact: str = "gs://tewhey-public-data/CODA_resources/malinois_artifacts__20211113_021200__287348.tar.gz",
         a_min: Optional[float] = -2.0,
         a_max: Optional[float] = 6.0,
@@ -101,8 +95,6 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         else:
             self.left_flank = None
             self.right_flank = None
-        self.smoothgrad_stdev = smoothgrad_stdev
-        self.smoothgrad_times = smoothgrad_times
         # Consistent vocab is important for interpreting smoothgrad.
         self.vocab = vocab
 
@@ -151,89 +143,6 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         else:
             return ret_energy
 
-    def smoothgrad_on_tensor(
-        self, x: torch.Tensor, 
-        idxs: Optional[Union[int, list[int]]] = None,
-    ) -> tuple[torch.Tensor, torch.Tensor]:
-        """Returns smoothgrad and inference.
-
-        Args:
-            x: Input tensor {len(vocab) x sequence length}. Should NOT be batched.
-            idx: If present, the only nucleotide to get gradients for.
-
-        Returns:
-            (inference result, smoothgrad result)
-        """
-        if isinstance(idxs, int):
-            idxs = [idxs]
-        
-        assert x.ndim == 2
-        # Use the unperturbed input as one of the inputs to be able to return the true
-        # inference value along with the smoothgrad.
-        x_original = x
-        # TODO(joelshor): Use the simplex trick.
-        noised_x = att_lib.noise_inputs(
-            input_tensor=x,
-            noise_stdev=self.smoothgrad_stdev,
-            times=(self.smoothgrad_times - 1),
-        )
-        x = torch.concat([torch.unsqueeze(x_original, dim=0), noised_x], dim=0)
-        assert list(x.shape) == [self.smoothgrad_times] + list(x_original.shape)
-        if idxs is None:
-            x.requires_grad = True
-            x_grad = x
-        else:
-            x, x_grad = att_lib.apply_gradient_mask(x, idxs)
-
-        # Run inference to get grads.
-        y = self.inference_on_tensor(x)
-        assert list(y.shape) == [self.smoothgrad_times]
-        original_y = y[0]
-
-        # Compute grads.
-        y_sum = y.sum()
-        y_sum.backward(retain_graph=False)
-        noisy_grads = x_grad.grad.numpy()
-
-        # TODO(joelshor): Check if this is necessary.
-        gc.collect()
-        if self.has_cuda:
-            torch.cuda.empty_cache()
-
-        assert noisy_grads.shape == x_grad.shape
-
-        ret = np.mean(noisy_grads, axis=0, keepdims=False)
-        assert ret.shape[0] == x_original.shape[0]
-        assert ret.shape[1] == (x_original.shape[1] if idxs is None else len(idxs))
-
-        return original_y, ret
-
-    def smoothgrad_on_string(
-        self, x: str, 
-        idxs: Optional[Union[int, list[int]]] = None,
-    ) -> tuple[torch.Tensor, att_lib.SmoothgradVocabType]:
-        """Perform smoothgrad. If `idx` specified, only compute smoothgrad on that position."""
-        if isinstance(idxs, int):
-            idxs = [idxs]
-        
-        tensor = string_utils.dna2tensor(x, vocab_list=self.vocab)
-        assert list(tensor.shape) == [len(self.vocab), len(x)]
-        y, smooth_grad = self.smoothgrad_on_tensor(tensor, idxs)
-        assert smooth_grad.shape[0] == len(self.vocab)
-        assert smooth_grad.shape[1] == len(x) if idxs is None else len(idxs)
-        assert list(y.shape) == []
-
-        return y, att_lib.smoothgrad_tensor_to_dict(smooth_grad, vocab=self.vocab)
-
-    def tism(self, x: str, idxs: Optional[Union[int, list[int]]] = None) -> tuple[torch.Tensor, att_lib.TISMOutputType]:
-        """Compute TISM on a single string, using smoothgrad."""
-        if isinstance(idxs, int):
-            idxs = [idxs]
-        
-        y, smooth_grad_dict = self.smoothgrad_on_string(x, idxs)
-        x_effective = x if idxs is None else [x[idx] for idx in idxs]
-            
-        return y, att_lib.smoothgrad_to_tism(smooth_grad_dict, x_effective)
 
     def add_flanks_tensor(self, x: torch.Tensor) -> torch.Tensor:
         """Add Tensor flanks, with the right backprop properties."""
