@@ -8,8 +8,8 @@
 rm dist/*
 
 # Pick which version to build.
-# mv pypi/pyproject.full.toml pyproject.toml
-mv pypi/pyproject.optimizers.toml pyproject.toml
+# cp pypi/pyproject.full.toml pyproject.toml
+cp pypi/pyproject.optimizers.toml pyproject.toml
 
 # Build the package.
 python -m build
