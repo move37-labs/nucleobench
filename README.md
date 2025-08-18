@@ -196,8 +196,8 @@ they measure against, the range of optimizations they compare, or the complexity
 | TASK CATEGORY | MODEL | DESCRIPTION | NUM TASKS | SEQ LEN (BP) | SPEED (MS / EXAMPLE) |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | Cell-type specific cis-regulatory activity | Malinois | How DNA sequences control gene expression from the same DNA molecule. Cell types are: *precursor blood cells*, *liver cells*, *neuronal cells*. | 3 | 200 | 2 |
-| Transcription factor binding | BPNet-lite | How likely a specific transcription factor (TF) will bind to a particular stretch of DNA. Specific TFs: *CTCF*, *E2F3*, *ELF4*, *GATA2*, *JUNB*, *MAX*, *MECOM*, *MYC*, *OTX1*, *RAD21*, *SOX6*| 11 | 3000 | 55 |
-| Chromatin accessibility | BPNet-lite | Chromatin accessibility | 1 | 3000 | 260 |
+| Transcription factor binding | BPNet-lite | How likely a specific transcription factor (TF) will bind to a particular stretch of DNA. Specific TFs: *CTCF*, *E2F3*, *ELF4*, *GATA2*, *JUNB*, *MAX*, *MECOM*, *MYC*, *OTX1*, *RAD21*, *SOX6* | 11 | 3000 | 55 |
+| Chromatin accessibility | BPNet-lite | How physically accessible DNA is for interactions with other molecules. | 1 | 3000 | 260 |
 | Selective gene expression | Enformer | Prediction of gene expression. We optimize for *maximal expression in muscle cells, minimal expression in liver cells*.| 1 | 196,608 / 256 * | 15,000 |
 
 <small>*Input length is 200K, but only 256 bp are edited.</small>
