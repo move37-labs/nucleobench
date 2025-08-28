@@ -17,7 +17,6 @@ BUCKET_NAME = None
 SERVICE_ACCOUNT_EMAIL = None
 
 # Docker image configuration
-#DOCKER_IMAGE = 'gcr.io/nucleorave/sequence-optimization/nucleobench_linuxamd64:latest'
 DOCKER_IMAGE = 'joelshor/nucleobench:latest'
 
 # Job configuration
