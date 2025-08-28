@@ -1,0 +1,24 @@
+name: runners
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  # Python and core dependencies
+  - python>=3.8
+  - pip
+
+  # Google Cloud dependencies for batch processing
+  - google-cloud-batch
+  - google-cloud-storage>=2.0.0
+  - google-auth>=2.0.0
+  - google-auth-oauthlib>=1.0.0
+  - google-auth-httplib2>=0.1.0
+
+  # Utilities for job configuration and data handling
+  - pyyaml>=6.0
+  - jinja2>=3.1.0
+  - pandas
+  - pyarrow
+  - fsspec
+  - gcsfs
+  - s3fs
