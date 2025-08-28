@@ -33,6 +33,7 @@ Please cite the following publication when referencing NucleoBench or AdaBeam:
   - [1 minute install w/ pip](#get-started-in-1-minute-pip-install)
   - [3  minute install w/ docker](#get-started-in-3-minutes-docker-image-pull)
   - [5 minute install w/ source](#get-started-in-5-minutes-git-clone)
+  - [8 minute install w/ Google Batch inference](#get-started-in-8-minutes-google-batch-inference)
 - [Details](#details)
 - [FAQ](#faq)
 
@@ -169,6 +170,57 @@ Proposals deposited at:
 ```
 
 This "recipe" can be found under [`recipes/python/adabeam_atac.py`](https://github.com/move37-labs/nucleobench/blob/main/recipes/python/adabeam_atac.py).
+
+### Get started in 8 minutes (Google Batch inference)
+
+Setup a Google Cloud project by following instructions [here](https://cloud.google.com/batch). You will need to activate the Google Batch API. You will need to collect the following information from your new project, and fill this information in [runners/google_batch/config.py](https://github.com/move37-labs/nucleobench/blob/main/runners/google_batch/config.py):
+
+1. PROJECT_ID (the project ID of the project you created above)
+1. REGION (the region of the project)
+1. BUCKET_NAME (the bucket of the output)
+1. SERVICE_ACCOUNT_EMAIL (option: a service account for security)
+
+Now run the dry run Google Batch job with the test script:
+
+```bash
+python -m runners.google_batch.job_launcher \
+    --dry-run \
+    --verbose \
+    runners/testdata/adabeam_test.tsv
+```
+
+Output:
+```bash
+2025-08-28 18:00:21,651 - INFO - Row 1: Generated job name: bpnet-rad21-adabeam-001
+2025-08-28 18:00:21,651 - INFO - Loaded 1 jobs from runners/testdata/adabeam_test.tsv
+2025-08-28 18:00:21,651 - INFO - DRY RUN MODE - No jobs will be launched
+2025-08-28 18:00:21,651 - INFO - Would launch job: bpnet-rad21-adabeam-00120250828-18-00-21
+```
+
+Now run the real job:
+```bash
+python -m runners.google_batch.job_launcher \
+    --verbose \
+    runners/testdata/adabeam_test.tsv
+```
+
+Output:
+```bash
+2025-08-28 18:01:32,909 - INFO - Row 1: Generated job name: bpnet-rad21-adabeam-001
+2025-08-28 18:01:32,909 - INFO - Loaded 1 jobs from runners/testdata/adabeam_test.tsv
+2025-08-28 18:01:32,910 - DEBUG - Checking None for explicit credentials as part of auth process...
+2025-08-28 18:01:32,910 - DEBUG - Checking Cloud SDK credentials as part of auth process...
+2025-08-28 18:01:33,528 - DEBUG - Starting new HTTPS connection (1): oauth2.googleapis.com:443
+2025-08-28 18:01:33,708 - DEBUG - https://oauth2.googleapis.com:443 "POST /token HTTP/1.1" 200 None
+2025-08-28 18:01:34,087 - INFO - Successfully launched job: projects/nucleorave/locations/us-central1/jobs/bpnet-rad21-adabeam-00120250828-18-01-32
+2025-08-28 18:01:34,087 - INFO - 
+Job Launch Summary:
+2025-08-28 18:01:34,087 - INFO - Successful: 1
+2025-08-28 18:01:34,087 - INFO - Failed: 0
+2025-08-28 18:01:34,087 - INFO - Successful jobs: bpnet-rad21-adabeam-00120250828-18-01-32
+```
+
+Finally, make sure that the job completes fully, and the output is in the right bucket.
 
 ## Details
 
