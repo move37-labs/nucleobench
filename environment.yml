@@ -1,11 +1,14 @@
 name: nucleobench
 channels:
+  - pytorch  # Add the pytorch channel (recommended to be first)
   - conda-forge
+  - bioconda
   - nodefaults
 dependencies:
     - h5py
     - pip
     - pytest  # Python unit testing framework.
+    - pytest-repeat  # For flakiness checking
     - coverage  # Python unit testing tool.
     - pyclean  # Remove cache in between tests.
 
