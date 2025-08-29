@@ -87,6 +87,7 @@ def launch_job(
     region: str,
     job: batch_v1.Job,
     job_name: str,
+    dry_run: bool = False,
 ) -> Optional[str]:
     """Launch a single Google Batch job."""
     try:
@@ -99,10 +100,13 @@ def launch_job(
             job=job
         )
         
-        created_job = client.create_job(request=request)
-        
-        job_name_full = created_job.name
-        logging.info(f"Successfully launched job: {job_name_full}")
+        if dry_run:
+            job_name_full = 'dry-run-job-id'
+            logging.info(f"DRY RUN - Would have launched job: launched job: {job_name}")
+        else:
+            created_job = client.create_job(request=request)
+            job_name_full = created_job.name
+            logging.info(f"Successfully launched job: {job_name_full}")
         return job_name_full
         
     except Exception as e:
@@ -123,12 +127,6 @@ def launch_jobs(
         logging.error("No valid jobs found in TSV file")
         return
     
-    if dry_run:
-        logging.info("DRY RUN MODE - No jobs will be launched")
-        for job in jobs:
-            logging.info(f"Would launch job: {job['job_name']}")
-        return
-    
     # Setup Google Cloud clients
     credentials, _ = default()
     project_id = config.PROJECT_ID # Explicitly use the project from config
@@ -147,11 +145,12 @@ def launch_jobs(
         try:
             job_def = create_job_definition(hyperparams)
             job_id = launch_job(
-                client,
-                project_id,
-                config.REGION,
-                job_def,
-                job_name,
+                client=client,
+                project_id=project_id,
+                region=config.REGION,
+                job=job_def,
+                job_name=job_name,
+                dry_run=dry_run,
             )
             if job_id:
                 successful_jobs.append(job_name)
@@ -163,14 +162,16 @@ def launch_jobs(
             failed_jobs.append(job_name)
 
     # Summary
-    logging.info(f"\nJob Launch Summary:")
-    logging.info(f"Successful: {len(successful_jobs)}")
-    logging.info(f"Failed: {len(failed_jobs)}")
-    
-    if successful_jobs:
-        logging.info(f"Successful jobs: {', '.join(successful_jobs)}")
-    if failed_jobs:
-        logging.info(f"Failed jobs: {', '.join(failed_jobs)}")
+    if dry_run:
+        logging.info(f"DRY RUN MODE - No jobs were launched. Would have launched: {len(successful_jobs) + len(failed_jobs)}")
+    else:
+        logging.info(f"\nJob Launch Summary:")
+        logging.info(f"Successful: {len(successful_jobs)}")
+        logging.info(f"Failed: {len(failed_jobs)}")
+        if successful_jobs:
+            logging.info(f"Successful jobs: {', '.join(successful_jobs)}")
+        if failed_jobs:
+            logging.info(f"Failed jobs: {', '.join(failed_jobs)}")
 
 
 def main():
