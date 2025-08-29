@@ -190,6 +190,17 @@ def main():
     if not os.path.exists(args.tsv_file):
         logging.error(f"TSV file not found: {args.tsv_file}")
         sys.exit(1)
+        
+    # Validate config.
+    if config.PROJECT_ID is None:
+        logging.error(f"config.PROJECT_ID is not set. Please set it in config.py.")
+        sys.exit(1)
+    if config.BUCKET_NAME is None:
+        logging.error(f"config.BUCKET_NAME is not set. Please set it in config.py.")
+        sys.exit(1)
+    if config.DOCKER_IMAGE is None:
+        logging.error(f"config.DOCKER_IMAGE is not set. Please set it in config.py.")
+        sys.exit(1)
     
     # Launch jobs
     launch_jobs(
