@@ -180,9 +180,27 @@ Setup a Google Cloud project by following instructions [here](https://cloud.goog
 1. BUCKET_NAME (the bucket of the output)
 1. SERVICE_ACCOUNT_EMAIL (option: a service account for security)
 
+Next, create the conda environment to launch jobs to the Cloud runner:
+```bash
+conda env create -f runners/environment.yml
+```
+Output:
+```bash
+Transaction finished
+
+To activate this environment, use:
+
+    conda activate runners
+
+Or to execute a single command in this environment, use:
+
+    conda run -n runners mycommand
+```
+
 Now run the dry run Google Batch job with the test script:
 
 ```bash
+conda activate runners
 python -m runners.google_batch.job_launcher \
     --dry-run \
     --verbose \
