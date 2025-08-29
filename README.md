@@ -9,6 +9,7 @@ This repo is intended to be used in a few ways:
 2. Design a DNA sequence with high binding affinity for a specific transcription factor (such as the ones listed [here](#summary-of-tasks-in-nucleobench)), using the AdaBeam algorithm (or any of the ones listed [here](#summary-of-designers-in-nucleobench))
 1. Design a DNA or RNA sequence for a new task, using any designer (see tutorial [here](https://github.com/move37-labs/nucleobench/blob/main/recipes/colab/custom_task.ipynb))
 1. Run a new design algorithm on NucleoBench tasks.
+1. Reproduce the NucleoBench results, using the standard tasks / designers or using your custom ones, on the Cloud using Google Batch or AWS (instructions [here](#get-started-in-8-minutes-google-batch-inference))
 
 
 ### Citation
@@ -173,7 +174,9 @@ This "recipe" can be found under [`recipes/python/adabeam_atac.py`](https://gith
 
 ### Get started in 8 minutes (Google Batch inference)
 
-Setup a Google Cloud project by following instructions [here](https://cloud.google.com/batch). You will need to activate the Google Batch API. You will need to collect the following information from your new project, and fill this information in [runners/google_batch/config.py](https://github.com/move37-labs/nucleobench/blob/main/runners/google_batch/config.py):
+Google Batch is Google's cheapest batch compute offering. It enables relatively cheap parallel compute on the cloud.
+
+First, setup a Google Cloud project by following instructions [here](https://cloud.google.com/batch). You will need to activate the Google Batch API. If you want the job to write to a private bucket, you will also need to setup what's called a "Service Account" with the proper permissions. Once you have done this, you will need to collect the following information from your new project, and fill this information in [runners/google_batch/config.py](https://github.com/move37-labs/nucleobench/blob/main/runners/google_batch/config.py):
 
 1. PROJECT_ID (the project ID of the project you created above)
 1. REGION (the region of the project)
