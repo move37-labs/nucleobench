@@ -51,15 +51,9 @@ RUN micromamba install -y -n base -f /tmp/environment.yml && \
 # Copy only the needed subset of files.
 COPY --chown=${APP_USER_NAME}:${APP_USER_NAME} docker_entrypoint.py /nucleobench/
 COPY --chown=${APP_USER_NAME}:${APP_USER_NAME} nucleobench /nucleobench/nucleobench
-# These starting sequences for enformer are too long to include in the csv.
-# NOTE: This should be removed in the final docker image, since it is 95% the size of the image.
-# COPY experiments/google_batch/start_sequences/muscle_expression /nucleobench/experiments/google_batch/start_sequences/muscle_expression
 
 #(otherwise python will not be found)
 ARG MAMBA_DOCKERFILE_ACTIVATE=1  
 
-# Uncomment the entrypoint we want this Docker image to use.
-# For the bulk runs.
+# Set the entrypoint.
 ENTRYPOINT ["/usr/local/bin/_entrypoint.sh", "python", "docker_entrypoint.py"]
-# For convergence runs, where multiple optimizers run on the same machine.
-#ENTRYPOINT ["/usr/local/bin/_entrypoint.sh", "python", "docker_entrypoint_multi.py"]
