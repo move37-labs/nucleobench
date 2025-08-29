@@ -90,7 +90,7 @@ def save_proposals(
 def get_role_client(service_json_path: str = constants.SERVICE_KEY_FILE_LOCATION):
     try:
         gcp_client = storage.Client.from_service_account_json(service_json_path)
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, FileNotFoundError):
         gcp_client = storage.Client()  # When run in the Cloud.
     return gcp_client
 
