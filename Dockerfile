@@ -3,7 +3,7 @@
 
 # IMPORTANT: The docker image for Google Batch must be linux/amd64.
 # To build for linux/amd64:
-    # docker buildx build --platform linux/amd64 -t an_linuxamd64 -f Dockerfile .
+    # docker buildx build --platform linux/amd64 -t nucleobench_linuxamd64:latest -f Dockerfile . --load
 
 # To test:
     # hadolint Dockerfile
@@ -11,13 +11,9 @@
 # To run locally:
     # docker run nucleobench
 
-# To authenticate pushing to gcr.io:
-    # gcloud init
-    # gcloud auth configure-docker us-east1-docker.pkg.dev
-
-# To push the linux/amd64to gcr.io:
-    # docker tag an_linuxamd64 us-east1-docker.pkg.dev/nucleobench/sequence-optimization/an_linuxamd64:latest
-    # docker push us-east1-docker.pkg.dev/nucleobench/sequence-optimization/an_linuxamd64:latest
+# To push to docker hub:
+    # docker tag nucleobench_linuxamd64:latest joelshor/nucleobench:latest
+    # docker push joelshor/nucleobench:latest
 
 FROM mambaorg/micromamba:2.0.5
 
