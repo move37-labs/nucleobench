@@ -79,6 +79,9 @@ def run_loop(
     all_dicts_to_write.append(to_write)
 
     print('Starting loop...')
+    # At the start, write a 'START.txt' file.
+    gcp_utils.write_txt_file(args.output_path, content='START')
+    
     for round_i in tqdm.tqdm(range(args.max_number_of_rounds)):
         try:
             if opt.is_finished():
@@ -132,16 +135,7 @@ def run_loop(
     gcp_utils.save_proposals(all_dicts_to_write, args, args.output_path)
 
     # At the end of it all, write a 'SUCCESS.txt' file.
-    if args.output_path.startswith('gs://'):
-        gcp_utils.write_str_to_gcp(
-            gcs_output_path=os.path.join(args.output_path, 'SUCCESS.txt'),
-            content='SUCCESS',
-            binary=False,
-            bucket_name=args.output_path.split('/')[2],
-        )
-    else:
-        with open(os.path.join(args.output_path, 'SUCCESS.txt'), 'w') as f:
-            f.write('SUCCESS')
+    gcp_utils.write_txt_file(args.output_path, content='SUCCESS')
 
 
 def _get_dict_to_write(

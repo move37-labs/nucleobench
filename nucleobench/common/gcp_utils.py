@@ -9,6 +9,7 @@ python -m nucleobench.common.gcp_utils
 from typing import Any, Generator
 
 import argparse
+import pandas as pd
 import copy
 import os
 import pickle
@@ -89,11 +90,8 @@ def save_proposals(
 def get_role_client(service_json_path: str = constants.SERVICE_KEY_FILE_LOCATION):
     try:
         gcp_client = storage.Client.from_service_account_json(service_json_path)
-    except FileNotFoundError as e:
-        raise ValueError(
-            'GCP service key not found. You are probably trying to write output to a private '
-            'bucket. To write to your own bucket, change the bucket name and service key '
-            f'credentials in `nucleobench/common/constants.py`: {service_json_path}') from e
+    except (ValueError, TypeError):
+        gcp_client = storage.Client()  # When run in the Cloud.
     return gcp_client
 
 def write_str_to_gcp(
@@ -126,6 +124,21 @@ def list_files_recursively(local_dir: str) -> Generator[str, None, None]:
     for root, dirs, files in os.walk(local_dir):
         for file in files:
             yield os.path.join(root, file)
+            
+
+def write_txt_file(output_path: str, content: str):
+    """Write a ex. 'SUCCESS.txt' file."""
+    if output_path.startswith('gs://'):
+        write_str_to_gcp(
+            gcs_output_path=os.path.join(output_path, f'{content}.txt'),
+            content=content,
+            binary=False,
+            bucket_name=output_path.split('/')[2],
+        )
+    else:
+        os.makedirs(output_path, exist_ok=True)
+        with open(os.path.join(output_path, f'{content}.txt'), 'w') as f:
+            f.write(content)
 
 
 if __name__ == '__main__':
