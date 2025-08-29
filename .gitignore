@@ -192,3 +192,7 @@ analysis/pymeme/data/tomtom_out/**
 
 # Mac files.
 **/.DS_Store
+
+# Outputs of test runs.
+START.txt
+SUCCESS.txt
