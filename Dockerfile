@@ -15,6 +15,10 @@
     # docker tag nucleobench_linuxamd64:latest joelshor/nucleobench:latest
     # docker push joelshor/nucleobench:latest
 
+# To push to Github Container Registry:
+    # docker tag nucleobench_linuxamd64:latest ghcr.io/move37-labs/nucleobench:latest
+    # docker push ghcr.io/move37-labs/nucleobench:latest
+
 FROM mambaorg/micromamba:2.0.5
 
 # These can be overridden at build time if needed, e.g., --build-arg APP_USER_UID=$(id -u)
