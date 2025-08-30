@@ -17,14 +17,13 @@ This repo is intended to be used in a few ways:
 Please cite the following publication when referencing NucleoBench or AdaBeam:
 
 ```
-@inproceedings{nucleobench,
-  author    = {Joel Shor and Erik Strand and Cory Y. McLean},
+@article{shor2025nucleobench,
+  author    = {Shor, Joel and Strand, Erik and McLean, Cory Y.},
   title     = {{NucleoBench: A Large-Scale Benchmark of Neural Nucleic Acid Design Algorithms}},
-  booktitle = {GenBio ICML 2025},
-  year = {2025},
-  publisher = {PMLR},
-  url = {https://www.biorxiv.org/content/10.1101/2025.06.20.660785},
-  doi = {10.1101/2025.06.20.660785},
+  journal   = {bioRxiv},
+  year      = {2025},
+  doi       = {10.1101/2025.06.20.660785},
+  url       = {https://www.biorxiv.org/content/10.1101/2025.06.20.660785}
 }
 ```
 
