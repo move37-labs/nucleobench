@@ -184,7 +184,7 @@ def _get_dict_to_write(
     if write_proposals:
         to_write['proposals'] = proposals
     else:
-        to_write['proposals'] = 0
+        to_write['proposals'] = [None]
 
     # TODO(joelshor): Figure out how to add arbitrary debug info. Until then, disable
     # the debug info.
