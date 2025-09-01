@@ -3,7 +3,7 @@ Google Batch job launcher for nucleobench.
 
 USAGE:
     # Basic usage - launch jobs from TSV file
-    python -m runners.gcp.job_launcher runners/gcp/testdata/20250706-ledidi-bpnet-proposals-ledidi.tsv
+    python -m runners.gcp.job_launcher runners/testdata/adabeam_test.tsv
     
     # With options
     python -m runners.gcp.job_launcher \
