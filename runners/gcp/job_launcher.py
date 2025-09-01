@@ -3,16 +3,16 @@ Google Batch job launcher for nucleobench.
 
 USAGE:
     # Basic usage - launch jobs from TSV file
-    python -m runners.google_batch.job_launcher runners/google_batch/testdata/20250706-ledidi-bpnet-proposals-ledidi.tsv
+    python -m runners.gcp.job_launcher runners/gcp/testdata/20250706-ledidi-bpnet-proposals-ledidi.tsv
     
     # With options
-    python -m runners.google_batch.job_launcher \
+    python -m runners.gcp.job_launcher \
         --dry-run \
         --verbose \
         runners/testdata/adabeam_test.tsv
     
     # Check help
-    python -m runners.google_batch.job_launcher --help
+    python -m runners.gcp.job_launcher --help
 
 REQUIREMENTS:
     - Google Cloud authentication (gcloud auth login)
@@ -22,10 +22,10 @@ REQUIREMENTS:
 
 EXAMPLES:
     # Test configuration without launching
-    python -m runners.google_batch.job_launcher --dry-run runners/google_batch/testdata/ledidi-testrun.tsv
+    python -m runners.gcp.job_launcher --dry-run runners/gcp/testdata/ledidi-testrun.tsv
     
     # Launch with limited concurrency
-    python -m runners.google_batch.job_launcher runners/google_batch/testdata/ledidi-testrun.tsv
+    python -m runners.gcp.job_launcher runners/gcp/testdata/ledidi-testrun.tsv
 """
 
 import argparse
@@ -40,8 +40,8 @@ import traceback
 from google.cloud import batch_v1
 from google.auth import default
 
-from runners.google_batch import config
-from runners.google_batch.job_template import create_job_definition
+from runners.gcp import config
+from runners.gcp.job_template import create_job_definition
 
 
 def setup_logging(verbose: bool = False) -> None:

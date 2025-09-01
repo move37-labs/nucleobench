@@ -175,7 +175,7 @@ This "recipe" can be found under [`recipes/python/adabeam_atac.py`](https://gith
 
 Google Batch is Google's cheapest batch compute offering. It enables relatively cheap parallel compute on the cloud.
 
-First, setup a Google Cloud project by following instructions [here](https://cloud.google.com/batch). You will need to activate the Google Batch API. If you want the job to write to a private bucket, you will also need to setup what's called a "Service Account" with the proper permissions. Once you have done this, you will need to collect the following information from your new project, and fill this information in [runners/google_batch/config.py](https://github.com/move37-labs/nucleobench/blob/main/runners/google_batch/config.py):
+First, setup a Google Cloud project by following instructions [here](https://cloud.google.com/batch). You will need to activate the Google Batch API. If you want the job to write to a private bucket, you will also need to setup what's called a "Service Account" with the proper permissions. Once you have done this, you will need to collect the following information from your new project, and fill this information in [runners/gcp/config.py](https://github.com/move37-labs/nucleobench/blob/main/runners/gcp/config.py):
 
 1. PROJECT_ID (the project ID of the project you created above)
 1. REGION (the region of the project)
@@ -203,7 +203,7 @@ Now run the dry run Google Batch job with the test script:
 
 ```bash
 conda activate runners
-python -m runners.google_batch.job_launcher \
+python -m runners.gcp.job_launcher \
     --dry-run \
     --verbose \
     runners/testdata/adabeam_test.tsv
@@ -219,7 +219,7 @@ Output:
 
 Now run the real job:
 ```bash
-python -m runners.google_batch.job_launcher \
+python -m runners.gcp.job_launcher \
     --verbose \
     runners/testdata/adabeam_test.tsv
 ```

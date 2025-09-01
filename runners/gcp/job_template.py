@@ -6,7 +6,7 @@ USAGE:
     It's used internally by job_launcher.py to create job configurations.
     
     # Direct usage (if needed)
-    from runners.google_batch.job_template import create_job_definition
+    from runners.gcp.job_template import create_job_definition
     
     job_config = create_job_definition({
         'job_name': 'test_job',
@@ -26,7 +26,7 @@ FUNCTIONS:
 """
 
 from google.cloud import batch_v1
-from runners.google_batch import config
+from runners.gcp import config
 
 
 def create_job_definition(hyperparams: dict[str, str]) -> batch_v1.Job:
