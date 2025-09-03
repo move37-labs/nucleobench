@@ -65,7 +65,9 @@ def create_job_definition(hyperparams: dict[str, str]) -> batch_v1.Job:
     if 'max_seconds' not in hyperparams or not hyperparams['max_seconds']:
         raise ValueError("The 'max_seconds' column is required in the TSV file and cannot be empty.")
     
-    timeout_seconds = int(hyperparams['max_seconds']) * 2  # Double the timeout to allow for a natural job completion.
+    # Double the timeout to allow for a natural job completion.
+    # Also add time to allow for the job to start.
+    timeout_seconds = int(hyperparams['max_seconds']) * 2 + 600
     task_spec = batch_v1.TaskSpec(
         runnables=[runnable],
         compute_resource=batch_v1.ComputeResource(
