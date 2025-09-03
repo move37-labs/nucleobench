@@ -46,4 +46,4 @@ jobs:
       - name: Run unit tests with pytest
         shell: micromamba-shell {0}
         run: |
-          pytest nucleobench/
+          pytest -v nucleobench/

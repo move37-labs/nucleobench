@@ -46,4 +46,4 @@ jobs:
       - name: Run integration test with pytest
         shell: micromamba-shell {0}
         run: |
-          pytest docker_entrypoint_test.py
+          pytest -v docker_entrypoint_test.py
