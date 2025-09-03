@@ -229,10 +229,9 @@ def parse_all(argv: list) -> tuple[mc.ModelClass, oc.SequenceOptimizer, argparse
         argparse_lib.handle_leftover_args(known_args, leftover_args)
 
     # Some start sequences are too long to pass via cmd (they are ~200K bp), so we use 
-    # local or gcp files instead.
-    if known_args.start_sequence.startswith('local://'):
-        known_args = argparse_lib.parse_long_start_sequence(known_args)
-    known_args = argparse_lib.possibly_parse_positions_to_mutate(known_args)
+    # local or remote files instead.
+    known_args.start_sequence = argparse_lib.possibly_parse_start_sequence(known_args.start_sequence)
+    known_args.positions_to_mutate = argparse_lib.possibly_parse_positions_to_mutate(known_args.positions_to_mutate)
 
     # Initialize objects.
     model_fn = model_obj(**vars(model_init_args))
