@@ -1,0 +1,23 @@
+name: Run Python Integration Test with Docker image from GitHub
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/move37-labs/nucleobench:latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Run integration test
+        # Ensure the step runs in a bash shell
+        shell: bash
+        run: |
+          micromamba run -n base pytest docker_entrypoint_test.py

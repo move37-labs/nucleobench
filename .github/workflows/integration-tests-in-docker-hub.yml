@@ -1,4 +1,4 @@
-name: Run Python Integration Test with Docker image
+name: Run Python Integration Test with Docker image from Docker Hub
 
 on:
   push:

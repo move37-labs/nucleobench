@@ -1,0 +1,23 @@
+name: Run Python Unit Tests with Docker image from Docker Hub
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: joelshor/nucleobench:latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Run unit tests with pytest
+        # Ensure the step runs in a bash shell
+        shell: bash
+        run: |
+          micromamba run -n base pytest nucleobench/

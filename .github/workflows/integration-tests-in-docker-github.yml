@@ -1,4 +1,4 @@
-name: Run Python Unit Tests with Docker image
+name: Run Python Integration Test with Docker image from GitHub
 
 on:
   push:
@@ -10,14 +10,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: joelshor/nucleobench:latest
+      image: ghcr.io/move37-labs/nucleobench:latest
 
     steps:
       - name: Check out code
         uses: actions/checkout@v4
 
-      - name: Run unit tests with pytest
+      - name: Run integration test
         # Ensure the step runs in a bash shell
         shell: bash
         run: |
-          micromamba run -n base pytest nucleobench/
+          micromamba run -n base pytest docker_entrypoint_test.py
