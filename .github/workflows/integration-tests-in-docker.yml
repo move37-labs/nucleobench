@@ -16,7 +16,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
-      - name: Run tests with pytest
+      - name: Run integration test
         # Ensure the step runs in a bash shell
         shell: bash
         run: |

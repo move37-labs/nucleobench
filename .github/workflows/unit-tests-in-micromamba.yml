@@ -43,7 +43,7 @@ jobs:
 
       # 3. Runs pytest inside the activated conda environment
       # The 'micromamba-shell' automatically activates the environment
-      - name: Run tests with pytest
+      - name: Run unit tests with pytest
         shell: micromamba-shell {0}
         run: |
           pytest nucleobench/
