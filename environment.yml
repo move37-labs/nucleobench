@@ -18,7 +18,8 @@ dependencies:
     - pyarrow  # Required for parquet support.
     - fastparquet  # Required for parquet support.
 
-    - pytorch
+    - pytorch-cpu
+    # - pytorch  # Switch to this for GPU support, if needed.
     - python-xxhash  # For hashing for Ada* cache.
 
     - lightning
