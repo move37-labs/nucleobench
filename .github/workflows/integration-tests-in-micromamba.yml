@@ -15,6 +15,13 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  # Add this section to enable manual triggers, for testing.
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'The branch to run the tests on'
+        required: true
+        default: 'main'
 
 # A workflow run is made up of one or more jobs
 jobs:
