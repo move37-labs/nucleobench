@@ -1,4 +1,4 @@
-name: Run Python Tests with Docker image
+name: Run Python Unit Tests with Docker image
 
 on:
   push:
