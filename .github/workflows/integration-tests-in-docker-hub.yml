@@ -13,9 +13,6 @@ jobs:
       image: joelshor/nucleobench:latest
 
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-
       - name: Run integration test
         # Ensure the step runs in a bash shell
         shell: bash
