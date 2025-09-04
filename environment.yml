@@ -8,7 +8,8 @@ dependencies:
     - h5py
     - pip
     - pytest  # Python unit testing framework.
-    - pytest-repeat  # For flakiness checking
+    - pytest-repeat  # For flakiness checking.
+    - pytest-xdist # For running tests in parallel.
     - coverage  # Python unit testing tool.
     - pyclean  # Remove cache in between tests.
 

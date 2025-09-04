@@ -2,7 +2,7 @@
 
 To test:
 ```zsh
-pytest docker_entrypoint_test.py --durations=0
+pytest -n auto docker_entrypoint_test.py --durations=0
 ```
 """
 
@@ -167,22 +167,32 @@ def test_read_seed_sequence_from_local_file():
         assert parsed_args.main_args.positions_to_mutate == positions_to_mutate
 
 
-@pytest.mark.parametrize("pos_to_mutate_type", ['empty', 'none'])
+@pytest.mark.parametrize("pos_to_mutate_type", ['empty', 'none', 'local', 'gcp'])
 def test_empty_positions_to_mutate(pos_to_mutate_type):
     """Check that parsing handles positions_to_mutate correctly."""
-    pos_to_mutate = {
-        'empty': '',
-        'none': None,
-    }[pos_to_mutate_type]
-    model_fn, opt, parsed_args = de.parse_all([
-        '--model', 'dummy',
-        '--optimization', 'dummy',
-        '--output_path', 'dont use',
-        '--start_sequence', 'AAA',
-        '--positions_to_mutate', pos_to_mutate,
-        ])
-    if pos_to_mutate_type in ['empty', 'none']:
-        assert parsed_args.main_args.positions_to_mutate == None
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        pos_to_mutate_filename = os.path.join(tmpdirname, 'pos_to_mutate.txt')
+        with open(pos_to_mutate_filename, 'w') as f:
+            f.write('\n'.join(map(str, range(100))))
+        pos_to_mutate = {
+            'empty': '',
+            'none': None,
+            'local': f'local://{pos_to_mutate_filename}',
+            'gcp': 'gcp_enformer://12',
+        }[pos_to_mutate_type]
+        model_fn, opt, parsed_args = de.parse_all([
+            '--model', 'dummy',
+            '--optimization', 'dummy',
+            '--output_path', 'dont use',
+            '--start_sequence', 'AAA',
+            '--positions_to_mutate', pos_to_mutate,
+            ])
+        if pos_to_mutate_type in ['empty', 'none']:
+            assert parsed_args.main_args.positions_to_mutate == None
+        elif pos_to_mutate_type == 'local':
+            assert isinstance(parsed_args.main_args.positions_to_mutate, list)
+            for p in parsed_args.main_args.positions_to_mutate:
+                assert isinstance(p, int)
 
 
 def test_no_intermediate_records():
