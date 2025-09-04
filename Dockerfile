@@ -11,13 +11,13 @@
 # To run locally:
     # docker run nucleobench
 
-# To push to docker hub:
-    # docker tag nucleobench_linuxamd64:latest joelshor/nucleobench:latest
-    # docker push joelshor/nucleobench:latest
+# To build and push to docker hub:
+    # docker login
+    # docker buildx build --platform linux/amd64 -t joelshor/nucleobench:latest -f Dockerfile . --push
 
 # To push to Github Container Registry:
-    # docker tag nucleobench_linuxamd64:latest ghcr.io/move37-labs/nucleobench:latest
-    # docker push ghcr.io/move37-labs/nucleobench:latest
+    # ** ghcr login **
+    # docker buildx build --platform linux/amd64 -t ghcr.io/move37-labs/nucleobench:latest -f Dockerfile . --push
 
 FROM mambaorg/micromamba:2.0.5
 
