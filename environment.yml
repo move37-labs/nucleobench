@@ -1,8 +1,6 @@
 name: nucleobench
 channels:
-  - pytorch  # Add the pytorch channel (recommended to be first)
   - conda-forge
-  - bioconda
   - nodefaults
 dependencies:
     - h5py
