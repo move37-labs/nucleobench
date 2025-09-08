@@ -41,7 +41,7 @@ class ArgparseLibTest(unittest.TestCase):
         path = f'local://{tmp_file}'
         self.assertEqual(argparse_lib.possibly_parse_start_sequence(path), seq)
 
-    @mock.patch('nucleobench.common.argparse_lib.fetch_gcp_enformer_start_sequence_df')
+    @mock.patch('nucleobench.common.argparse_lib.fetch_zenodo_enformer_start_sequence_df')
     def test_parse_start_sequence_from_gcp(self, mock_fetch_df):
         """Test fetching a sequence from the mocked GCP DataFrame."""
         mock_df = pd.DataFrame({
@@ -49,7 +49,7 @@ class ArgparseLibTest(unittest.TestCase):
         }, index=[0, 1])
         mock_fetch_df.return_value = mock_df
 
-        path = 'gcp_enformer://1'
+        path = 'enformer://1'
         self.assertEqual(argparse_lib.possibly_parse_start_sequence(path), 'GATTACA')
         mock_fetch_df.assert_called_once()
 
@@ -75,7 +75,7 @@ class ArgparseLibTest(unittest.TestCase):
         path = f'local://{tmp_file}'
         self.assertEqual(argparse_lib.possibly_parse_positions_to_mutate(path), positions)
 
-    @mock.patch('nucleobench.common.argparse_lib.fetch_gcp_enformer_start_sequence_df')
+    @mock.patch('nucleobench.common.argparse_lib.fetch_zenodo_enformer_start_sequence_df')
     def test_parse_positions_to_mutate_from_gcp(self, mock_fetch_df):
         """Test fetching positions from the mocked GCP DataFrame."""
         mock_df = pd.DataFrame({
@@ -83,7 +83,7 @@ class ArgparseLibTest(unittest.TestCase):
         }, index=[0, 1])
         mock_fetch_df.return_value = mock_df
 
-        path = 'gcp_enformer://0'
+        path = 'enformer://0'
         # The function should convert the numpy array to a list of ints
         self.assertEqual(argparse_lib.possibly_parse_positions_to_mutate(path), [1, 2])
         mock_fetch_df.assert_called_once()

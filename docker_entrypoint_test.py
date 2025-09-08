@@ -167,7 +167,7 @@ def test_read_seed_sequence_from_local_file():
         assert parsed_args.main_args.positions_to_mutate == positions_to_mutate
 
 
-@pytest.mark.parametrize("pos_to_mutate_type", ['empty', 'none', 'local', 'gcp'])
+@pytest.mark.parametrize("pos_to_mutate_type", ['empty', 'none', 'local', 'url'])
 def test_empty_positions_to_mutate(pos_to_mutate_type):
     """Check that parsing handles positions_to_mutate correctly."""
     with tempfile.TemporaryDirectory() as tmpdirname:
@@ -178,7 +178,7 @@ def test_empty_positions_to_mutate(pos_to_mutate_type):
             'empty': '',
             'none': None,
             'local': f'local://{pos_to_mutate_filename}',
-            'gcp': 'gcp_enformer://12',
+            'url': 'enformer://12',
         }[pos_to_mutate_type]
         model_fn, opt, parsed_args = de.parse_all([
             '--model', 'dummy',
