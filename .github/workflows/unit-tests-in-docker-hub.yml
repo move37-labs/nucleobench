@@ -1,4 +1,4 @@
-name: Run Python Unit Tests with Docker image from Docker Hub
+name: Unit Tests with Docker image from Docker Hub
 
 on:
   push:
@@ -16,7 +16,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
-      - name: Run unit tests with pytest
+      - name: Run unit tests
         # Ensure the step runs in a bash shell
         shell: bash
         run: |

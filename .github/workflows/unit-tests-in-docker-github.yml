@@ -1,4 +1,4 @@
-name: Run Python Integration Test with Docker image from GitHub
+name: Unit Test with Docker image from GitHub
 
 on:
   push:
@@ -16,8 +16,8 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
-      - name: Run integration test
+      - name: Run unit tests
         # Ensure the step runs in a bash shell
         shell: bash
         run: |
-          micromamba run -n base pytest -v docker_entrypoint_test.py
+          micromamba run -n base pytest -n auto -v nucleobench/

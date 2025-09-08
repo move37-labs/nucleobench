@@ -1,6 +1,6 @@
 # .github/workflows/python-tests.yml
 
-name: Run Python Unit Tests with Micromamba
+name: Unit Tests with Micromamba
 #
 # This workflow runs the tests for the project.
 # It uses the mamba-org/setup-micromamba action to set up the micromamba environment.
@@ -43,7 +43,7 @@ jobs:
 
       # 3. Runs pytest inside the activated conda environment
       # The 'micromamba-shell' automatically activates the environment
-      - name: Run unit tests with pytest
+      - name: Run unit tests
         shell: micromamba-shell {0}
         run: |
           pytest -n auto -v nucleobench/
