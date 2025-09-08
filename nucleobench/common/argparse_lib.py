@@ -12,7 +12,7 @@ import argparse
 import dataclasses
 import pandas as pd
 
-GCP_ENFORMER_URL_ = 'https://storage.googleapis.com/nucleobench-start-sequences/start_sequences_enformer.parquet'
+from nucleobench.common import constants
 
 @dataclasses.dataclass
 class ParsedArgs:
@@ -49,7 +49,7 @@ def possibly_parse_start_sequence(start_seq: str) -> str:
 def fetch_gcp_enformer_start_sequence_df() -> pd.DataFrame:
     """Fetch a start sequence from Zenodo."""
     # Download the CSV file from public GCP bucket.
-    return pd.read_parquet(GCP_ENFORMER_URL_)
+    return pd.read_parquet(constants.GCP_ENFORMER_URL_)
 
 
 def possibly_parse_positions_to_mutate(positions_to_mutate: Optional[Union[str, list[int]]]) -> Optional[list[int]]:
