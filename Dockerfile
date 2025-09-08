@@ -76,7 +76,6 @@ COPY --from=builder /opt/conda /opt/conda
 
 # Copy the application code.
 COPY --chown=${APP_USER_NAME}:${APP_USER_NAME} docker_entrypoint.py /nucleobench/
-COPY --chown=${APP_USER_NAME}:${APP_USER_NAME} docker_entrypoint_test.py /nucleobench/
 COPY --chown=${APP_USER_NAME}:${APP_USER_NAME} nucleobench /nucleobench/nucleobench
 
 #(otherwise python will not be found)
