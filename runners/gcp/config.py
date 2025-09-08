@@ -10,11 +10,11 @@ USAGE:
 """
 
 # Google Cloud configuration
-PROJECT_ID = 'nucleorave'
-REGION = 'us-central1'
-BUCKET_NAME = 'nucleorave-batch'
+PROJECT_ID = ''
+REGION = ''
+BUCKET_NAME = ''
 # Optional: service account for the job. If empty, uses the default Compute Engine service account.
-SERVICE_ACCOUNT_EMAIL = "nucleobench-batch-runner-joels@nucleorave.iam.gserviceaccount.com"
+SERVICE_ACCOUNT_EMAIL = ''
 
 # Docker image configuration
 DOCKER_IMAGE = 'joelshor/nucleobench:latest'
