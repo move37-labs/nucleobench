@@ -1,0 +1,127 @@
+# Python test files
+**/*_test.py
+**/test_*.py
+**/tests/
+**/test/
+
+# Python cache and compiled files
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.Python
+**/*.so
+
+# Virtual environments
+**/env/
+**/venv/
+**/.venv/
+**/ENV/
+**/env.bak/
+**/venv.bak/
+
+# Testing and coverage
+**/.pytest_cache/
+**/.coverage
+**/htmlcov/
+**/.tox/
+**/.mypy_cache/
+**/.dmypy.json
+**/dmypy.json
+**/.pytest_cache/
+**/coverage.xml
+**/.nyc_output
+
+# IDE and editor files
+**/.vscode/
+**/.idea/
+**/*.swp
+**/*.swo
+**/*~
+**/.DS_Store
+**/Thumbs.db
+
+# Git and version control
+**/.git/
+**/.gitignore
+**/.gitattributes
+
+# Documentation and README files
+**/README.md
+**/README.rst
+**/README.txt
+**/docs/
+**/doc/
+**/*.md
+**/*.rst
+**/*.txt
+
+# Build artifacts and distributions
+**/build/
+**/dist/
+**/*.egg-info/
+**/*.egg
+**/*.whl
+**/*.tar.gz
+
+# Logs and temporary files
+**/*.log
+**/logs/
+**/tmp/
+**/temp/
+**/.tmp/
+
+# OS generated files
+**/.DS_Store
+**/.DS_Store?
+**/._*
+**/.Spotlight-V100
+**/.Trashes
+**/ehthumbs.db
+**/Thumbs.db
+
+# Project specific exclusions
+**/wandb/
+**/output/
+**/analysis/
+**/recipes/
+**/runners/
+**/pypi/
+**/assets/
+**/docker_entrypoint_test.py
+
+# Docker files (don't need to copy these into the image)
+**/Dockerfile*
+**/.dockerignore
+**/docker-compose*.yml
+**/docker-compose*.yaml
+
+# CI/CD files
+**/.github/
+**/.gitlab-ci.yml
+**/.travis.yml
+**/.circleci/
+**/Jenkinsfile
+
+# Environment and config files
+**/.env
+**/.env.local
+**/.env.*.local
+**/config.local.*
+**/settings.local.*
+
+# Jupyter notebooks
+**/*.ipynb
+**/.ipynb_checkpoints/
+
+# Node.js (if any)
+**/node_modules/
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+
+# Other common exclusions
+**/.cache/
+**/.local/
+**/.ssh/
+**/.gnupg/
