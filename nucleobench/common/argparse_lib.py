@@ -39,17 +39,16 @@ def possibly_parse_start_sequence(start_seq: str) -> str:
         # Example:
         # gcp_enformer://12
         index = int(start_seq[len('gcp_enformer://'):])
-        df = fetch_gcp_enformer_start_sequence_df()
+        df = fetch_zenodo_enformer_start_sequence_df()
         start_seq = df[df.index == index]['sequence'].values
         assert len(start_seq) == 1, f"Expected 1 sequence, got {len(start_seq)}"
         start_seq = start_seq[0]
     return start_seq
 
 
-def fetch_gcp_enformer_start_sequence_df() -> pd.DataFrame:
-    """Fetch a start sequence from Zenodo."""
-    # Download the CSV file from public GCP bucket.
-    return pd.read_parquet(constants.GCP_ENFORMER_URL_)
+def fetch_zenodo_enformer_start_sequence_df() -> pd.DataFrame:
+    """Get the Zenodo Enformer start sequence dataframe."""
+    return pd.read_parquet(constants.ZENODO_ENFORMER_URL_)
 
 
 def possibly_parse_positions_to_mutate(positions_to_mutate: Optional[Union[str, list[int]]]) -> Optional[list[int]]:
