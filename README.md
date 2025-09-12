@@ -61,6 +61,7 @@ model_fn = model_obj(**model_init_args)
 
 # 2. Choose an optimizer.
 from nucleobench import optimizations
+opt_obj = optimizations.get_optimization('adabeam')
 opt_init_args = opt_obj.debug_init_args()
 opt_init_args['model_fn'] = model_fn
 opt_init_args['start_sequence'] = 'A' * 100
