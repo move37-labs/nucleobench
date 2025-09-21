@@ -170,6 +170,7 @@ docker_entrypoint_test/
 
 # Written for batch params.
 *.csv
+*.tsv
 
 # Parquet data files.
 *.parquet
@@ -192,6 +193,9 @@ analysis/pymeme/data/tomtom_out/**
 
 # Mac files.
 **/.DS_Store
+
+# Profiling files.
+*.prof
 
 # Outputs of test runs.
 START.txt
