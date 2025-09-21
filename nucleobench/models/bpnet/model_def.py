@@ -13,15 +13,13 @@ python -m nucleobench.models.bpnet.model_def
 ```
 """
 
-from typing import Optional, Union
+from typing import Optional
 
 import argparse
-import gc
 import numpy as np
 import torch
 
 from nucleobench.common import string_utils
-from nucleobench.common import attribution_lib_torch as att_lib
 
 from nucleobench.optimizations import model_class as mc
 from nucleobench.models.bpnet import load_model
