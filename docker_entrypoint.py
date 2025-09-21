@@ -20,7 +20,6 @@ python -m docker_entrypoint \
 """
 import argparse
 import datetime
-import os
 import sys
 import time
 import tqdm
@@ -132,7 +131,12 @@ def run_loop(
     all_dicts_to_write.append(to_write)
 
     # After safe completion, write everything.
-    gcp_utils.save_proposals(all_dicts_to_write, args, args.output_path)
+    gcp_utils.save_proposals(
+        all_dicts_to_write, 
+        args, 
+        args.output_path,
+        format='parquet',
+    )
 
     # At the end of it all, write a 'SUCCESS.txt' file.
     gcp_utils.write_txt_file(args.output_path, content='SUCCESS')
