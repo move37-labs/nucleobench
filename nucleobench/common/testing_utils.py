@@ -18,6 +18,7 @@ class CountLetterModel(torch.nn.Module, mc.TISMModelClass):
                  call_is_on_strings: bool = True,
                  add_unsqueeze_to_output: bool = False,
                  train_seq_len: int = 200,
+                 vocab_len: int = 4,
                  ):
         super().__init__()
         self.vocab_i = vocab_i
@@ -26,10 +27,11 @@ class CountLetterModel(torch.nn.Module, mc.TISMModelClass):
         self.call_is_on_strings = call_is_on_strings
         self.add_unsqueeze_to_output = add_unsqueeze_to_output
         self.train_seq_len = train_seq_len
+        self.vocab_len = vocab_len
 
     def forward(self, x):
         assert x.ndim == 3
-        assert x.shape[1] == 4, x.shape
+        assert x.shape[1] == self.vocab_len, x.shape
         out_tensor = torch.sum(x[:, self.vocab_i, :], dim=[1])
         if self.flip_sign:
             out_tensor *= -1
