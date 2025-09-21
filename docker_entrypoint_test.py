@@ -61,8 +61,9 @@ def test_run_loop_with_all_combos(model, optimization):
     if optimization in optimizations.OPTIMIZATIONS_REQUIRING_TISM_ and not isinstance(model, mc.TISMModelClass):
         return
     if model == 'enformer':
-        # Takes too long to run as a test.
-        return
+        # Skip this test unconditionally for now as it takes too long.
+        pytest.skip("Enformer test is too long to run in standard CI.")
+
 
     model_class = models.get_model(model)
     opt_class = optimizations.get_optimization(optimization)
