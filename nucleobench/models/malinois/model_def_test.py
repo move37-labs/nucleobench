@@ -70,18 +70,18 @@ def test_add_flank():
     assert list(ret.shape) == [5, 4, 7]
 
 
-def test_smoothgrad_sanity():
-     """Smoke test, and that smoothgrad inference is the same as normal inference."""
+def test_grad_sanity():
+     """Smoke test, and that tism inference is the same as normal inference."""
      m = model_def.Malinois(
           model_artifact=None,
           target_feature=0,
           bending_factor=1.0,
           override_model=testing_utils.CountLetterModel(**model_args))
-     y1, smooth_grad = m.tism('ATAAG')
+     y1, grad = m.tism('ATAAG')
      y2 = m.inference_on_strings(['ATAAG'])
      assert y1 == y2
-     assert isinstance(smooth_grad, list)
-     assert len(smooth_grad) == 5
+     assert isinstance(grad, list)
+     assert len(grad) == 5
 
 
 def test_tism_correctness():
