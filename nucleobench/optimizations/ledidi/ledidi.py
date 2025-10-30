@@ -25,11 +25,10 @@ class Ledidi(oc.SequenceOptimizer):
     def __init__(self, 
                  model_fn: PyTorchDifferentiableModel, 
                  start_sequence: SequenceType,
+                 train_batch_size, 
+                 lr: float,
                  positions_to_mutate: Optional[PositionsToMutateType] = None,
                  vocab: list[str] = constants.VOCAB,
-                 # Defaults taken from Ledidi paper.
-                 train_batch_size: int = 64, 
-                 lr: float = 0.1,
                  use_input_loss: bool = False,
                  rng_seed: int = 0,
                  debug: bool = False,
@@ -65,18 +64,18 @@ class Ledidi(oc.SequenceOptimizer):
 
         # Create input mask.
         if self.positions_to_mutate is not None:
-            input_mask = torch.Tensor([False] * self.seed_tensor.shape[-1]).type(torch.bool)
-            input_mask[self.positions_to_mutate] = True
+            input_mask = torch.Tensor([True] * self.seed_tensor.shape[-1]).type(torch.bool)
+            input_mask[self.positions_to_mutate] = False
         else:
             input_mask = None
 
-        # Initializing ledid obj modeled after gRelu.
+        # Initializing ledidi obj modeled after gRelu.
         def loss_func(x):
             # No need to cast as Tensor, or flip the sign. That should be taken
             # care of by the underlying model.
             return x.mean()
         
-        # Initialize ledidi
+        # Initialize ledidi.
         self.designer = ledidi.Ledidi(
             self.model_fn,
             self.seed_tensor.shape,
@@ -89,16 +88,6 @@ class Ledidi(oc.SequenceOptimizer):
             return_history=True,
             verbose=debug,
         )
-        
-        
-    @staticmethod
-    def debug_init_args():
-        return {
-            'model_fn': testing_utils.CountLetterModel(),
-            'start_sequence': 'AA',
-            'positions_to_mutate': [1],
-            'rnd_seed': 0,
-        }
 
     def run(self, n_steps: int):
         """Runs the optimization."""
@@ -140,6 +129,6 @@ class Ledidi(oc.SequenceOptimizer):
             'model_fn': testing_utils.CountLetterModel(),
             'start_sequence': 'AA',
             'train_batch_size': 4,
-            'lr': 0.1,
+            'lr': 1.0,
             'rng_seed': 0,
         }

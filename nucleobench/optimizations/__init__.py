@@ -10,7 +10,7 @@ from nucleobench.optimizations.ada.adalead import adalead_ref
 from nucleobench.optimizations.simulated_annealing import simulated_annealing
 
 SAMPLING_IGNORES_POSITIONS_TO_MUTATE_ = [
-    "fastseqprop", "ledidi",
+    "fastseqprop",
 ]
 
 
