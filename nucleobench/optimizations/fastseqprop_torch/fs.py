@@ -14,7 +14,7 @@ from nucleobench.common import testing_utils
 from nucleobench.optimizations.typing import PositionsToMutateType, SequenceType, SamplesType, PyTorchDifferentiableModel
 from nucleobench.optimizations import optimization_class as oc
 
-from nucleobench.optimizations.fastseqprop_torch import fs_torch_module as fs_opt
+from . import fs_torch_module as fs_opt
 
 
 class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
@@ -61,7 +61,7 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
         assert cur_tensor.ndim == 3
         
         self.opt_module = fs_opt.TorchFastSeqPropOptimizer(
-            start_tensor=cur_tensor,
+            start_logits=cur_tensor,
             positions_to_mutate=positions_to_mutate,
             vocab_len=4,
             tau=1.0,

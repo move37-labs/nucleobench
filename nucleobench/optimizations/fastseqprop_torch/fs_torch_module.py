@@ -6,7 +6,7 @@ import torch
 
 class TorchFastSeqPropOptimizer(torch.nn.Module):
     def __init__(self, 
-                 start_tensor: torch.Tensor,
+                 start_logits: torch.Tensor,
                  positions_to_mutate: Optional[list[int]] = None,
                  vocab_len: int = 4,
                  tau: float = 1.0,
@@ -15,20 +15,32 @@ class TorchFastSeqPropOptimizer(torch.nn.Module):
                  ):
         super().__init__()
         
-        assert start_tensor.ndim == 3
-        assert start_tensor.shape[1] == vocab_len
+        assert start_logits.ndim == 3
+        assert start_logits.shape[1] == vocab_len
         
         self.use_norm = use_norm
         self.use_slope_annealing = use_slope_annealing
         
-        self.register_parameter(
-            'params', torch.nn.Parameter(start_tensor.detach().clone()))
-        
         if positions_to_mutate is None:
             self.gradient_mask = None
         else:
-            self.gradient_mask = torch.zeros_like(start_tensor)
+            # Change logits to be deterministic.
+            inverse_pos_to_mask = torch.ones(start_logits.shape[2], dtype=torch.bool)
+            inverse_pos_to_mask[positions_to_mutate] = False
+            
+            top_bp = start_logits.argmax(dim=1, keepdim=True)  
+            start_logits[:, :, inverse_pos_to_mask] = -10**9  # Assign negative inf
+            sliced_logits = start_logits[:, :, inverse_pos_to_mask] # 1. Get the slice (this is a copy)
+            sliced_indices = top_bp[:, :, inverse_pos_to_mask] # 2. Get the indices corresponding to that slice
+            scattered_slice = sliced_logits.scatter(dim=1, index=sliced_indices, value=10**9)  # 3. Perform the scatter (use the non-in-place version)
+            start_logits[:, :, inverse_pos_to_mask] = scattered_slice  # 4. Assign the new tensor back to the original tensor's slice
+            
+            # Set up gradient mask.
+            self.gradient_mask = torch.zeros_like(start_logits)
             self.gradient_mask[:, :, positions_to_mutate] = 1
+            
+        self.register_parameter(
+            'params', torch.nn.Parameter(start_logits.detach().clone()))
         
         if self.use_norm:
             self.normalization = torch.nn.InstanceNorm1d(
