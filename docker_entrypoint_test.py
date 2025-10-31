@@ -54,12 +54,6 @@ def test_optimization_required_fns(optimization):
 
 @pytest.mark.parametrize("model,optimization", _valid_model_opt_pairs)
 def test_run_loop_with_all_combos(model, optimization):
-    if optimization in optimizations.OPTIMIZATIONS_REQUIRING_PYTORCH_DIFF_ and not isinstance(
-        model, mc.PyTorchDifferentiableModel
-    ):
-        return
-    if optimization in optimizations.OPTIMIZATIONS_REQUIRING_TISM_ and not isinstance(model, mc.TISMModelClass):
-        return
     if model == 'enformer':
         # Skip this test unconditionally for now as it takes too long.
         pytest.skip("Enformer test is too long to run in standard CI.")
@@ -67,6 +61,12 @@ def test_run_loop_with_all_combos(model, optimization):
 
     model_class = models.get_model(model)
     opt_class = optimizations.get_optimization(optimization)
+    
+    if optimization in optimizations.OPTIMIZATIONS_REQUIRING_PYTORCH_DIFF_ and not isinstance(
+        model, mc.PyTorchDifferentiableModel):
+        return
+    if optimization in optimizations.OPTIMIZATIONS_REQUIRING_TISM_ and not isinstance(model, mc.TISMModelClass):
+        return
     
     model_obj = model_class(**model_class.debug_init_args())
 
