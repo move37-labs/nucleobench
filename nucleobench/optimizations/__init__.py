@@ -9,10 +9,6 @@ from nucleobench.optimizations.ada.adabeam import adabeam
 from nucleobench.optimizations.ada.adalead import adalead_ref
 from nucleobench.optimizations.simulated_annealing import simulated_annealing
 
-SAMPLING_IGNORES_POSITIONS_TO_MUTATE_ = [
-    "fastseqprop",
-]
-
 
 OPTIMIZATIONS_REQUIRING_TISM_ = {
     "beam_search": beam_ordered.OrderedBeamSearch,

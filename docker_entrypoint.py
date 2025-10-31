@@ -156,15 +156,14 @@ def _get_dict_to_write(
     proposals = opt.get_samples(all_args.main_args.proposals_per_round)
     
     # Check that positions to mutate are respected.
-    if all_args.main_args.optimization not in optimizations.SAMPLING_IGNORES_POSITIONS_TO_MUTATE_:
-        try:
-            start_sequence = all_args.main_args.start_sequence
-            pos_to_mutate = all_args.main_args.positions_to_mutate
-        except AttributeError as e:
-            raise ValueError(all_args.main_args) from e
-        for proposal in proposals:
-            testing_utils.assert_proposal_respects_positions_to_mutate(
-                start_sequence, proposal, pos_to_mutate)
+    try:
+        start_sequence = all_args.main_args.start_sequence
+        pos_to_mutate = all_args.main_args.positions_to_mutate
+    except AttributeError as e:
+        raise ValueError(all_args.main_args) from e
+    for proposal in proposals:
+        testing_utils.assert_proposal_respects_positions_to_mutate(
+            start_sequence, proposal, pos_to_mutate)
 
     # Calculate their energies.
     # TODO(joelshor): Figure out how to add arbitrary debug info. Until then, disable

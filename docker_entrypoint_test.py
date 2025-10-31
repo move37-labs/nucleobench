@@ -239,9 +239,6 @@ def test_no_intermediate_records():
 @pytest.mark.parametrize("optimization", _valid_opts)
 def test_optimization_pos_to_mutate(optimization):
     """Test that the optimization respects the positions_to_mutate argument."""
-    if optimization in optimizations.SAMPLING_IGNORES_POSITIONS_TO_MUTATE_:
-        return
-    
     seq_len = 1000
     start_sequence = 'A' * seq_len
     np.random.seed(0)
