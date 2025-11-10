@@ -29,7 +29,6 @@ class Ledidi(oc.SequenceOptimizer):
                  lr: float,
                  positions_to_mutate: Optional[PositionsToMutateType] = None,
                  vocab: list[str] = constants.VOCAB,
-                 use_input_loss: bool = False,
                  rng_seed: int = 0,
                  debug: bool = False,
                  ):
@@ -42,7 +41,6 @@ class Ledidi(oc.SequenceOptimizer):
         self.positions_to_mutate = positions_to_mutate
         self.train_batch_size = train_batch_size
         self.lr = lr
-        self.use_input_loss = use_input_loss
         
         # Convert sequence into a one-hot encoded tensor.
         self.seed_tensor = string_utils.dna2tensor(self.start_sequence)
@@ -62,13 +60,6 @@ class Ledidi(oc.SequenceOptimizer):
         if not isinstance(ret, torch.Tensor):
             raise ValueError('Ledidi model must be pytorch.')
 
-        # Create input mask.
-        if self.positions_to_mutate is not None:
-            input_mask = torch.Tensor([True] * self.seed_tensor.shape[-1]).type(torch.bool)
-            input_mask[self.positions_to_mutate] = False
-        else:
-            input_mask = None
-
         # Initializing ledidi obj modeled after gRelu.
         def loss_func(x):
             # No need to cast as Tensor, or flip the sign. That should be taken
@@ -78,11 +69,10 @@ class Ledidi(oc.SequenceOptimizer):
         # Initialize ledidi.
         self.designer = ledidi.Ledidi(
             self.model_fn,
-            self.seed_tensor.shape,
+            self.seed_tensor,
             output_loss=loss_func,
             max_iter=None,
-            input_mask=input_mask,
-            input_loss=torch.nn.L1Loss(reduction='sum') if self.use_input_loss else None,
+            positions_to_mutate=self.positions_to_mutate,
             batch_size=self.train_batch_size,
             lr=self.lr,
             return_history=True,

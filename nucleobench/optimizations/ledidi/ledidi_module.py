@@ -7,9 +7,12 @@
 # Authors: Jacob Schreiber <jmschreiber91@gmail.com>
 #          adapted from code written by Yang Lu
 
+from typing import Optional
+
 import time
 import torch
 
+from nucleobench.optimizations.typing import PositionsToMutateType
 
 class Ledidi(torch.nn.Module):
     """Ledidi is a method for editing categorical sequences.
@@ -103,8 +106,8 @@ class Ledidi(torch.nn.Module):
     def __init__(
         self, 
         model, 
-        shape, 
-        input_loss=torch.nn.L1Loss(reduction='sum'), 
+        seed_tensor_onehot: torch.Tensor, 
+        input_loss=None, 
         output_loss=torch.nn.MSELoss(), 
         tau=1, 
         l=0.1, 
@@ -113,7 +116,7 @@ class Ledidi(torch.nn.Module):
         early_stopping_iter=100, 
         report_iter=100, 
         lr=1.0, 
-        input_mask=None, 
+        positions_to_mutate: Optional[PositionsToMutateType] = None, 
         initial_weights=None, 
         eps=1e-4, 
         return_history=False, 
@@ -137,17 +140,36 @@ class Ledidi(torch.nn.Module):
         self.early_stopping_iter = early_stopping_iter
         self.report_iter = report_iter
         self.lr = lr
-        self.input_mask = input_mask
         self.eps = eps
         self.return_history = return_history
         self.verbose = verbose
 
+        tensor_shape = seed_tensor_onehot.shape
         if initial_weights is None:
-            initial_weights = torch.zeros(1, *shape, dtype=torch.float32,
-                requires_grad=True)
+            initial_weights = torch.zeros(1, *tensor_shape, dtype=torch.float32)
+            
+        # Create input mask.
+        if positions_to_mutate is None:
+            input_mask = None
         else:
-            initial_weights.requires_grad = True
+            # Create an input mask to control gradients.
+            input_mask = torch.Tensor([True] * tensor_shape[1]).type(torch.bool)
+            input_mask[positions_to_mutate] = False
         
+            # Modify the initial weights to make the likelihood of picking the original 
+            # sequence element so high, that it effectively remains unchanged.
+            inverse_pos_to_mask = torch.ones(seed_tensor_onehot.shape[1], dtype=torch.bool)
+            inverse_pos_to_mask[positions_to_mutate] = False
+            
+            initial_weights[:, :, inverse_pos_to_mask] = torch.where(
+                seed_tensor_onehot[:, inverse_pos_to_mask] == 1, # Condition
+                float(10**9),
+                float(-10**9),
+            )
+            
+        initial_weights.requires_grad = True
+        
+        self.input_mask = input_mask
         self.weights = torch.nn.Parameter(initial_weights)
         
 
@@ -178,7 +200,7 @@ class Ledidi(torch.nn.Module):
         assert X.shape[1] == 4
         assert X.shape[0] == 1
         logits = torch.log(X + self.eps) + self.weights
-        logits = logits.expand(self.batch_size, *(-1 for i in range(X.ndim-1)))
+        logits = logits.expand(self.batch_size, *(-1 for _ in range(X.ndim-1)))
         return torch.nn.functional.gumbel_softmax(logits, tau=self.tau, 
             hard=True, dim=1)
         
@@ -212,12 +234,6 @@ class Ledidi(torch.nn.Module):
         optimizer = torch.optim.AdamW((self.weights,), lr=self.lr)
         history = {'edits': [], 'input_loss': [], 'output_loss': [], 
             'total_loss': [], 'batch_size': self.batch_size}
-
-        if self.input_mask is not None:
-            self.weights.requires_grad = False
-            self.weights[:, :, self.input_mask] = float("-inf")
-            self.weights[X.type(torch.bool)] = 0
-            self.weights.requires_grad = True
         
         inpainting_mask = X[0].sum(dim=0) == 1
         y_hat = self.model.inference_on_tensor(X)
@@ -253,6 +269,8 @@ class Ledidi(torch.nn.Module):
 
             optimizer.zero_grad()
             total_loss.backward()
+            if self.input_mask is not None:
+                self.weights.grad[:, :, self.input_mask] = 0
             optimizer.step()
 
             input_loss = input_loss.item()

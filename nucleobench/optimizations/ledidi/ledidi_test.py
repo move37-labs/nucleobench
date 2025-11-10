@@ -9,6 +9,7 @@ pytest nucleobench/optimizations/ledidi/ledidi_test.py
 import pytest
 
 import numpy as np
+import torch
 
 from nucleobench.common import testing_utils
 from nucleobench.optimizations.ledidi import ledidi
@@ -61,3 +62,29 @@ def test_correctness(positions_to_mutate):
         assert best_cnt == 1
     else:
         assert best_cnt == 2
+        
+        
+def test_respects_positions_to_mutate():
+    """Test that the optimization respects the positions_to_mutate argument."""
+    np.random.seed(0)
+    torch.manual_seed(0)
+    
+    seq_len = 1000
+    start_sequence = "".join(np.random.choice(list("ACGT"), size=seq_len))
+    
+    positions_to_mutate = sorted(
+        list(np.random.choice(range(seq_len), size=500, replace=False)))
+    
+    init_args = ledidi.Ledidi.debug_init_args()
+    init_args['start_sequence'] = start_sequence
+    init_args['positions_to_mutate'] = positions_to_mutate
+    init_args['lr'] = 10.0
+    init_args['model_fn'] = testing_utils.CountLetterModel(flip_sign=True)
+    led_opt = ledidi.Ledidi(**init_args)
+    
+    for _ in range(10):
+        led_opt.run(n_steps=1)
+        for proposal in led_opt.get_samples(5):
+            testing_utils.assert_proposal_respects_positions_to_mutate(
+                start_sequence, proposal, positions_to_mutate)
+            print(f'proposal: {proposal}')
