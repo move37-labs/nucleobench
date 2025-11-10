@@ -46,4 +46,10 @@ jobs:
       - name: Run integration test with pytest
         shell: micromamba-shell {0}
         run: |
-          pytest -n auto -v docker_entrypoint_test.py
+          pytest --cov=./ --cov-report=xml -n auto -v docker_entrypoint_test.py
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: ${{ github.repository }}
