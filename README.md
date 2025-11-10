@@ -1,5 +1,7 @@
 ## NucleoBench
 
+[![codecov](https://codecov.io/gh/move37-labs/nucleobench/graph/badge.svg?token=8ZVWDF7BT3)](https://codecov.io/gh/move37-labs/nucleobench)
+
 **A large-scale benchmark for modern nucleic acid sequence design algorithms (NucleoBench), and a new design algorithm that outperforms existing designers (AdaBeam).  Link to ICML GenBio 2025 workshop paper [here](https://www.biorxiv.org/content/10.1101/2025.06.20.660785).**
 
 [comment]: <> (Consider an image here.)
