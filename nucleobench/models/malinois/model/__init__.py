@@ -1,5 +1,7 @@
-from .basset import Basset, BassetVL, BassetEntropyVL, BassetBranched
+from .basset import BassetBranched
+from . import utils as modelling_utils
 
 __all__ = [
-    'Basset', 'BassetVL', 'BassetEntropyVL', 'BassetBranched',
+    'BassetBranched',
+    'modelling_utils',
 ]
