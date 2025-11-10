@@ -58,14 +58,13 @@ def test_run_loop_with_all_combos(model, optimization):
         # Skip this test unconditionally for now as it takes too long.
         pytest.skip("Enformer test is too long to run in standard CI.")
 
-
     model_class = models.get_model(model)
     opt_class = optimizations.get_optimization(optimization)
     
-    if optimization in optimizations.OPTIMIZATIONS_REQUIRING_PYTORCH_DIFF_ and not isinstance(
-        model, mc.PyTorchDifferentiableModel):
+    if optimization in optimizations.OPTIMIZATIONS_REQUIRING_PYTORCH_DIFF_ and not issubclass(
+        model_class, mc.PyTorchDifferentiableModel):
         return
-    if optimization in optimizations.OPTIMIZATIONS_REQUIRING_TISM_ and not isinstance(model, mc.TISMModelClass):
+    if optimization in optimizations.OPTIMIZATIONS_REQUIRING_TISM_ and not issubclass(model_class, mc.TISMModelClass):
         return
     
     model_obj = model_class(**model_class.debug_init_args())
