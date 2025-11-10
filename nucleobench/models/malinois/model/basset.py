@@ -21,17 +21,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-import argparse
-
 import torch
 import torch.nn as nn
 
 import lightning.pytorch as ptl
 
 from .custom_layers import Conv1dNorm, LinearNorm, GroupedLinear, BranchedLinear
-from .loss_functions import add_criterion_specific_args
-import nucleobench.models.malinois.model.utils as utils
-
 from ..model import loss_functions
 
 def get_padding(kernel_size):
@@ -91,88 +86,6 @@ class BassetBranched(ptl.LightningModule):
 
     """
     
-    #####################
-    # CLI staticmethods #
-    #####################
-    
-    @staticmethod
-    def add_model_specific_args(parent_parser):
-        """
-        Add model-specific arguments to the provided argparse ArgumentParser.
-
-        Args:
-            parent_parser (argparse.ArgumentParser): The parent ArgumentParser.
-
-        Returns:
-            argparse.ArgumentParser: The ArgumentParser with added model-specific arguments.
-        """
-        parser = argparse.ArgumentParser(parents=[parent_parser], add_help=False)
-        group  = parser.add_argument_group('Model Module args')
-        
-        group.add_argument('--input_len', type=int, default=600)
-        
-        group.add_argument('--conv1_channels', type=int, default=300)
-        group.add_argument('--conv1_kernel_size', type=int, default=19)
-        
-        group.add_argument('--conv2_channels', type=int, default=200)
-        group.add_argument('--conv2_kernel_size', type=int, default=11)
-        
-        group.add_argument('--conv3_channels', type=int, default=200)
-        group.add_argument('--conv3_kernel_size', type=int, default=7)
-        
-        group.add_argument('--n_linear_layers', type=int, default=2)
-        group.add_argument('--linear_channels', type=int, default=1000)
-        group.add_argument('--linear_activation',type=str, default='ReLU')
-        group.add_argument('--linear_dropout_p', type=float, default=0.3)
-
-        group.add_argument('--n_branched_layers', type=int, default=1)
-        group.add_argument('--branched_channels', type=int, default=1000)
-        group.add_argument('--branched_activation',type=str, default='ReLU')
-        group.add_argument('--branched_dropout_p', type=float, default=0.3)
-
-        group.add_argument('--n_outputs', type=int, default=280)
-        
-        group.add_argument('--use_batch_norm', type=utils.str2bool, default=True)
-        group.add_argument('--use_weight_norm',type=utils.str2bool, default=False)
-        
-        group.add_argument('--loss_criterion', type=str, default='L1KLmixed')
-                
-        return parser
-    
-    @staticmethod
-    def add_conditional_args(parser, known_args):
-        """
-        Add conditional arguments based on known arguments.
-
-        Args:
-            parser (argparse.ArgumentParser): Argument parser.
-            known_args (Namespace): Namespace of known arguments.
-
-        Returns:
-            argparse.ArgumentParser: Argument parser with added conditional arguments.
-        """
-        parser = add_criterion_specific_args(parser, known_args.loss_criterion)
-        return parser
-
-    @staticmethod
-    def process_args(grouped_args):
-        """
-        Perform any required processessing of command line args required 
-        before passing to the class constructor.
-
-        Args:
-            grouped_args (Namespace): Namespace of known arguments with 
-            `'Model Module args'` key and conditionally added 
-            `'Criterion args'` key.
-
-        Returns:
-            Namespace: A modified namespace that can be passed to the 
-            associated class constructor.
-        """
-        model_args   = grouped_args['Model Module args']
-        model_args.loss_args = vars(grouped_args['Criterion args'])
-        return model_args
-
     ######################
     # Model construction #
     ######################
