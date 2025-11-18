@@ -1,6 +1,6 @@
 # .github/workflows/python-tests.yml
 
-name: Unit Tests with Micromamba
+name: Unit Tests (Micromamba)
 #
 # This workflow runs the tests for the project.
 # It uses the mamba-org/setup-micromamba action to set up the micromamba environment.

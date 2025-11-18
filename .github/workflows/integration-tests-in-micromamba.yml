@@ -1,6 +1,6 @@
 # .github/workflows/python-tests.yml
 
-name: Integration Test with Micromamba
+name: Integration Tests (Micromamba)
 #
 # This workflow runs the tests for the project.
 # It uses the mamba-org/setup-micromamba action to set up the micromamba environment.

@@ -1,4 +1,4 @@
-name: Unit Test with Docker image from GitHub
+name: Unit Tests (GHCR)
 
 on:
   push:

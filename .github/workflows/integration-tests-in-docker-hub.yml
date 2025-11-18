@@ -1,4 +1,4 @@
-name: Integration Test with Docker image from Docker Hub
+name: Integration Tests (DockerHub)
 
 on:
   push:

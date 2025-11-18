@@ -1,4 +1,4 @@
-name: Integration Test with Docker image from GitHub
+name: Integration Tests (GHCR)
 
 on:
   push:

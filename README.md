@@ -1,6 +1,19 @@
 ## NucleoBench
 
 [![codecov](https://codecov.io/gh/move37-labs/nucleobench/graph/badge.svg?token=8ZVWDF7BT3)](https://codecov.io/gh/move37-labs/nucleobench)
+[![PyPI version](https://badge.fury.io/py/nucleobench.svg)](https://badge.fury.io/py/nucleobench)
+[![Python Versions](https://img.shields.io/pypi/pyversions/nucleobench.svg)](https://pypi.org/project/nucleobench/)
+[![License](https://img.shields.io/github/license/move37-labs/nucleobench)](https://github.com/move37-labs/nucleobench/blob/main/LICENSE)
+[![DOI](https://img.shields.io/badge/bioRxiv-10.1101%2F2025.06.20.660785-b31b1b.svg)](https://www.biorxiv.org/content/10.1101/2025.06.20.660785)
+[![Conda Environment](https://img.shields.io/badge/conda-env-green)](https://github.com/move37-labs/nucleobench/blob/main/environment.yml)
+[![Docker Hub](https://img.shields.io/badge/Docker%20Hub-nucleobench-blue?logo=docker)](https://hub.docker.com/r/joelshor/nucleobench)
+[![GHCR](https://img.shields.io/badge/ghcr.io-nucleobench-blue?logo=github)](https://github.com/move37-labs/nucleobench/pkgs/container/nucleobench)
+
+| Environment  | Unit Tests | Integration Tests |
+| :--- | :--- | :--- |
+| **Micromamba** | [![Unit Tests (Micromamba)](https://github.com/move37-labs/nucleobench/actions/workflows/unit-tests-in-micromamba.yml/badge.svg)](https://github.com/move37-labs/nucleobench/actions/workflows/unit-tests-in-micromamba.yml) | [![Integration Tests (Micromamba)](https://github.com/move37-labs/nucleobench/actions/workflows/integration-tests-in-micromamba.yml/badge.svg)](https://github.com/move37-labs/nucleobench/actions/workflows/integration-tests-in-micromamba.yml) |
+| **Docker Hub** | [![Unit Tests (DockerHub)](https://github.com/move37-labs/nucleobench/actions/workflows/unit-tests-in-docker-hub.yml/badge.svg)](https://github.com/move37-labs/nucleobench/actions/workflows/unit-tests-in-docker-hub.yml) | [![Integration Tests (DockerHub)](https://github.com/move37-labs/nucleobench/actions/workflows/integration-tests-in-docker-hub.yml/badge.svg)](https://github.com/move37-labs/nucleobench/actions/workflows/integration-tests-in-docker-hub.yml) |
+| **GHCR** | [![Unit Tests (GHCR)](https://github.com/move37-labs/nucleobench/actions/workflows/unit-tests-in-docker-github.yml/badge.svg)](https://github.com/move37-labs/nucleobench/actions/workflows/unit-tests-in-docker-github.yml) | [![Integration Tests (GHCR)](https://github.com/move37-labs/nucleobench/actions/workflows/integration-tests-in-docker-github.yml/badge.svg)](https://github.com/move37-labs/nucleobench/actions/workflows/integration-tests-in-docker-github.yml) |
 
 **A large-scale benchmark for modern nucleic acid sequence design algorithms (NucleoBench), and a new design algorithm that outperforms existing designers (AdaBeam).  Link to ICML GenBio 2025 workshop paper [here](https://www.biorxiv.org/content/10.1101/2025.06.20.660785).**
 

@@ -1,4 +1,4 @@
-name: Unit Tests with Docker image from Docker Hub
+name: Unit Tests (DockerHub)
 
 on:
   push:
