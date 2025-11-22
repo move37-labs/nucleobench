@@ -1,0 +1,35 @@
+# An environment for the Dockerfile. Should contain only the dependencies needed for the application.
+# Must be manually kept in sync with environment.yml.
+name: nucleobench-runtime
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+    - python=3.11
+    - h5py
+    - pip
+    - pytest  # Python unit testing framework.
+    - pytest-xdist # For running tests in parallel.
+    - pytest-cov  # Coverage reporting for tests.
+
+    - numpy
+    - scipy
+    - pandas
+    - pyarrow  # Required for parquet support.
+    - fastparquet  # Required for parquet support.
+
+    - pytorch-cpu>=2.1
+    # - pytorch  # Switch to this for GPU support, if needed.
+    - python-xxhash  # For hashing for Ada* cache.
+
+    - lightning
+    - wandb  # For skipping login when loading gRelu models.
+
+    - google-cloud-storage
+    - gcsfs  # For reading from GCS through pandas
+
+    - bioconda::pybigwig  # Needed for pip libraries below.
+
+    - pip:
+        - gReLU==1.0.5  # For the gReLU models.
+        - bpnet-lite==0.8.1  # For a BPNet model.

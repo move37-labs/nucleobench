@@ -1,9 +1,7 @@
+# syntax=docker/dockerfile:1
+# ^ This line is important to enable advanced caching features.
 # To build:
     # docker build -t nucleobench -f Dockerfile .
-
-# IMPORTANT: The docker image for Google Batch must be linux/amd64.
-# To build for linux/amd64:
-    # docker buildx build --platform linux/amd64 -t nucleobench_linuxamd64:latest -f Dockerfile . --load
 
 # To test:
     # hadolint Dockerfile
@@ -35,11 +33,14 @@ RUN groupadd --gid ${APP_USER_GID} ${APP_USER_NAME} && \
     useradd --uid ${APP_USER_UID} --gid ${APP_USER_GID} --create-home --shell /bin/bash ${APP_USER_NAME}
 
 # Copy the environment file with correct ownership.
-COPY --chown=${APP_USER_NAME}:${APP_USER_NAME} environment.yml /tmp/environment.yml
+COPY --chown=${APP_USER_NAME}:${APP_USER_NAME} environment_runtime.yml /tmp/environment.yml
 
-# Install all dependencies into the base environment.
-RUN micromamba install -y -n base -f /tmp/environment.yml && \
-    micromamba clean --all --yes
+# OPTIMIZATION: Add pip cache mount.
+# Even if PyTorch is in Mamba, 'gReLU' and its deps are in Pip.
+# Caching /root/.cache/pip prevents redownloading pip wheels on every build.
+RUN --mount=type=cache,target=/opt/conda/pkgs \
+    --mount=type=cache,target=/root/.cache/pip \
+    micromamba install -y -n base -f /tmp/environment.yml
 
 # ==============================================================================
 # Final Stage
@@ -68,18 +69,24 @@ RUN apt-get update && \
 RUN groupadd --gid ${APP_USER_GID} ${APP_USER_NAME} && \
     useradd --uid ${APP_USER_UID} --gid ${APP_USER_GID} --create-home --shell /bin/bash ${APP_USER_NAME}
 
-# Copy the environment file with correct ownership for the appuser.
-COPY --chown=${APP_USER_NAME}:${APP_USER_NAME} environment.yml /tmp/environment.yml
-
 # Copy the pre-built environment from the builder stage.
-COPY --from=builder /opt/conda /opt/conda
+COPY --from=builder --chown=${APP_USER_NAME}:${APP_USER_NAME} /opt/conda /opt/conda
 
 # Copy the application code.
 COPY --chown=${APP_USER_NAME}:${APP_USER_NAME} docker_entrypoint.py /nucleobench/
 COPY --chown=${APP_USER_NAME}:${APP_USER_NAME} nucleobench /nucleobench/nucleobench
 
+# Switch to non-root user
+USER ${APP_USER_NAME}
+
+# Force /nucleobench into the path.
+# We don't include ${PYTHONPATH} because it is empty in the base image,
+# and we want to avoid a leading colon (:/nucleobench).
+ENV PYTHONPATH="/nucleobench"
+
 #(otherwise python will not be found)
 ARG MAMBA_DOCKERFILE_ACTIVATE=1  
 
-# Set the entrypoint.
-ENTRYPOINT ["/usr/local/bin/_entrypoint.sh", "python", "docker_entrypoint.py"]
+# Set entrypoint
+ENTRYPOINT ["/usr/local/bin/_entrypoint.sh"]
+CMD ["python", "docker_entrypoint.py"]
