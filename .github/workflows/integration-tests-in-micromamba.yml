@@ -24,7 +24,7 @@ jobs:
       matrix:
         # You can still matrix different python versions
         # This will override the version in environment.yml
-        python-version: ["3.11"]
+        python-version: ["3.12"]
 
     steps:
       # 1. Checks out your repository's code
