@@ -1,0 +1,40 @@
+name: Vanilla Pip Install Test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test-pip-install:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.12"]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Test fresh pip installation
+        run: |
+          python -m pip install --upgrade pip
+          # Installs the package from the local directory exactly as PyPI would
+          pip install .[dev]
+
+      - name: Verify package imports
+        run: |
+          # A quick sanity check to ensure the installation didn't silently break imports
+          python -c "import nucleobench; print('Successfully imported nucleobench on Python ${{ matrix.python-version }}')"
+          
+      - name: Run unit tests
+        run: |
+          pytest -n auto -v nucleobench/
