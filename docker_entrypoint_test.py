@@ -29,7 +29,7 @@ _valid_model_opt_pairs = list(itertools.product(_valid_models, _valid_opts))
 def test_model_required_fns(model):
     """Check that models have required run functions."""
     if model == 'enformer':
-        seqs = ["A" * 82_000, "T" * 82_000]
+        pytest.skip("Enformer test requires WanDB access.")
     else:
         seqs = ["A" * 200, "T" * 200]
     
