@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nucleopt"
-version = "1.0.4"
+version = "1.0.5"
 description = "Optimizers from the nucleobench package."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -25,12 +25,17 @@ dependencies = [
     "pandas",
     "h5py",
     "pyarrow",
+    "fastparquet",
     "google-cloud-storage",
+    "gcsfs",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest",
+    "pytest-xdist",
+    "pytest-repeat",
+    "pytest-cov",
     "coverage",
     "pyclean",
 ]
@@ -39,22 +44,10 @@ dev = [
 "Homepage" = "https://github.com/move37-labs/nucleobench"
 "Bug Tracker" = "https://github.com/move37-labs/nucleobench/issues"
 
-[tool.setuptools]
-packages = [
-    "nucleobench", 
-    "nucleobench.common",  
-    "nucleobench.optimizations", 
-    "nucleobench.optimizations.ada", 
-    "nucleobench.optimizations.ada.adabeam",
-    "nucleobench.optimizations.ada.adalead",
-    "nucleobench.optimizations.beam_search",
-    "nucleobench.optimizations.directed_evolution",
-    "nucleobench.optimizations.dummy",
-    "nucleobench.optimizations.fastseqprop_torch",
-    "nucleobench.optimizations.ledidi",
-    "nucleobench.optimizations.simulated_annealing",
-    ]
-package-dir = {"" = "."}
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["nucleobench", "nucleobench.*"]
+exclude = ["nucleobench.models", "nucleobench.models.*"]
 
 [tool.black]
 line-length = 88

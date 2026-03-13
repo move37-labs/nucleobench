@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nucleobench"
-version = "1.0.4"
+version = "1.0.5"
 description = "Nucleobench optimizers and tasks."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -21,21 +21,27 @@ classifiers = [
 dependencies = [
     "torch>=2.2",
     "lightning",
+    "pytorch-lightning>=2.0,<3.0",
     "gReLU==1.0.5",
     "wandb",
     "bpnet-lite==0.8.1",
-    "numpy>=1.16",
+    "numpy>=1.16,<2.0.0",
     "scipy",
     "pandas",
     "h5py",
     "pyarrow",
+    "fastparquet",
     "google-cloud-storage",
-    "pybigwig",
+    "gcsfs",
+    "pyBigWig==0.3.25",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest",
+    "pytest-xdist",
+    "pytest-repeat",
+    "pytest-cov",
     "coverage",
     "pyclean",
 ]
@@ -44,30 +50,9 @@ dev = [
 "Homepage" = "https://github.com/move37-labs/nucleobench"
 "Bug Tracker" = "https://github.com/move37-labs/nucleobench/issues"
 
-[tool.setuptools]
-packages = [
-    "nucleobench", 
-    "nucleobench.common", 
-    "nucleobench.models", 
-    "nucleobench.models.bpnet", 
-    "nucleobench.models.dummy", 
-    "nucleobench.models.grelu", 
-    "nucleobench.models.grelu.enformer",
-    "nucleobench.models.malinois",
-    "nucleobench.models.malinois.model",
-    "nucleobench.models.substring_count_net",  
-    "nucleobench.optimizations", 
-    "nucleobench.optimizations.ada", 
-    "nucleobench.optimizations.ada.adabeam",
-    "nucleobench.optimizations.ada.adalead",
-    "nucleobench.optimizations.beam_search",
-    "nucleobench.optimizations.directed_evolution",
-    "nucleobench.optimizations.dummy",
-    "nucleobench.optimizations.fastseqprop_torch",
-    "nucleobench.optimizations.ledidi",
-    "nucleobench.optimizations.simulated_annealing",
-    ]
-package-dir = {"" = "."}
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["nucleobench", "nucleobench.*"]
 
 [tool.black]
 line-length = 88
