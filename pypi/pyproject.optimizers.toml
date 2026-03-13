@@ -28,6 +28,7 @@ dependencies = [
     "fastparquet",
     "google-cloud-storage",
     "gcsfs",
+    "xxhash",
 ]
 
 [project.optional-dependencies]
