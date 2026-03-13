@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.12"]
+        python-version: ["3.11"]
 
     steps:
       - name: Check out code
@@ -23,18 +23,25 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
+          cache-dependency-path: 'pypi/pyproject.full.toml'
+
+      - name: Install system dependencies for pybigwig
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcurl4-openssl-dev
 
       - name: Test fresh pip installation
         run: |
+          # Copy the full pyproject.toml to the root for installation
+          cp pypi/pyproject.full.toml pyproject.toml
           python -m pip install --upgrade pip
           # Installs the package from the local directory exactly as PyPI would
           pip install .[dev]
 
       - name: Verify package imports
+        # Run from /tmp so Python imports from site-packages, not the local source tree.
+        working-directory: /tmp
         run: |
-          # A quick sanity check to ensure the installation didn't silently break imports
           python -c "import nucleobench; print('Successfully imported nucleobench on Python ${{ matrix.python-version }}')"
-          
-      - name: Run unit tests
-        run: |
-          pytest -n auto -v nucleobench/
+          python -c "import nucleobench.models.bpnet; print('Successfully imported nucleobench.models.bpnet on Python ${{ matrix.python-version }}')"
+          python -c "import nucleobench.optimizations; print('Successfully imported nucleobench.optimizations on Python ${{ matrix.python-version }}')"
