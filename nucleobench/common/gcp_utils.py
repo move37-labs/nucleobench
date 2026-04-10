@@ -8,12 +8,12 @@ python -m nucleobench.common.gcp_utils
 
 from typing import Any, Generator
 
+import numpy as np
 import argparse
 import pandas as pd
 import pyarrow
 import os
 import pickle
-import subprocess
 import torch
 import time
 from google.cloud import storage
@@ -33,7 +33,10 @@ def get_filepath(
 
 def _write_dicts_to_save_dicts(write_dicts: list[dict]) -> list[dict]:
     def _tensor2np(obj):
-        return obj.detach().clone().numpy() if isinstance(obj, torch.Tensor) else obj
+        k = obj.detach().clone().numpy() if isinstance(obj, torch.Tensor) else obj
+        if isinstance(k, np.ndarray) and k.ndim == 0:
+            k = k.item()
+        return k
     return [{k: _tensor2np(v) for k, v in x.items()} for x in write_dicts]
 
 
@@ -93,7 +96,7 @@ def save_proposals(
         output_path: Directory to write the output to, either locally or on GCP.
         format: The format to save the file in, either 'parquet' or 'pkl'.
     """
-    if format not in ['parquet', 'pkl']:
+    if format not in ['parquet', 'pkl', 'csv']:
         raise ValueError(f"Unsupported format: '{format}'. Must be 'parquet' or 'pkl'.")
 
     save_dicts = _write_dicts_to_save_dicts(write_dicts)
@@ -109,21 +112,20 @@ def save_proposals(
     
     is_gcs = filename.startswith('gs://')
 
-    if format == 'parquet':
+    if format in ['parquet', 'csv']:
         try:
             data_df = _flatten_dicts_to_dataframe(save_dicts)
             if is_gcs:
-                    data_df.to_parquet(filename)
+                data_df.to_parquet(filename, compression='zstd', compression_level=10) if format == 'parquet' else data_df.to_csv(filename)
             else:
                 dir_name = os.path.dirname(filename)
                 if dir_name:
                     os.makedirs(dir_name, exist_ok=True)
                 with open(filename, 'wb') as f:
-                    data_df.to_parquet(f)
+                    data_df.to_parquet(f, compression='zstd', compression_level=10) if format == 'parquet' else data_df.to_csv(f)
         except pyarrow.lib.ArrowInvalid as e:
             with pd.option_context('display.max_rows', None, 'display.max_columns', None):
                 print(data_df)
-            #raise ValueError(data_df.head(1)) from e
             raise e
     elif format == 'pkl':
         if is_gcs:
@@ -148,7 +150,7 @@ def get_role_client(service_json_path: str = constants.SERVICE_KEY_FILE_LOCATION
     return gcp_client
 
 
-def _parse_gcp_output_path(gcs_output_path: str) -> tuple[str, str]:
+def parse_gcp_output_path(gcs_output_path: str) -> tuple[str, str]:
     assert gcs_output_path.startswith('gs://'), 'gcs_output_path must be a GCS path.'
     gcs_output_path = gcs_output_path[len('gs://'):]
     bucket_name, blob_fn = gcs_output_path.split('/', 1)
@@ -161,7 +163,7 @@ def write_str_to_gcp(
     binary: bool,
     bucket_name: str = constants.GCP_OUTPUT_BUCKET_NAME,
     ):
-    bucket_name, blob_fn = _parse_gcp_output_path(gcs_output_path)
+    bucket_name, blob_fn = parse_gcp_output_path(gcs_output_path)
 
     # Instantiates a client.
     storage_client = get_role_client()
