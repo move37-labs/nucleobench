@@ -95,6 +95,8 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
             self.right_flank = None
         # Consistent vocab is important for interpreting smoothgrad.
         self.vocab = vocab
+        self.vocab_to_idx = {nt: i for i, nt in enumerate(vocab)}
+        self.vocab_array = np.array(vocab)
 
         if self.left_flank:
             self.left_flank_tensor = string_utils.dna2tensor(
@@ -140,7 +142,6 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
             return ret_energy, {'malinois_output': m_out}
         else:
             return ret_energy
-
 
     def add_flanks_tensor(self, x: torch.Tensor) -> torch.Tensor:
         """Add Tensor flanks, with the right backprop properties."""
@@ -256,7 +257,7 @@ def energy_calc_from_output_tensor(
 if __name__ == "__main__":
     # Test with a real model.
     m = Malinois(
-        model_artifact="/Users/joelshor/github/nucleobench/malinois_artifacts__20211113_021200__287348.tar.gz",
+        model_artifact="nucleobench/malinois_artifacts__20211113_021200__287348.tar.gz",
         target_feature=0,
         bending_factor=1.0,
     )

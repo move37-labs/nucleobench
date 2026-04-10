@@ -5402,19 +5402,23 @@ def muscle_dnase_idx():
     return [ENFORMER_TASKS_.index(t) for t in muscle_DNASE()]
 
 
+def idxs_by_name(aggregation_type: str) -> tuple[list[int], list[int]]:
+    """Get the indices of the positive and negative tasks for a given aggregation type."""
+    if aggregation_type == 'muscle_CAGE':
+        positive_idxs = muscle_cage_idx()
+        negative_idxs = []
+    elif aggregation_type == 'muscle_not_liver':
+        positive_idxs = activate_muscle_idx() + deactivate_liver_idx()
+        negative_idxs = activate_liver_idx() + deactivate_muscle_idx()
+    else:
+        raise ValueError(f'Unknown aggregation type: {aggregation_type}')
+    return positive_idxs, negative_idxs
+
+
 if __name__ == '__main__':
-    print('Activate muscle: ')
-    for t in activate_muscle():
-        print(t)
-    print('Deactivate muscle: ')
-    for t in deactivate_muscle():
-        print(t)
-    print('Activate liver: ')
-    for t in activate_liver():
-        print(t)
-    print('Deactivate liver: ')
-    for t in deactivate_liver():
-        print(t)
-    print('Muscle CAGE: ')
-    for t in muscle_CAGE():
-        print(t)
+    print('Muscle not liver: ')
+    print(idxs_by_name('muscle_not_liver'))
+    print(f'Activate muscle: {activate_muscle()}')
+    print(f'Deactivate liver: {deactivate_liver()}')
+    print(f'Activate liver: {activate_liver()}')
+    print(f'Deactivate muscle: {deactivate_muscle()}')
