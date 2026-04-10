@@ -200,3 +200,5 @@ analysis/pymeme/data/tomtom_out/**
 # Outputs of test runs.
 START.txt
 SUCCESS.txt
+
+*.pt
