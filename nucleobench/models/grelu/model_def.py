@@ -9,20 +9,14 @@ python -m nucleobench.models.grelu.model_def
 ```
 """
 
-from typing import Iterable, Optional, Union
+from typing import Iterable
 
-import gc
 import numpy as np
-import os
 import torch
-import wandb
 
 import pandas as pd
 
 import grelu.resources
-
-from nucleobench.common import string_utils
-from nucleobench.common import attribution_lib_torch as att_lib
 
 from nucleobench.optimizations import model_class as mc
 from nucleobench.models.grelu import constants
@@ -54,7 +48,7 @@ class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         expected_sequence_length: int,
         # The vocab MUST be this, since this is what was used in gRelu.
         vocab: list[str] = constants.VOCAB_,
-        override_model: Optional[torch.nn.Module] = None,
+        override_model: torch.nn.Module | None = None,
         device: str = constants.AUTO_DEVICE,
     ):
         self.project = project
@@ -65,19 +59,25 @@ class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         if override_model:
             self.model = override_model
         else:
-            # Manually login anonymously, otherwise it hangs on a user prompt.
-            # Remove any existing wandb config file if it exists.
-            config_path = os.path.expanduser("~/.config/wandb/settings")
-            if os.path.exists(config_path):
-                os.remove(config_path)
-            wandb.login(anonymous='must')
+            # Google Batch environments often have read-only or non-existent HOME directories.
+            # We force HOME to /tmp so wandb can write its anonymous credentials file.
+            import os
+            #os.environ["HOME"] = "/tmp"
+            #os.environ["WANDB_DIR"] = "/tmp"
+            
+            import wandb
+            wandb.login()
+            
             self.model = grelu.resources.load_model(
                 project=self.project, model_name=self.model_name, device=self.device)
+            print(f'GRelumodel loaded.', flush=True)
 
         self.tasks = pd.DataFrame(self.model.data_params["tasks"])
 
         # Consistent vocab is important for interpreting smoothgrad.
         self.vocab = vocab
+        self.vocab_to_idx = {nt: i for i, nt in enumerate(vocab)}
+        self.vocab_array = np.array(vocab)
         
         self.has_cuda = torch.cuda.is_available()
         

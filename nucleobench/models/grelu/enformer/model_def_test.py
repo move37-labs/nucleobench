@@ -27,7 +27,7 @@ model_args = {
     }
 
 
-@pytest.mark.parametrize('aggregation_type', ['muscle_CAGE', 'muscle_not_liver'])
+@pytest.mark.parametrize('aggregation_type', ['muscle_not_liver'])
 def test_model_def_sanity(aggregation_type):
     enformer_args = model_def.Enformer.debug_init_args()
     enformer_args['aggregation_type'] = aggregation_type
@@ -92,7 +92,7 @@ def test_device_placement(fake_torch_cuda, cuda_is_available):
     fake_torch_cuda.return_value = cuda_is_available
     
     enformer_args = model_def.Enformer.debug_init_args()
-    enformer_args['aggregation_type'] = 'muscle_CAGE'
+    enformer_args['aggregation_type'] = 'muscle_not_liver'
     m = model_def.Enformer(
         override_model=testing_utils.CountLetterModel(**model_args),
         **enformer_args)

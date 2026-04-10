@@ -31,13 +31,13 @@ class Enformer(grelu_md.GReluModel):
         parser = argparse.ArgumentParser()
         group = parser.add_argument_group("Enformer init args")
         group.add_argument("--aggregation_type", type=str, required=True, 
-                           choices=['muscle_CAGE', 'muscle_not_liver'])
+                           choices=['muscle_not_liver'])
         return parser
     
     @staticmethod
     def debug_init_args():
         return {
-            'aggregation_type': 'muscle_CAGE',
+            'aggregation_type': 'muscle_not_liver',
             'run_sanity_checks': False,
         }
         
@@ -48,6 +48,7 @@ class Enformer(grelu_md.GReluModel):
     def __init__(
         self,
         aggregation_type: str,
+        spatial_bins_to_aggregate: Optional[list[int]] = None,
         override_model: Optional[torch.nn.Module] = None,
         override_aggregation = None,
         run_sanity_checks: bool = True,
@@ -64,17 +65,22 @@ class Enformer(grelu_md.GReluModel):
             override_model=override_model,
             expected_sequence_length=constants.ENFORMER_TRAIN_LEN_,
         )
+        self.model.eval()
         
-        if aggregation_type not in ['muscle_CAGE', 'muscle_not_liver']:
+        if aggregation_type not in ['muscle_not_liver']:
             raise ValueError(f'Unknown aggregation type: {aggregation_type}')
 
         # Create aggregation method.
         if override_aggregation is None:
-            positive_idxs, negative_idxs = idxs_by_name(aggregation_type)
+            positive_idxs, negative_idxs = constants.idxs_by_name(aggregation_type)
             def _aggregation(model_out: torch.Tensor) -> torch.Tensor:
                 assert model_out.ndim == 3
                 assert model_out.shape[1] == len(constants.ENFORMER_TASKS_)
                 
+                # If spatial_bins_to_aggregate is specified, use only those bins.
+                if spatial_bins_to_aggregate is not None:
+                    model_out = model_out[:, :, spatial_bins_to_aggregate]
+
                 ret = (torch.sum(model_out[:, positive_idxs], axis=(1, 2)) - 
                        torch.sum(model_out[:, negative_idxs], axis=(1, 2)))
                 assert ret.ndim == 1
@@ -122,16 +128,7 @@ class Enformer(grelu_md.GReluModel):
             return ret
     
     
-def idxs_by_name(aggregation_type: str) -> tuple[list[int], list[int]]:
-    if aggregation_type == 'muscle_CAGE':
-        positive_idxs = constants.muscle_cage_idx()
-        negative_idxs = []
-    elif aggregation_type == 'muscle_not_liver':
-        positive_idxs = constants.activate_muscle_idx() + constants.deactivate_liver_idx()
-        negative_idxs = constants.activate_liver_idx() + constants.deactivate_muscle_idx()
-    else:
-        raise ValueError(f'Unknown aggregation type: {aggregation_type}')
-    return positive_idxs, negative_idxs
+
 
 
 if __name__ == "__main__":

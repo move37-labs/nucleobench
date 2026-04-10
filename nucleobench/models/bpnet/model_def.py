@@ -13,8 +13,6 @@ python -m nucleobench.models.bpnet.model_def
 ```
 """
 
-from typing import Optional
-
 import argparse
 import numpy as np
 import torch
@@ -63,7 +61,7 @@ class BPNet(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         protein: str,
         # The vocab MUST be this, since this is what was used to train the BPNets.
         vocab: list[str] = bp_constants.VOCAB_,
-        override_model: Optional[torch.nn.Module] = None,
+        override_model: torch.nn.Module | None = None,
     ):
         self.protein = protein
         if override_model:
@@ -73,6 +71,8 @@ class BPNet(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
 
         # Consistent vocab is important for interpreting smoothgrad.
         self.vocab = vocab
+        self.vocab_to_idx = {nt: i for i, nt in enumerate(vocab)}
+        self.vocab_array = np.array(vocab)
         
         self.has_cuda = torch.cuda.is_available()
 

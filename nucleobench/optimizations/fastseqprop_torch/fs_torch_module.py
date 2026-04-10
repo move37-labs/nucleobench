@@ -2,22 +2,31 @@
 
 from typing import Optional
 
+import numpy as np
 import torch
 
 class TorchFastSeqPropOptimizer(torch.nn.Module):
     def __init__(self, 
-                 start_logits: torch.Tensor,
+                 start_probs: torch.Tensor,
                  positions_to_mutate: Optional[list[int]] = None,
                  vocab_len: int = 4,
                  tau: float = 1.0,
                  use_norm: bool = False,
                  use_slope_annealing: bool = True,
+                 log_min: float = 0.25,
                  ):
         super().__init__()
         
-        assert start_logits.ndim == 3
-        assert start_logits.shape[1] == vocab_len
+        # Quick & dirty checks on probs.
+        assert start_probs.ndim == 3
+        assert start_probs.shape[1] == vocab_len
+        assert start_probs.max() <= 1.0
+        assert start_probs.min() >= 0
+        assert np.allclose(start_probs.sum(dim=1), 1.0)
         
+        start_logits = TorchFastSeqPropOptimizer.probs_to_logits(start_probs, log_min)
+        
+        self.log_min = log_min
         self.use_norm = use_norm
         self.use_slope_annealing = use_slope_annealing
         
@@ -48,6 +57,11 @@ class TorchFastSeqPropOptimizer(torch.nn.Module):
                 affine=False)
         self.vocab_len = vocab_len
         self.tau = tau
+        
+        
+    @staticmethod
+    def probs_to_logits(probs: torch.Tensor, log_min: float) -> torch.Tensor:
+        return torch.log(probs + log_min)
         
     
     def get_logits(self) -> torch.Tensor:

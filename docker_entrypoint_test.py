@@ -108,43 +108,6 @@ def test_run_loop_with_all_combos(model, optimization):
         )
 
 
-@pytest.mark.skip(reason='Not needed, too long.')
-@pytest.mark.parametrize("optimization, flank_length",
-                         itertools.product(_valid_opts, [0]))
-def test_run_loop_with_flank_length(optimization, flank_length):
-    model = "malinois"
-    model_class = models.get_model(model)
-    opt_class = optimizations.get_optimization(optimization)
-
-    model_init_args = model_class.debug_init_args()
-    model_init_args['flank_length'] = flank_length
-    seq_len = 600 - 2 * flank_length
-    model_obj = model_class(**model_init_args)
-
-    opt_init_args = opt_class.debug_init_args()
-    opt_init_args["model_fn"] = model_obj
-    opt_init_args["start_sequence"] = "A" * seq_len
-    opt_obj = opt_class(**opt_init_args)
-
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        de.run_loop(
-            model=model_obj,
-            opt=opt_obj,
-            all_args=argparse_lib.ParsedArgs(
-                main_args=argparse.Namespace(
-                    model=model,
-                    optimization=optimization,
-                    max_number_of_rounds=1,
-                    optimization_steps_per_output=1,
-                    proposals_per_round=1,
-                    output_path=tmpdirname,
-                ),
-                model_init_args=None,
-                opt_init_args=None,
-            ),
-            ignore_errors=False,
-        )
-
 def test_read_seed_sequence_from_local_file():
     """Check that parsing reads local files when necessary."""
     with tempfile.TemporaryDirectory() as tmpdirname:

@@ -147,3 +147,39 @@ def test_flank_length(flank_length: int):
           override_model=testing_utils.CountLetterModel(**model_args),
           check_input_shape=True)
      m(['A' * seq_len])
+
+def test_tism_torch_correctness():
+    model = model_def.Malinois(
+        target_feature=0,
+        bending_factor=0.0,
+        vocab=['A', 'C'],
+        flank_length=0,
+        override_model=testing_utils.CountLetterModel(vocab_i=1, vocab_len=2, **model_args),
+    )
+    seq = 'AAC'
+    tism_tensor = model.tism_torch(seq)
+    assert isinstance(tism_tensor, torch.Tensor)
+    assert tism_tensor.shape == (2, 3)
+    # Reference base is exactly zero
+    base_seq_idx = [0, 0, 1]  # 'A', 'A', 'C' in vocab ['A', 'C']
+    for i, ref in enumerate(base_seq_idx):
+        assert tism_tensor[ref, i] == 0.0
+
+def test_tism_torch_consistency_with_tism():
+    vocab = ['A', 'C']
+    model = model_def.Malinois(
+        target_feature=0,
+        bending_factor=0.0,
+        flank_length=0,
+        vocab=vocab,
+        override_model=testing_utils.CountLetterModel(vocab_i=1, vocab_len=len(vocab), **model_args),
+    )
+    seq = 'AAC'
+    _, sg_dicts = model.tism(seq)
+    tism_tensor = model.tism_torch(seq)
+    
+    for i, sg_dict in enumerate(sg_dicts):
+        for j, nt in enumerate(vocab):
+            val_torch = float(tism_tensor[j, i])
+            val_py = float(sg_dict.get(nt, 0.0))
+            assert abs(val_torch - val_py) < 1e-6

@@ -7,3 +7,5 @@ AVAILABLE_MODELS_ = [
     'ATAC', 'CTCF', 'E2F3', 'ELF4', 'GATA2', 'JUNB', 
     'MAX', 'MECOM', 'MYC', 'OTX1', 'RAD21', 'SOX6',
 ]
+
+RECORDS_ = 'https://zenodo.org/records/14604495'

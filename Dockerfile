@@ -14,7 +14,7 @@
     # docker buildx build --platform linux/amd64 -t joelshor/nucleobench:latest -f Dockerfile . --push
 
 # To push to Github Container Registry:
-    # ** ghcr login **
+    # echo "YOUR_PAT" | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
     # docker buildx build --platform linux/amd64 -t ghcr.io/move37-labs/nucleobench:latest -f Dockerfile . --push
 
 # ==============================================================================

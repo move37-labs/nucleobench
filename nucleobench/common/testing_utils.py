@@ -1,11 +1,12 @@
 """Utils for testing."""
 
-from typing import Optional
+import numpy as np
 
 import torch
 
 from nucleobench.common import string_utils
 from nucleobench.optimizations import model_class as mc
+from nucleobench.common import constants
 
 
 class CountLetterModel(torch.nn.Module, mc.TISMModelClass):
@@ -19,6 +20,8 @@ class CountLetterModel(torch.nn.Module, mc.TISMModelClass):
                  add_unsqueeze_to_output: bool = False,
                  train_seq_len: int = 200,
                  vocab_len: int = 4,
+                 aggregate: bool = True,
+                 vocab: list[str] = constants.VOCAB,
                  ):
         super().__init__()
         self.vocab_i = vocab_i
@@ -28,15 +31,21 @@ class CountLetterModel(torch.nn.Module, mc.TISMModelClass):
         self.add_unsqueeze_to_output = add_unsqueeze_to_output
         self.train_seq_len = train_seq_len
         self.vocab_len = vocab_len
+        self.aggregate = aggregate
+        self.vocab = vocab
+        self.vocab_array = np.array(vocab)
+        self.vocab_to_idx = {nt: i for i, nt in enumerate(vocab)}
 
     def forward(self, x):
         assert x.ndim == 3
         assert x.shape[1] == self.vocab_len, x.shape
-        out_tensor = torch.sum(x[:, self.vocab_i, :], dim=[1])
+        out_tensor = x[:, self.vocab_i, :]
+        if self.aggregate:
+            out_tensor = torch.sum(out_tensor, dim=[1])
         if self.flip_sign:
             out_tensor *= -1
         if self.extra_channels:
-            out_tensor = torch.stack([out_tensor] + [torch.zeros_like(out_tensor)] * self.extra_channels).T
+            out_tensor = torch.stack([out_tensor] + [torch.ones_like(out_tensor)] * self.extra_channels, dim=1)
         if self.add_unsqueeze_to_output:
             out_tensor = torch.unsqueeze(out_tensor, dim=-1)
         return out_tensor
@@ -45,7 +54,7 @@ class CountLetterModel(torch.nn.Module, mc.TISMModelClass):
         return self.forward(x)
     
     def inference_on_strings(self, seqs: list[str]) -> list[float]:
-        torch_seq = string_utils.dna2tensor_batch(seqs)
+        torch_seq = string_utils.dna2tensor_batch(seqs, vocab_list=self.vocab)
         result = self.inference_on_tensor(torch_seq)
         return [float(x) for x in result]
 
@@ -71,7 +80,7 @@ class CountLetterModel(torch.nn.Module, mc.TISMModelClass):
 def assert_proposal_respects_positions_to_mutate(
     start_sequence: str,
     proposal_sequence: str,
-    positions_to_mutate: Optional[list[int]] = None,
+    positions_to_mutate: list[int] | None = None,
     ):
     if positions_to_mutate is None:
         return

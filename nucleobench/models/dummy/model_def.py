@@ -38,7 +38,8 @@ class DummyModel(mc.ModelClass):
             if not set(seq).issubset(self.vocab):
                 raise ValueError(f'Invalid sequence: {seq}')
         
-        return [s.count(self.to_count) for s in seqs]
+        # -1 to minimize the count, keeping with convention.
+        return [-1 * s.count(self.to_count) for s in seqs]
     
     
     def __call__(self, seqs: list[str], return_debug_info: bool = False) -> float:

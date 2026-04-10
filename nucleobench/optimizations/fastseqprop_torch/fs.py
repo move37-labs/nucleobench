@@ -33,6 +33,7 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
                  batch_size: int,
                  eta_min: float = 1e-6,
                  positions_to_mutate: Optional[PositionsToMutateType] = None,
+                 log_min: float = 0.25,
                  vocab: list[str] = constants.VOCAB,
                  rnd_seed: int = 10,
                  ):
@@ -42,6 +43,7 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
         self.rnd_seed = rnd_seed
         self.vocab = vocab
         self.model_fn = model_fn
+        self.log_min = log_min
         self.reset(start_sequence, positions_to_mutate)
         
         self.learning_rate = learning_rate
@@ -56,14 +58,15 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
         
     def reset(self, seq: SequenceType, positions_to_mutate: Optional[list[int]] = None):
         self.start_sequence = seq
-        cur_tensor = string_utils.dna2tensor(seq, vocab_list=self.vocab)
-        cur_tensor = torch.unsqueeze(cur_tensor, dim=0)
-        assert cur_tensor.ndim == 3
+        cur_onehot = string_utils.dna2tensor(seq, vocab_list=self.vocab)
+        cur_onehot = torch.unsqueeze(cur_onehot, dim=0)
+        assert cur_onehot.ndim == 3
         
         self.opt_module = fs_opt.TorchFastSeqPropOptimizer(
-            start_logits=cur_tensor,
+            start_probs=cur_onehot,
             positions_to_mutate=positions_to_mutate,
-            vocab_len=4,
+            vocab_len=len(self.vocab),
+            log_min=self.log_min,
             tau=1.0,
         )
         
@@ -142,9 +145,9 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
         return {
             'model_fn': testing_utils.CountLetterModel(),
             'start_sequence': 'AA',
-            'positions_to_mutate': [1],
             'rnd_seed': 0,
             'learning_rate': 0.5,
             'eta_min': 1e-6,
             'batch_size': 4,
+            'log_min': 0.25,
         }
