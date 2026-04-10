@@ -35,6 +35,7 @@ dependencies = [
     "gcsfs",
     "pyBigWig==0.3.25",
     "xxhash",
+    "ml-collections",
 ]
 
 [project.optional-dependencies]
