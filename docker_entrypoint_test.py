@@ -54,9 +54,9 @@ def test_optimization_required_fns(optimization):
 
 @pytest.mark.parametrize("model,optimization", _valid_model_opt_pairs)
 def test_run_loop_with_all_combos(model, optimization):
-    if model == 'enformer':
+    if model in ['enformer', 'rinalmo_mrl']:
         # Skip this test unconditionally for now as it takes too long.
-        pytest.skip("Enformer test is too long to run in standard CI.")
+        pytest.skip(f"'{model}' test is too long to run in standard CI.")
 
     model_class = models.get_model(model)
     opt_class = optimizations.get_optimization(optimization)
