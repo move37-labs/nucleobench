@@ -22,13 +22,10 @@ import torch
 
 from nucleobench.models.bpnet import constants as bp_constants
 
-RECORDS_ = 'https://zenodo.org/records/14604495'
-# curl https://zenodo.org/records/14604495/files/ATAC.torch --output 'ATAC.torch'
-
 
 def get_url(model_name: str) -> str:
     assert model_name in bp_constants.AVAILABLE_MODELS_
-    return f'{RECORDS_}/files/{model_name}.torch'
+    return f'{bp_constants.RECORDS_}/files/{model_name}.torch'
 
 def download(model_name: str):
     assert model_name in bp_constants.AVAILABLE_MODELS_
