@@ -6,20 +6,15 @@ pytest nucleobench/optimizations/ada/adabeam/adabeam_test.py
 ```
 """
 
-from itertools import product
 import pytest
 import numpy as np
 import random
 
-from nucleobench.optimizations.ada.adabeam.adabeam import AdaBeam
+from .adabeam import AdaBeam
 from nucleobench.common import testing_utils
     
 
-@pytest.mark.parametrize(
-    'skip_repeat_sequences', 
-    product(
-        [True, False],  # skip_repeat_sequences
-    ))
+@pytest.mark.parametrize('skip_repeat_sequences', [True, False])
 def test_adabeam_sanity(skip_repeat_sequences):
     model_fn = testing_utils.CountLetterModel(flip_sign=True)
 

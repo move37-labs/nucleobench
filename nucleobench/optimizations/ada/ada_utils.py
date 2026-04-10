@@ -1,7 +1,6 @@
-"""Common utilities for AdaLead."""
+"""Common utilities for [Gr]Ada*."""
 
 import dataclasses
-from typing import Optional, Union
 
 import numpy as np
 from scipy.stats import binom
@@ -10,11 +9,13 @@ import random
 import xxhash
 
 from nucleobench.optimizations import typing
-
 from nucleobench.optimizations import utils as opt_utils
 
 
 SequenceType = typing.SequenceType
+TISMType = typing.TISMType
+PositionsAndCharactersType = list[tuple[int, str]]
+LogitsType = np.ndarray
 
 
 @dataclasses.dataclass(frozen=True)
@@ -33,17 +34,53 @@ class RolloutNode:
     seq: SequenceType
     fitness: np.float32
 
+
 class ModelWrapper:
     def __init__(self, 
-                 model,
-                 use_cache: bool = False, 
+                 model: typing.ModelType,
+                 use_cache: bool = False,
+                 cache_limit: int = 100000,
                  debug: bool = False,
+                 tism_cost: float | None = None,
+                 start_sequence: str | None = None,
                  ):
+        if tism_cost is not None:
+            assert hasattr(model, 'tism_torch'), \
+                "Model must have tism_torch method. This is required for optimized get_tisms."
         self.model = model
         self.cost = 0
         self.use_cache = use_cache
+        self.cache_limit = cache_limit
         self.cache = {}
         self.debug = debug
+        self.tism_cost = tism_cost
+        
+        # Double check that the model is in evaluation mode.
+        # TODO(joelshor): Force this to happen if the model is a PyTorch model.
+        try:
+            self.model.eval()
+        except AttributeError:
+            try:
+                self.model.model.eval()
+            except:
+                pass
+        
+        if self.tism_cost is not None:
+            # Some optimizations for backprop:
+            # We only need gradients for the input, so disable the rest.
+            try:
+                for param in self.model.parameters():
+                    param.requires_grad = False
+            except AttributeError:
+                for param in self.model.model.parameters(): # Access the underlying torch module
+                    param.requires_grad = False
+                    
+        # The above is stochastic. Work around it.
+        del start_sequence  # Unused.
+        if 'Rinalmo' in type(self.model).__name__:
+            self.torch_opt_fn = torch.no_grad
+        else:
+            self.torch_opt_fn = torch.inference_mode
         
         
     def str_in_cache(self, seq: str) -> bool:
@@ -51,10 +88,16 @@ class ModelWrapper:
         k = xxhash.xxh64(seq).intdigest()
         return k in self.cache
 
-    def get_fitness(self, m_input: list):
+
+    def get_fitness(self, m_input: list) -> list[float]:
         self.cost += len(m_input)
         
         if self.use_cache:
+            # SAFETY VALVE: Prevent infinite growth for long runs
+            if len(self.cache) > self.cache_limit:
+                if self.debug: print("Cache limit reached. Flushing.")
+                self.cache = {}
+                
             # 1) Sift sequences into seen and unseen, keeping track of their location
             # so we can preserve order.
             # 2) Pull from the has the fitness of the seen sequences.
@@ -75,7 +118,11 @@ class ModelWrapper:
         if len(m_input) == 0:
             results = []
         else:
-            results = self.model(m_input)
+            # `torch.inference_mode()` is faster than `torch.no_grad()`, but
+            # doesn't work with RinAlmo's jit.compile optimization,
+            # so we use the fastest we can.
+            with self.torch_opt_fn():
+                results = self.model(m_input)
         
         if self.use_cache:
             # 3) Add the unseen sequences to the cache.
@@ -86,7 +133,31 @@ class ModelWrapper:
             results = [x[1] for x in sorted(seen_fitness + unseen_fitness)]
         
         # Ada* is formulated to maximize fitness, but we want to minimize.
-        return [-x for x in results]
+        return [-float(x) for x in results]
+    
+    
+    def get_tism(
+        self, 
+        sequence: str,
+        idxs: list[int] | None = None,
+        debug: bool = False,
+        ) -> tuple[PositionsAndCharactersType, LogitsType]:
+        del debug  # Unused.
+        assert hasattr(self.model, 'tism_torch'), \
+            "Model must have tism_torch method. This is required for optimized get_tisms."
+            
+        if self.tism_cost is None:
+            raise ValueError('Cost can\'t be None.')
+        if self.tism_cost < 1.0:
+            raise ValueError('Cost must be >= 1.0.')
+        self.cost += self.tism_cost
+        
+        # Use fast tensor-based TISM
+        pos_and_chars_to_mutate, logits = self.model.get_tism(sequence, idxs)
+        
+        logits *= -1  # Flip the sign, to conform to convention.
+        
+        return (pos_and_chars_to_mutate, logits)
     
     
 def generate_random_mutant(
@@ -126,14 +197,14 @@ def generate_random_mutant(
 
 def _F_inverse(mu: float, seq_len: int) -> float:
     """F_inverse = 1 - (1-mu')^l """
-    return 1 - np.exp( seq_len * np.log1p(-mu) )
+    return -np.expm1( seq_len * np.log1p(-mu) )
 
 
 def num_edits_likelihood_adalead_legacy(
     num_edits: int,
     seq_len: int,
     mu: float,
-    F_inverse: Optional[float] = None,
+    F_inverse: float | None = None,
     ) -> float:
     """The likelihood of `num_edits` edits in the reference Adalead implementation.
     
@@ -165,37 +236,59 @@ def num_edits_likelihood_adalead_legacy(
                 = exp( l * np.log1p(-epsilon) )
     
     """
-    if num_edits == 0:
-        return 0
-    if num_edits < 0 or num_edits > seq_len:
-        raise ValueError(f'num_edits must be between 0 and seq_len, inclusive.')
-    # Using the notation from above.
-    mu_p = 3/4 * mu
-    F_inverse = _F_inverse(mu_p, seq_len)
-    
-    return binom.pmf(num_edits, seq_len, mu_p) / F_inverse
+    return num_edits_likelihood_adabeam(
+        num_edits=num_edits, 
+        seq_len=seq_len, 
+        mu=mu * 3.0 / 4.0)
 
 
-def num_edits_likelihood_adalead_v2(
-    num_edits: int,
+def num_edits_likelihood_adabeam(
+    num_edits: np.ndarray,
     seq_len: int,
     mu: float,
     ) -> float:
-    """The likelihood of `num_edits` edits.
-    
-    This doesn't have the 3/4 factor in adalead.
+    """The likelihood of `num_edits` edits in the reference AdaBeam implementation.
     
     Thus,
     
     E[num locations edited] = F * mu * l
     
+    Form:
+    mu := mutation rate
+    l := sequence length
+    n := number of edits
+    Binom(n, l, mu) := binomial distribution
+    
     with
     F := 1 / (1 - (1-mu)^l)
+    
+    =>
+    Pr[N locations edited] = 0, if N <= 0, N > l
+    Pr[N locations edited] = Binom(n, l, mu) * F, otherwise
+    
+    E[num locations edited] = F * mu * l
+        
+        
+    NOTE: For numerical accuracy, we note the following:
+    
+    (1 - mu')^l = exp( log( 1 - epsilon)^l ) )
+                = exp( l * log( 1 + (-epsilon) ) ) )
+                = exp( l * np.log1p(-epsilon) )
     """
-    return num_edits_likelihood_adalead_legacy(
-        num_edits=num_edits, 
-        seq_len=seq_len, 
-        mu=mu * 4.0 / 3.0)
+    assert isinstance(num_edits, np.ndarray)
+    if num_edits.min() < 0 or num_edits.max() > seq_len:
+        raise ValueError(f'num_edits must be between 0 and seq_len, inclusive.')
+    
+    # Using the notation from above.
+    F_inverse = _F_inverse(mu, seq_len)
+    
+    probs = binom.pmf(num_edits, seq_len, mu) / F_inverse
+
+    # The Binomial distribution has support at k=0, but AdaBeam defines P(0)=0.
+    # We force any element where num_edits == 0 to have probability 0.0.
+    probs[num_edits == 0] = 0.0
+    
+    return probs
 
 
 def expected_num_edits_adalead_v2(sequence_len: int, mutation_rate: float) -> float:
@@ -203,40 +296,8 @@ def expected_num_edits_adalead_v2(sequence_len: int, mutation_rate: float) -> fl
     return sequence_len * mutation_rate / F_inverse
 
 
-def num_edits_likelihood_shifted_binomial(
-    num_edits: int,
-    seq_len: int,
-    mu: float,
-    ) -> float:
-    """The likelihood of `num_edits` edits, using a shifted binomial distribution.
-    
-    Modify `mu` so that the expected number of edits is `mu * seq_len`.
-    """
-    if num_edits == 0: return 0
-    return binom.pmf(num_edits - 1, seq_len - 1, mu)
-
-
-def expected_num_edits_adalead_shifted_binomial(
-    sequence_len: int, mutation_rate: float) -> float:
-    return 1 + (sequence_len - 1) * mutation_rate
-
-
-def expected_edits_to_p_shifted_binomial(
-    expected_number_of_edits: float,
-    sequence_len: int,
-):
-    """Returns the `p` required for the expected number of edits of the shifted binomial to be `expected_number_of_edits`."""
-    if sequence_len <= 1:
-        raise ValueError(f'Sequence length must be greater than 1: {sequence_len}')
-    if expected_number_of_edits <= 1:
-        raise ValueError(f'Expected number of edits must be greater than 1: {expected_number_of_edits}')
-    if expected_number_of_edits > sequence_len:
-        raise ValueError(f'Expected number of edits must be less than sequence length: {expected_number_of_edits} > {sequence_len}')
-    return float(expected_number_of_edits - 1) / (sequence_len - 1)
-
-
 class NumberEditsSampler(object):
-    """Samples the number of edits to make."""
+    """Vectorized samples the number of edits to make."""
     
     def __init__(
         self, 
@@ -248,24 +309,37 @@ class NumberEditsSampler(object):
         self.seq_len = sequence_len
         self.mu = mutation_rate
         self.rng = np.random.default_rng(rng_seed)
-        self.num_edits = list(range(1, self.seq_len + 1))
         
-        self.probs = [likelihood_fn(n, self.seq_len, self.mu) for n in self.num_edits]
+        self.num_edits = np.arange(1, self.seq_len + 1, dtype=np.uint32)
         
-        # Do a sample as a sanity check.
-        try:
-            _ = self.sample(1)
-        except ValueError:
-            raise ValueError(f'Sum issue: {np.sum(self.probs)} {self.probs}')
+        self.probs = likelihood_fn(self.num_edits, self.seq_len, self.mu)
         
         
     def expected_num_edits(self) -> float:
         """Returns the expected number of edits."""
-        return np.sum(np.array(self.num_edits) * np.array(self.probs))
+        return np.sum(self.num_edits * self.probs)
 
         
     def sample(self, n_samples: int) -> list[int]:
-        return self.rng.choice(self.num_edits, n_samples, p=self.probs)
+        # OPTIMIZATION: Use numpy array directly - faster than converting from list.
+        return self.rng.choice(self.num_edits, size=n_samples, p=self.probs)
+        
+        
+class NumberEditsSamplerAdaBeam(NumberEditsSampler):
+    """Samples the number of edits to make."""
+    
+    def __init__(
+        self, 
+        sequence_len: int, 
+        mutation_rate: float,
+        rng_seed: int = 0):
+        
+        super().__init__(
+            sequence_len=sequence_len,
+            mutation_rate=mutation_rate,
+            rng_seed=rng_seed,
+            likelihood_fn=num_edits_likelihood_adabeam,
+        )
         
         
 def generate_random_mutant_v2(
@@ -305,7 +379,51 @@ def generate_random_mutant_v2(
         rng=rng,
     )
     
+    
+def generate_random_mutant_tism(
+    sequence: str, 
+    pos_and_chars_to_mutate: PositionsAndCharactersType,
+    random_n_loc: int,
+    rng: np.random.Generator,
+    probs: np.ndarray,
+    debug: bool = False,
+) -> tuple[str, list[int]]:
+    """
+    Generate a mutant of `sequence` with exactly `random_n_loc` edits, using `tism` info.
 
+    Args:
+        sequence: Sequence that will be mutated from.
+        pos_and_chars_to_mutate: (position, character) of the allowed positions to be mutated.
+        random_n_loc: Number of mutations per sequence.
+        alphabet: Alphabet string.
+        rng: Random number generator.
+        probs: XXX
+        debug: If True, print debug info.
+
+    Returns:
+        Mutant sequence string and indices within the mutable positions that were mutated.
+
+    """
+    assert isinstance(pos_and_chars_to_mutate, list)
+    
+    # OPTIMIZATION: Use integer indices instead of tuples for faster rng.choice
+    # NumPy's rng.choice is much faster when working with integer arrays
+    n_actions = len(pos_and_chars_to_mutate)
+    indices = np.arange(n_actions, dtype=np.uint32)
+    
+    selected_indices = rng.choice(
+        indices, 
+        size=random_n_loc, 
+        replace=False,
+        p=probs)
+    assert len(selected_indices) == random_n_loc
+    
+    mutant, rel_pos_of_mutations = list(sequence), []
+    for i in selected_indices:
+        pos, char = pos_and_chars_to_mutate[i]
+        mutant[int(pos)] = str(char)
+        rel_pos_of_mutations.append(i)  # Use relative position, which is needed downstream.
+    return ''.join(mutant), rel_pos_of_mutations
 
 
 def recombine_population(
@@ -339,24 +457,6 @@ def recombine_population(
         ret.append("".join(strA))
         ret.append("".join(strB))
     return ret
-
-
-def threshold_on_fitness_percentile(
-    in_seqs: list[str], 
-    in_seq_scores: np.ndarray, 
-    threshold: float,
-    debug: bool = False,
-    ) -> tuple[list[str], np.ndarray]:
-    """Get all sequences within `threshold` percentile of the top_fitness."""
-    in_nodes = [RolloutNode(seq, 0, 0, score) for seq, score in zip(in_seqs, in_seq_scores)]
-    out_nodes = threshold_nodes_on_fitness_percentile(
-        in_nodes=in_nodes, 
-        threshold=threshold, 
-        debug=debug)
-    out_seqs = [node.seq for node in out_nodes]
-    out_seq_scores = np.array([node.fitness for node in out_nodes])
-
-    return out_seqs, out_seq_scores
 
 
 def threshold_nodes_on_fitness_percentile(
@@ -412,6 +512,9 @@ def get_batched_fitness(
     for i in range(0, len(sequences), batch_size):
         batch = sequences[i:i + batch_size]
         batch_fitness = model_wrapper.get_fitness(batch)
+        assert isinstance(batch_fitness, list)
+        for x in batch_fitness:
+            assert isinstance(x, float), (type(x), x)
         fitness.extend(batch_fitness)
     
     return np.array(fitness)

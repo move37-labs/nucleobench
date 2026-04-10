@@ -3,8 +3,6 @@
 Adaptive beam, adaptive mutation rate, adaptive directed evolution.
 """
 
-from typing import Optional
-
 import argparse
 import numpy as np
 
@@ -32,9 +30,9 @@ class AdaBeam(oc.SequenceOptimizer):
         beam_size: int,
         n_rollouts_per_root: int,
         eval_batch_size: int,
-        skip_repeat_sequences: bool = False,
+        skip_repeat_sequences: bool,
         rng_seed: int = 0,
-        positions_to_mutate: Optional[list[int]] = None,
+        positions_to_mutate: list[int] | None = None,
         max_rollout_len: int = 200,
         debug: bool = False,
     ):
@@ -69,7 +67,11 @@ class AdaBeam(oc.SequenceOptimizer):
         # If we do zero rollouts per parent, we will have no child nodes.
         assert n_rollouts_per_root > 0
         
-        self.model = ada_utils.ModelWrapper(model_fn, use_cache=True, debug=debug)
+        self.model = ada_utils.ModelWrapper(
+            model_fn, 
+            use_cache=True, 
+            debug=debug, 
+            start_sequence=start_sequence)
 
         self.skip_repeat_sequences = skip_repeat_sequences
         self.start_sequence = start_sequence
@@ -121,17 +123,16 @@ class AdaBeam(oc.SequenceOptimizer):
 
     def get_sampler(self, mu: float) -> ada_utils.NumberEditsSampler:
         """Get a sampler for the number of mutations."""
-        return ada_utils.NumberEditsSampler(
+        return ada_utils.NumberEditsSamplerAdaBeam(
             sequence_len=len(self.positions_to_mutate), 
             mutation_rate=mu,
-            likelihood_fn=ada_utils.num_edits_likelihood_adalead_v2,
             rng_seed=self.rng_seed,
         )
         
     @staticmethod
     def init_parser():
         parser = argparse.ArgumentParser(description="", add_help=False)
-        group = parser.add_argument_group("AdaLead init args")
+        group = parser.add_argument_group("AdaBeam init args")
 
         group.add_argument(
             "--beam_size",
@@ -173,6 +174,13 @@ class AdaBeam(oc.SequenceOptimizer):
             default=42,
             required=False,
             help="Seed for the pseudo-random number generator",
+        )
+        group.add_argument(
+            "--debug",
+            type=argparse_lib.str_to_bool,
+            default=None,
+            required=False,
+            help="Debug info.",
         )
 
         return parser
@@ -234,17 +242,12 @@ class AdaBeam(oc.SequenceOptimizer):
                         new_nodes.append(child)
                     else:
                         rollout_lengths.append(cur_rollout_length)
-                parent_nodes = new_nodes
-         
-        if self.debug:           
-            print(f'Rollout lengths: {rollout_lengths}')
+                parent_nodes = new_nodes       
 
         if len(sequences) == 0:
             raise ValueError("No sequences generated.")
         
         # Propose the top `self.beam_size` new sequences we have generated.
-        if self.debug:
-            print(f'Number of candidate sequences: {len(sequences)}')
         sequences = sorted(sequences, key=lambda x: x.fitness, reverse=True)
         top_nodes = sequences[: self.beam_size]
         
