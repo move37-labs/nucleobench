@@ -144,7 +144,7 @@ Output:
 ```bash
 Completed round 3441 (5 steps) took 0.00s. Avg 0.00s per step.
 Proposals deposited at:
-	/Users/joelshor/Desktop/docker_test/output/docker_recipe/adabeam_atac/adabeam_substring_count/20250731_194857/20250731_194912.pkl
+	output/docker_recipe/adabeam_atac/adabeam_substring_count/20250731_194857/20250731_194912.pkl
 ```
 
 This "recipe" can be found under [`recipes/docker/adabeam_atac.sh`](https://github.com/move37-labs/nucleobench/blob/main/recipes/docker/adabeam_atac.sh).
