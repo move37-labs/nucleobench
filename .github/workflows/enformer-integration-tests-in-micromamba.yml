@@ -26,8 +26,6 @@ jobs:
           post-cleanup: 'all'
 
       - name: Run Enformer integration tests
-        env:
-          WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
         shell: micromamba-shell {0}
         run: |
           pytest -v -m enformer integration_tests/enformer_integration_test.py

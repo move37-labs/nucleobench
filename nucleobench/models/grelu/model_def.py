@@ -62,9 +62,9 @@ class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
             # Google Batch environments often have read-only or non-existent HOME directories.
             # We force HOME to /tmp so wandb can write its anonymous credentials file.
             import os
-            #os.environ["HOME"] = "/tmp"
-            #os.environ["WANDB_DIR"] = "/tmp"
             
+            # Enable anonymous mode for users without a wandb account
+            os.environ["WANDB_ANONYMOUS"] = "must" 
             import wandb
             wandb.login()
             
