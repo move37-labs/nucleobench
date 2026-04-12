@@ -199,3 +199,6 @@ START.txt
 SUCCESS.txt
 
 *.pt
+
+# Integration tests data.
+integration_tests/data_loaders/cache/
