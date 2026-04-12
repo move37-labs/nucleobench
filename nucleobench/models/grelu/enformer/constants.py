@@ -6,7 +6,8 @@ python -m nucleobench.models.grelu.enformer.constants
 ```
 """
 
-ENFORMER_MODEL_NAME = 'enformer'
+ENFORMER_REPO_ID = 'Genentech/enformer-model'
+ENFORMER_FILENAME = 'human.ckpt'
 ENFORMER_TRAIN_LEN_ = 196_608
 
 # In gRelu, this list is determined from:
