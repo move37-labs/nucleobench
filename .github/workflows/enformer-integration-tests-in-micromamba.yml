@@ -1,0 +1,33 @@
+name: Enformer Integration Tests (Micromamba)
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Setup Micromamba
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-file: environment.yml
+          create-args: >-
+            python=${{ matrix.python-version }}
+          cache-environment: true
+          post-cleanup: 'all'
+
+      - name: Run Enformer integration tests
+        env:
+          WANDB_MODE: disabled
+        shell: micromamba-shell {0}
+        run: |
+          pytest -v -m enformer integration_tests/enformer_integration_test.py
