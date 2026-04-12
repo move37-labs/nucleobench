@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nucleobench"
-version = "2.0.5"
+version = "2.0.6"
 description = "Nucleobench optimizers and tasks."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -23,7 +23,6 @@ dependencies = [
     "lightning",
     "pytorch-lightning>=2.0,<3.0",
     "gReLU==1.0.5",
-    "wandb",
     "bpnet-lite==0.8.1",
     "numpy>=1.16,<2.0.0",
     "scipy",

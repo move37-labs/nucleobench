@@ -10,8 +10,8 @@ python -m nucleobench.models.grelu.borzoi.constants
 import pandas as pd
 import os
 
-BORZOI_PROJECT_ = 'borzoi'
-BORZOI_MODEL_NAME = 'human_fold0'
+BORZOI_REPO_ID = 'Genentech/borzoi-model'
+BORZOI_FILENAME = 'human_rep0.ckpt'
 BORZOI_TRAIN_LEN_ = 524_288
 
 # In gRelu, this list is determined from:
