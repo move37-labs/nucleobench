@@ -1,6 +1,6 @@
-# .github/workflows/integration-tests-in-micromamba.yml
+# .github/workflows/docker-integration-tests-in-micromamba.yml
 
-name: Integration Tests (Micromamba)
+name: Docker Integration Tests (Micromamba)
 #
 # This workflow runs the tests for the project.
 # It uses the mamba-org/setup-micromamba action to set up the micromamba environment.
