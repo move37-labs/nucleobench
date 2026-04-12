@@ -166,7 +166,7 @@ cython_debug/
 artifacts/
 
 # Writes for local tests.
-docker_entrypoint_test/
+integration_tests/
 
 # Written for batch params.
 *.csv

@@ -2,7 +2,7 @@
 
 To test:
 ```zsh
-pytest -n auto docker_entrypoint_test.py --durations=0
+pytest -n auto integration_tests/docker_entrypoint_test.py --durations=0
 ```
 """
 
