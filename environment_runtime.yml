@@ -32,6 +32,8 @@ dependencies:
 
     - ml-collections
 
+    - python-dotenv  # For loading secrets from .env files.
+
     - pip:
         - gReLU==1.0.5  # For the gReLU models.
         - bpnet-lite==0.8.1  # For a BPNet model.
