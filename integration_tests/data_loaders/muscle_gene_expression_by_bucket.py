@@ -18,6 +18,7 @@ df = loader.get_data()  # Returns DataFrame with sequences
 """
 
 import gzip
+import os
 import shutil
 from pathlib import Path
 from typing import Optional
