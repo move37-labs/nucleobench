@@ -11,7 +11,7 @@ from torch import nn
 from nucleobench.common import attribution_lib_torch
 from nucleobench.common import testing_utils
 
-class TestNeuralNetwork(nn.Module):
+class FakeNeuralNetwork(nn.Module):
     def __init__(self):
         super().__init__()
         self.flatten = nn.Flatten()
@@ -94,7 +94,7 @@ def test_grad_torch_idx_sanity():
 def test_apply_gradient_mask():
     """[idx] and idx should give the same result."""
     input_tensor = torch.randn(1, 10)
-    model = TestNeuralNetwork()
+    model = FakeNeuralNetwork()
     output_tensor = model(input_tensor)
     output_tensor = output_tensor.reshape(1, 1, 3)
     
