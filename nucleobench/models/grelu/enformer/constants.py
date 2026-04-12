@@ -6,8 +6,7 @@ python -m nucleobench.models.grelu.enformer.constants
 ```
 """
 
-ENFORMER_PROJECT_ = 'enformer'
-ENFORMER_MODEL_NAME = 'human'
+ENFORMER_MODEL_NAME = 'enformer'
 ENFORMER_TRAIN_LEN_ = 196_608
 
 # In gRelu, this list is determined from:

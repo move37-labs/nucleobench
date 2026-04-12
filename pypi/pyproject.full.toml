@@ -23,7 +23,6 @@ dependencies = [
     "lightning",
     "pytorch-lightning>=2.0,<3.0",
     "gReLU==1.0.5",
-    "wandb",
     "bpnet-lite==0.8.1",
     "numpy>=1.16,<2.0.0",
     "scipy",

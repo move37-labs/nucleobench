@@ -81,7 +81,6 @@
 **/Thumbs.db
 
 # Project specific exclusions
-**/wandb/
 **/output/
 **/analysis/
 **/recipes/

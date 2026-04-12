@@ -60,7 +60,6 @@ class Enformer(grelu_md.GReluModel):
         aggregation can be easily tracked and tested.
         """
         super().__init__(
-            project=constants.ENFORMER_PROJECT_,
             model_name=constants.ENFORMER_MODEL_NAME,
             override_model=override_model,
             expected_sequence_length=constants.ENFORMER_TRAIN_LEN_,

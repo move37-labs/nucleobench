@@ -23,7 +23,6 @@ dependencies:
     - python-xxhash  # For hashing for Ada* cache.
 
     - lightning
-    - wandb  # For skipping login when loading gRelu models.
 
     - google-cloud-storage
     - gcsfs  # For reading from GCS through pandas
@@ -35,6 +34,6 @@ dependencies:
     - ml-collections
 
     - pip:
-        - gReLU==1.0.5  # For the gReLU models.
+        - gReLU==1.1.0  # For the gReLU models.
         - bpnet-lite==0.8.1  # For a BPNet model.
         - build  # For building wheels.

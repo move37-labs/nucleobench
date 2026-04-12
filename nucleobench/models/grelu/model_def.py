@@ -43,7 +43,6 @@ class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
 
     def __init__(
         self,
-        project: str,
         model_name: str,
         expected_sequence_length: int,
         # The vocab MUST be this, since this is what was used in gRelu.
@@ -51,7 +50,6 @@ class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         override_model: torch.nn.Module | None = None,
         device: str = constants.AUTO_DEVICE,
     ):
-        self.project = project
         self.model_name = model_name
         self.device = device
         if self.device == constants.AUTO_DEVICE:
@@ -59,18 +57,15 @@ class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         if override_model:
             self.model = override_model
         else:
-            # Google Batch environments often have read-only or non-existent HOME directories.
-            # We force HOME to /tmp so wandb can write its anonymous credentials file.
-            import os
-            
-            # Enable anonymous mode for users without a wandb account
-            os.environ["WANDB_ANONYMOUS"] = "must" 
-            import wandb
-            wandb.login()
-            
+            hf_repo = {
+                'borzoi': 'Genentech/borzoi-model',
+                'enformer': 'Genentech/enformer-model',
+            }[self.model_name]
             self.model = grelu.resources.load_model(
-                project=self.project, model_name=self.model_name, device=self.device)
-            print(f'GRelumodel loaded.', flush=True)
+                repo_id=hf_repo, 
+                filename="model.ckpt",
+                device=self.device)
+            print(f'GRelumodel loaded {self.model_name}.', flush=True)
 
         self.tasks = pd.DataFrame(self.model.data_params["tasks"])
 

@@ -142,7 +142,6 @@ class Borzoi(grelu_md.GReluModel):
         run_sanity_checks: bool = True,
     ):
         super().__init__(
-            project=constants.BORZOI_PROJECT_,
             model_name=constants.BORZOI_MODEL_NAME,
             override_model=override_model,
             expected_sequence_length=constants.BORZOI_TRAIN_LEN_,

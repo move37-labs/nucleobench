@@ -45,7 +45,6 @@ jobs:
       # The 'micromamba-shell' automatically activates the environment
       - name: Run integration test with pytest
         env:
-          WANDB_MODE: disabled  # Disables wandb completely for CI testing
         shell: micromamba-shell {0}
         run: |
           pytest --cov=./ --cov-report=xml -n auto -v integration_tests/docker_entrypoint_test.py

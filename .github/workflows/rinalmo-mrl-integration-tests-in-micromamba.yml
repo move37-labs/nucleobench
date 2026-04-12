@@ -26,8 +26,6 @@ jobs:
           post-cleanup: 'all'
 
       - name: Run RiNALMo MRL integration tests
-        env:
-          WANDB_MODE: disabled
         shell: micromamba-shell {0}
         run: |
           pytest -v -m rinalmo integration_tests/rinalmo_mrl_integration_test.py
