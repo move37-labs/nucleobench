@@ -18,7 +18,7 @@ jobs:
 
       - name: Run integration test
         # Ensure the step runs in a bash shell
-        # NOTE: `...pytest -n auto -v docker_entrypoint_test.py...` is not supported in the GHCR container, so we disable.
+        # NOTE: `...pytest -n auto -v integration_tests/docker_entrypoint_test.py...` is not supported in the GHCR container, so we disable.
         shell: bash
         run: |
-          micromamba run -n base pytest -n auto -v docker_entrypoint_test.py
+          micromamba run -n base pytest -n auto -v integration_tests/docker_entrypoint_test.py
