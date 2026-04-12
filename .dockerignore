@@ -88,7 +88,7 @@
 **/runners/
 **/pypi/
 **/assets/
-**/docker_entrypoint_test.py
+integration_tests/
 
 # Docker files (don't need to copy these into the image)
 **/Dockerfile*

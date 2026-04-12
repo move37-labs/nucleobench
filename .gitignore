@@ -165,9 +165,6 @@ cython_debug/
 # Temporary files sometimes dropped in an `artifacts` dir.
 artifacts/
 
-# Writes for local tests.
-docker_entrypoint_test/
-
 # Written for batch params.
 *.csv
 *.tsv
@@ -202,3 +199,6 @@ START.txt
 SUCCESS.txt
 
 *.pt
+
+# Integration tests data.
+integration_tests/data_loaders/cache/
