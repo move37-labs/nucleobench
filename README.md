@@ -15,7 +15,6 @@
 | **GHCR** | [![Unit Tests (GHCR)](https://github.com/move37-labs/nucleobench/actions/workflows/unit-tests-in-docker-github.yml/badge.svg)](https://github.com/move37-labs/nucleobench/actions/workflows/unit-tests-in-docker-github.yml) | [![Docker Integration Tests (GHCR)](https://github.com/move37-labs/nucleobench/actions/workflows/docker-integration-tests-in-docker-github.yml/badge.svg)](https://github.com/move37-labs/nucleobench/actions/workflows/docker-integration-tests-in-docker-github.yml) |
 
 ### Model Integration Tests (Micromamba)
-[![Borzoi Integration Tests (Micromamba)](https://github.com/move37-labs/nucleobench/actions/workflows/borzoi-integration-tests-in-micromamba.yml/badge.svg)](https://github.com/move37-labs/nucleobench/actions/workflows/borzoi-integration-tests-in-micromamba.yml)
 [![Enformer Integration Tests (Micromamba)](https://github.com/move37-labs/nucleobench/actions/workflows/enformer-integration-tests-in-micromamba.yml/badge.svg)](https://github.com/move37-labs/nucleobench/actions/workflows/enformer-integration-tests-in-micromamba.yml)
 
 **A large-scale benchmark for modern nucleic acid sequence design algorithms (NucleoBench), and a new design algorithm that outperforms existing designers (AdaBeam).  Link to ICML GenBio 2025 workshop paper [here](https://www.biorxiv.org/content/10.1101/2025.06.20.660785).**
