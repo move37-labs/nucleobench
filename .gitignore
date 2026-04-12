@@ -165,9 +165,6 @@ cython_debug/
 # Temporary files sometimes dropped in an `artifacts` dir.
 artifacts/
 
-# Writes for local tests.
-integration_tests/
-
 # Written for batch params.
 *.csv
 *.tsv
