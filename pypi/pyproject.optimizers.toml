@@ -30,7 +30,6 @@ dependencies = [
     "gcsfs",
     "xxhash",
     "tqdm",
-    "python-dotenv",
 ]
 
 [project.optional-dependencies]

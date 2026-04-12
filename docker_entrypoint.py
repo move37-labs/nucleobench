@@ -15,7 +15,7 @@ python -m docker_entrypoint \
     --max_seconds 300  \
     --proposals_per_round 16 \
     --optimization_steps_per_output 1 \
-    --output_path ./docker_entrypoint_test/malinois_fs
+    --output_path ./docker_test/malinois_fs
 ```
 """
 import argparse
