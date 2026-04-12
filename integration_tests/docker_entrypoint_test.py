@@ -2,7 +2,7 @@
 
 To test:
 ```zsh
-pytest -n auto -m integration_tests/docker_entrypoint_test.py --durations=0
+pytest -n auto integration_tests/docker_entrypoint_test.py --durations=0
 ```
 """
 
@@ -28,8 +28,8 @@ _valid_model_opt_pairs = list(itertools.product(_valid_models, _valid_opts))
 @pytest.mark.parametrize("model", _valid_models)
 def test_model_required_fns(model):
     """Check that models have required run functions."""
-    if model == 'enformer':
-        pytest.skip("Enformer test requires WanDB access.")
+    if model in ['enformer', 'borzoi']:
+        pytest.skip("Test requires external access.")
     else:
         seqs = ["A" * 200, "T" * 200]
     
