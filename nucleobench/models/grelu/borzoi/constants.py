@@ -7,11 +7,12 @@ python -m nucleobench.models.grelu.borzoi.constants
 ```
 """
 
-import pandas as pd
 import os
 
-BORZOI_REPO_ID = 'Genentech/borzoi-model'
-BORZOI_FILENAME = 'human_rep0.ckpt'
+import pandas as pd
+
+BORZOI_REPO_ID = "Genentech/borzoi-model"
+BORZOI_FILENAME = "human_rep0.ckpt"
 BORZOI_TRAIN_LEN_ = 524_288
 
 # In gRelu, this list is determined from:
@@ -19,7 +20,9 @@ BORZOI_TRAIN_LEN_ = 524_288
 # model.data_params['tasks']['description']
 # ```
 this_dir = os.path.dirname(os.path.abspath(__file__))
-BORZOI_TASKS_ = pd.read_csv(os.path.join(this_dir, 'borzoi_tasks.csv')).description.values.tolist()
+BORZOI_TASKS_ = pd.read_csv(
+    os.path.join(this_dir, "borzoi_tasks.csv")
+).description.values.tolist()
 
 activate_muscle_tracks = """
 'DNASE:psoas muscle male adult (27 years) and male adult (35 years)'
@@ -164,8 +167,10 @@ activate_muscle_tracks = """
 
 'CAGE:skeletal muscle - soleus muscle,'
 """
-activate_muscle_tracks = [x.strip("'") for x in activate_muscle_tracks.split('\n') if len(x) > 0]
-#print(activate_muscle_tracks)
+activate_muscle_tracks = [
+    x.strip("'") for x in activate_muscle_tracks.split("\n") if len(x) > 0
+]
+# print(activate_muscle_tracks)
 assert len(activate_muscle_tracks) == 71
 
 
@@ -193,8 +198,10 @@ deactivate_liver_tracks = """
 'CHIP:H3K9me3:liver female adult (25 years)'
 
 'CHIP:H3K27me3:liver female adult (25 years)'"""
-deactivate_liver_tracks = [x.strip("'") for x in deactivate_liver_tracks.split('\n') if len(x) > 0]
-#print(activate_muscle_tracks)
+deactivate_liver_tracks = [
+    x.strip("'") for x in deactivate_liver_tracks.split("\n") if len(x) > 0
+]
+# print(activate_muscle_tracks)
 assert len(deactivate_liver_tracks) == 12
 
 activate_liver_tracks = """
@@ -219,7 +226,9 @@ activate_liver_tracks = """
 'CAGE:liver, adult, pool1'
 
 'CAGE:liver, fetal, pool1'"""
-activate_liver_tracks = [x.strip("'") for x in activate_liver_tracks.split('\n') if len(x) > 0]
+activate_liver_tracks = [
+    x.strip("'") for x in activate_liver_tracks.split("\n") if len(x) > 0
+]
 assert len(activate_liver_tracks) == 11
 
 deactivate_muscle_tracks = """
@@ -272,40 +281,52 @@ deactivate_muscle_tracks = """
 'CHIP:H3K27me3:muscle layer of duodenum male adult (59 years)'
 
 'CHIP:H3K27me3:muscle of leg female embryo (110 days)'"""
-deactivate_muscle_tracks = [x.strip("'") for x in deactivate_muscle_tracks.split('\n') if len(x) > 0]
+deactivate_muscle_tracks = [
+    x.strip("'") for x in deactivate_muscle_tracks.split("\n") if len(x) > 0
+]
 assert len(deactivate_muscle_tracks) == 25
 
-for track in activate_muscle_tracks + deactivate_liver_tracks + activate_liver_tracks + deactivate_muscle_tracks:
+for track in (
+    activate_muscle_tracks
+    + deactivate_liver_tracks
+    + activate_liver_tracks
+    + deactivate_muscle_tracks
+):
     assert track in BORZOI_TASKS_
-    
-    
+
+
 def activate_muscle_idx():
     return [BORZOI_TASKS_.index(t) for t in activate_muscle_tracks]
+
 
 def deactivate_liver_idx():
     return [BORZOI_TASKS_.index(t) for t in deactivate_liver_tracks]
 
+
 def activate_liver_idx():
     return [BORZOI_TASKS_.index(t) for t in activate_liver_tracks]
+
 
 def deactivate_muscle_idx():
     return [BORZOI_TASKS_.index(t) for t in deactivate_muscle_tracks]
 
+
 def idxs_by_name(aggregation_type: str) -> tuple[list[int], list[int]]:
-    if aggregation_type == 'muscle_not_liver':
+    if aggregation_type == "muscle_not_liver":
         positive_idxs = activate_muscle_idx() + deactivate_liver_idx()
         negative_idxs = activate_liver_idx() + deactivate_muscle_idx()
     else:
-        raise ValueError(f'Unknown aggregation type: {aggregation_type}')
+        raise ValueError(f"Unknown aggregation type: {aggregation_type}")
     return positive_idxs, negative_idxs
 
-if __name__ == '__main__':
-    positive_idxs, negative_idxs = idxs_by_name('muscle_not_liver')
-    print(f'Positive idxs: {positive_idxs}')
-    print(f'Negative idxs: {negative_idxs}')
+
+if __name__ == "__main__":
+    positive_idxs, negative_idxs = idxs_by_name("muscle_not_liver")
+    print(f"Positive idxs: {positive_idxs}")
+    print(f"Negative idxs: {negative_idxs}")
     assert len(positive_idxs) == 83, len(positive_idxs)
     assert len(negative_idxs) == 36, len(negative_idxs)
 
-    with open('borzoi_tasks.txt', 'w') as f:
+    with open("borzoi_tasks.txt", "w") as f:
         for task in set(BORZOI_TASKS_):
-            f.write(task + '\n')
+            f.write(task + "\n")

@@ -4,17 +4,13 @@ Adaptive beam, adaptive mutation rate, adaptive directed evolution.
 """
 
 import argparse
+
 import numpy as np
 
-from nucleobench.common import argparse_lib
-from nucleobench.common import constants
-from nucleobench.common import testing_utils
-
+from nucleobench.common import argparse_lib, constants, testing_utils
 from nucleobench.optimizations import optimization_class as oc
-from nucleobench.optimizations.typing import ModelType, SequenceType, SamplesType
-
 from nucleobench.optimizations.ada import ada_utils
-
+from nucleobench.optimizations.typing import ModelType, SamplesType, SequenceType
 
 RolloutNode = ada_utils.RolloutNode
 
@@ -44,7 +40,7 @@ class AdaBeam(oc.SequenceOptimizer):
             mutations_per_sequence: The expected number of mutations per sequence. Actual number of mutations
                 per round is sampled from a distribution.
             beam_size: Maximum number of candidates to carry from one round to the next.
-            n_rollouts_per_root: Number of explorations per root, per round. 
+            n_rollouts_per_root: Number of explorations per root, per round.
             eval_batch_size: Number of sequences to run inference on the model at once.
             rng_seed: Seed for the pseudo-random number generator.
             skip_repeat_sequences: If `True`, skip sequences that have already been evaluated. If `False`,
@@ -66,12 +62,10 @@ class AdaBeam(oc.SequenceOptimizer):
 
         # If we do zero rollouts per parent, we will have no child nodes.
         assert n_rollouts_per_root > 0
-        
+
         self.model = ada_utils.ModelWrapper(
-            model_fn, 
-            use_cache=True, 
-            debug=debug, 
-            start_sequence=start_sequence)
+            model_fn, use_cache=True, debug=debug, start_sequence=start_sequence
+        )
 
         self.skip_repeat_sequences = skip_repeat_sequences
         self.start_sequence = start_sequence
@@ -84,7 +78,7 @@ class AdaBeam(oc.SequenceOptimizer):
         self.rng = np.random.default_rng(rng_seed)
         self.num_mutations_sampler = self.get_sampler(self.mu)
         self.max_rollout_len = max_rollout_len
-        
+
         self.debug = debug
 
         # Mutate a string to create a starting population.
@@ -98,8 +92,8 @@ class AdaBeam(oc.SequenceOptimizer):
                 self.mutate_nodes(
                     [seed_node] * len(cur_num_edits),
                     cur_num_edits,
-            ))
-
+                )
+            )
 
     def get_batched_fitness(self, sequences: list[str]) -> np.ndarray:
         """Get fitness for a batch of sequences."""
@@ -108,7 +102,6 @@ class AdaBeam(oc.SequenceOptimizer):
             sequences=sequences,
             batch_size=self.eval_batch_size,
         )
-
 
     def generate_mutations(self, sequence: str, random_n_locs: int) -> str:
         """Convenience wrapper."""
@@ -120,15 +113,14 @@ class AdaBeam(oc.SequenceOptimizer):
             rng=self.rng,
         )
 
-
     def get_sampler(self, mu: float) -> ada_utils.NumberEditsSampler:
         """Get a sampler for the number of mutations."""
         return ada_utils.NumberEditsSamplerAdaBeam(
-            sequence_len=len(self.positions_to_mutate), 
+            sequence_len=len(self.positions_to_mutate),
             mutation_rate=mu,
             rng_seed=self.rng_seed,
         )
-        
+
     @staticmethod
     def init_parser():
         parser = argparse.ArgumentParser(description="", add_help=False)
@@ -201,7 +193,9 @@ class AdaBeam(oc.SequenceOptimizer):
     def run(self, n_steps: int):
         for _step in range(n_steps):
             self.current_nodes = self.propose_sequences(self.current_nodes)
-        print(f'Step {_step} current scores: {sorted([x.fitness for x in self.current_nodes], reverse=True)}')
+        print(
+            f"Step {_step} current scores: {sorted([x.fitness for x in self.current_nodes], reverse=True)}"
+        )
 
     def get_samples(self, n_samples: int) -> SamplesType:
         """Get samples."""
@@ -227,7 +221,7 @@ class AdaBeam(oc.SequenceOptimizer):
             while len(parent_nodes) > 0 and cur_rollout_length < self.max_rollout_len:
                 # Generate the desired number of edits for each child.
                 num_edit_locs = self.num_mutations_sampler.sample(len(parent_nodes))
-                
+
                 # Generate a mutated child for each node.
                 children = self.mutate_nodes(parent_nodes, num_edit_locs)
 
@@ -242,24 +236,28 @@ class AdaBeam(oc.SequenceOptimizer):
                         new_nodes.append(child)
                     else:
                         rollout_lengths.append(cur_rollout_length)
-                parent_nodes = new_nodes       
+                parent_nodes = new_nodes
 
         if len(sequences) == 0:
             raise ValueError("No sequences generated.")
-        
+
         # Propose the top `self.beam_size` new sequences we have generated.
         sequences = sorted(sequences, key=lambda x: x.fitness, reverse=True)
         top_nodes = sequences[: self.beam_size]
-        
+
         return top_nodes
-    
-    
-    def mutate_nodes(self, 
-                     nodes: list[RolloutNode], 
-                     num_edit_locs: list[int],
-                     max_num_tries: int = 300,
-                     ) -> list[RolloutNode]:
-        assert len(nodes) == len(num_edit_locs) <= self.eval_batch_size, (len(nodes), len(num_edit_locs), self.eval_batch_size)
+
+    def mutate_nodes(
+        self,
+        nodes: list[RolloutNode],
+        num_edit_locs: list[int],
+        max_num_tries: int = 300,
+    ) -> list[RolloutNode]:
+        assert len(nodes) == len(num_edit_locs) <= self.eval_batch_size, (
+            len(nodes),
+            len(num_edit_locs),
+            self.eval_batch_size,
+        )
         seqs = []
         for n, random_n_loc in zip(nodes, num_edit_locs):
             # If `self.skip_repeat_sequences=True` keep trying until we get a new sequence.
@@ -267,12 +265,16 @@ class AdaBeam(oc.SequenceOptimizer):
             while True:
                 candidate = self.generate_mutations(n.seq, random_n_loc)
                 try_cnt += 1
-                if not self.skip_repeat_sequences or not self.model.str_in_cache(candidate):
+                if not self.skip_repeat_sequences or not self.model.str_in_cache(
+                    candidate
+                ):
                     break
                 if try_cnt > max_num_tries:
-                    raise ValueError(f"Couldn't find unique child after {try_cnt} tries.")
+                    raise ValueError(
+                        f"Couldn't find unique child after {try_cnt} tries."
+                    )
                 if self.debug and try_cnt % 50 == 0:
-                    print(f'Couldnt find unique child after {try_cnt} tries...')
+                    print(f"Couldnt find unique child after {try_cnt} tries...")
             if self.debug:
                 if try_cnt > 1:
                     print(f"Found child after {try_cnt} tries")
@@ -281,5 +283,5 @@ class AdaBeam(oc.SequenceOptimizer):
         assert len(fitnesses) == len(seqs) == len(nodes) == len(num_edit_locs)
         for f in fitnesses:
             assert not np.isnan(f)
-        
+
         return [RolloutNode(seq=seq, fitness=f) for seq, f in zip(seqs, fitnesses)]

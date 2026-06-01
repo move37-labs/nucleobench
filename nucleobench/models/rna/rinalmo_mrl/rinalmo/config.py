@@ -1,5 +1,6 @@
-import ml_collections as mlc
 import copy
+
+import ml_collections as mlc
 
 from .data.alphabet import Alphabet
 from .data.constants import *
@@ -36,7 +37,7 @@ def model_config(name, force_cpu: bool = False):
         c.training.lr_scheduler.cosine_decay.eta_min = 1e-5
     else:
         raise ValueError("Invalid configuration name!")
-    
+
     assert not any_tokenizer_discrepancies(c), "Found discrepancies in tokenizer configuration!"
 
     return c
@@ -46,13 +47,13 @@ def any_tokenizer_discrepancies(config):
 
     if alphabet.get_idx(MASK_TKN) != config['globals'].mask_tkn_idx:
         return True
-    
+
     if alphabet.get_idx(PAD_TKN) != config['globals'].pad_tkn_idx:
         return True
-    
+
     if len(alphabet) != config['globals'].alphabet_size:
         return True
-    
+
     return False
 
 embed_dim = mlc.FieldReference(480, field_type=int)

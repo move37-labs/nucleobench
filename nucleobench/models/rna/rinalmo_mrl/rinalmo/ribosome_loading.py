@@ -5,9 +5,10 @@ https://github.com/lbcb-sci/RiNALMo/blob/main/train_ribosome_loading.py
 import lightning.pytorch as pl
 
 from .config import model_config
-from .model.model import RiNALMo
 from .model.downstream import RibosomeLoadingPredictionHead
+from .model.model import RiNALMo
 from .utils.scaler import StandardScaler
+
 
 class RibosomeLoadingPredictionWrapper(pl.LightningModule):
     def __init__(
@@ -19,7 +20,7 @@ class RibosomeLoadingPredictionWrapper(pl.LightningModule):
     ):
         super().__init__()
         self.save_hyperparameters()
-        
+
         self.scaler = StandardScaler()
 
         self.lm = RiNALMo(model_config(lm_config, force_cpu=force_cpu))

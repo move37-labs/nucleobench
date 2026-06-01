@@ -6,8 +6,8 @@ python -m nucleobench.models.grelu.enformer.constants
 ```
 """
 
-ENFORMER_REPO_ID = 'Genentech/enformer-model'
-ENFORMER_FILENAME = 'human.ckpt'
+ENFORMER_REPO_ID = "Genentech/enformer-model"
+ENFORMER_FILENAME = "human.ckpt"
 ENFORMER_TRAIN_LEN_ = 196_608
 
 # In gRelu, this list is determined from:
@@ -5334,36 +5334,48 @@ assert len(ENFORMER_TASKS_) == 5313, len(ENFORMER_TASKS_)
 
 
 def _muscle():
-    return [t for t in ENFORMER_TASKS_ 
-            if ('muscle' in t or 'myocyte' in t) and 
-            not ('smooth' in t or 'cardiac' in t or 'Smooth' in t)]
-    
-    
+    return [
+        t
+        for t in ENFORMER_TASKS_
+        if ("muscle" in t or "myocyte" in t)
+        and not ("smooth" in t or "cardiac" in t or "Smooth" in t)
+    ]
+
+
 def _liver():
-    return [t for t in ENFORMER_TASKS_  if 'liver' in t or 'hepatocyte' in t]
-    
-    
+    return [t for t in ENFORMER_TASKS_ if "liver" in t or "hepatocyte" in t]
+
+
 def _activate():
-    return [t for t in ENFORMER_TASKS_  if 
-            ('CAGE' in t or 'H3K27ac' in t or 'DNASE' in t or 'DHS' in t or 'ATAC' in t) and 
-            not ('H3K9me' in t or 'H3K27me' in t)]
-    
-    
+    return [
+        t
+        for t in ENFORMER_TASKS_
+        if ("CAGE" in t or "H3K27ac" in t or "DNASE" in t or "DHS" in t or "ATAC" in t)
+        and not ("H3K9me" in t or "H3K27me" in t)
+    ]
+
+
 def _deactivate():
-    return [t for t in ENFORMER_TASKS_  if 
-            ('H3K9me' in t or 'H3K27me' in t) and
-            not ('CAGE' in t or 'H3K27ac' in t or 'DNASE' in t or 'DHS' in t or 'ATAC' in t)]
+    return [
+        t
+        for t in ENFORMER_TASKS_
+        if ("H3K9me" in t or "H3K27me" in t)
+        and not (
+            "CAGE" in t or "H3K27ac" in t or "DNASE" in t or "DHS" in t or "ATAC" in t
+        )
+    ]
+
 
 def activate_muscle():
     return [t for t in _muscle() if t in _activate()]
 
 
 def muscle_CAGE():
-    return [t for t in _muscle() if 'CAGE' in t]
+    return [t for t in _muscle() if "CAGE" in t]
 
 
 def muscle_DNASE():
-    return [t for t in _muscle() if 'DNASE' in t]
+    return [t for t in _muscle() if "DNASE" in t]
 
 
 def deactivate_muscle():
@@ -5404,21 +5416,21 @@ def muscle_dnase_idx():
 
 def idxs_by_name(aggregation_type: str) -> tuple[list[int], list[int]]:
     """Get the indices of the positive and negative tasks for a given aggregation type."""
-    if aggregation_type == 'muscle_CAGE':
+    if aggregation_type == "muscle_CAGE":
         positive_idxs = muscle_cage_idx()
         negative_idxs = []
-    elif aggregation_type == 'muscle_not_liver':
+    elif aggregation_type == "muscle_not_liver":
         positive_idxs = activate_muscle_idx() + deactivate_liver_idx()
         negative_idxs = activate_liver_idx() + deactivate_muscle_idx()
     else:
-        raise ValueError(f'Unknown aggregation type: {aggregation_type}')
+        raise ValueError(f"Unknown aggregation type: {aggregation_type}")
     return positive_idxs, negative_idxs
 
 
-if __name__ == '__main__':
-    print('Muscle not liver: ')
-    print(idxs_by_name('muscle_not_liver'))
-    print(f'Activate muscle: {activate_muscle()}')
-    print(f'Deactivate liver: {deactivate_liver()}')
-    print(f'Activate liver: {activate_liver()}')
-    print(f'Deactivate muscle: {deactivate_muscle()}')
+if __name__ == "__main__":
+    print("Muscle not liver: ")
+    print(idxs_by_name("muscle_not_liver"))
+    print(f"Activate muscle: {activate_muscle()}")
+    print(f"Deactivate liver: {deactivate_liver()}")
+    print(f"Activate liver: {activate_liver()}")
+    print(f"Deactivate muscle: {deactivate_muscle()}")

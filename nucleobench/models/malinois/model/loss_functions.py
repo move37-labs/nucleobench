@@ -23,10 +23,31 @@ SOFTWARE.
 """
 import torch
 import torch.nn as nn
+from torch.nn import (
+    BCELoss,
+    BCEWithLogitsLoss,
+    CosineEmbeddingLoss,
+    CrossEntropyLoss,
+    CTCLoss,
+    GaussianNLLLoss,
+    HingeEmbeddingLoss,
+    HuberLoss,
+    KLDivLoss,
+    L1Loss,
+    MarginRankingLoss,
+    MSELoss,
+    MultiLabelMarginLoss,
+    MultiLabelSoftMarginLoss,
+    MultiMarginLoss,
+    NLLLoss,
+    PoissonNLLLoss,
+    SmoothL1Loss,
+    SoftMarginLoss,
+    TripletMarginLoss,
+    TripletMarginWithDistanceLoss,
+)
 
 import nucleobench.models.malinois.model.utils as utils
-
-from torch.nn import L1Loss, MSELoss, CrossEntropyLoss, CTCLoss, NLLLoss, PoissonNLLLoss, GaussianNLLLoss, KLDivLoss, BCELoss, BCEWithLogitsLoss, MarginRankingLoss, HingeEmbeddingLoss, MultiLabelMarginLoss, HuberLoss, SmoothL1Loss, SoftMarginLoss, MultiLabelSoftMarginLoss, CosineEmbeddingLoss, MultiMarginLoss, TripletMarginLoss, TripletMarginWithDistanceLoss
 
 ##################
 # Loss functions #
@@ -56,7 +77,7 @@ class MSEKLmixed(nn.Module):
         loss_fn = MSEKLmixed()
         loss = loss_fn(predictions, targets)
     """
-    
+
     def __init__(self, reduction='mean', alpha=1.0, beta=1.0):
         """
         Initialize the MSEKLmixed loss module.
@@ -70,14 +91,14 @@ class MSEKLmixed(nn.Module):
             None
         """
         super().__init__()
-        
+
         self.reduction = reduction
         self.alpha = alpha
         self.beta  = beta
-        
+
         self.MSE = nn.MSELoss(reduction=reduction.replace('batch',''))
         self.KL  = nn.KLDivLoss(reduction=reduction, log_target=True)
-        
+
     def forward(self, preds, targets):
         """
         Calculate the combined loss by combining MSE and KL divergence losses.
@@ -91,13 +112,13 @@ class MSEKLmixed(nn.Module):
         """
         preds_log_prob  = preds   - torch.logsumexp(preds, dim=-1, keepdim=True)
         target_log_prob = targets - torch.logsumexp(targets, dim=-1, keepdim=True)
-        
+
         MSE_loss = self.MSE(preds, targets)
         KL_loss  = self.KL(preds_log_prob, target_log_prob)
-        
+
         combined_loss = MSE_loss.mul(self.alpha) + \
                         KL_loss.mul(self.beta)
-        
+
         return combined_loss.div(self.alpha+self.beta)
 
 class L1KLmixed(nn.Module):
@@ -124,7 +145,7 @@ class L1KLmixed(nn.Module):
         loss_fn = L1KLmixed()
         loss = loss_fn(predictions, targets)
     """
-    
+
     def __init__(self, reduction='mean', alpha=1.0, beta=1.0):
         """
         Initialize the L1KLmixed loss module.
@@ -138,14 +159,14 @@ class L1KLmixed(nn.Module):
             None
         """
         super().__init__()
-        
+
         self.reduction = reduction
         self.alpha = alpha
         self.beta  = beta
-        
+
         self.MSE = nn.L1Loss(reduction=reduction.replace('batch',''))
         self.KL  = nn.KLDivLoss(reduction=reduction, log_target=True)
-        
+
     def forward(self, preds, targets):
         """
         Calculate the combined loss by combining L1 and KL divergence losses.
@@ -159,13 +180,13 @@ class L1KLmixed(nn.Module):
         """
         preds_log_prob  = preds   - torch.logsumexp(preds, dim=-1, keepdim=True)
         target_log_prob = targets - torch.logsumexp(targets, dim=-1, keepdim=True)
-        
+
         MSE_loss = self.MSE(preds, targets)
         KL_loss  = self.KL(preds_log_prob, target_log_prob)
-        
+
         combined_loss = MSE_loss.mul(self.alpha) + \
                         KL_loss.mul(self.beta)
-        
+
         return combined_loss.div(self.alpha+self.beta)
 
 class MSEwithEntropy(nn.Module):
@@ -192,7 +213,7 @@ class MSEwithEntropy(nn.Module):
         loss_fn = MSEwithEntropy()
         loss = loss_fn(predictions, targets)
     """
-    
+
     def __init__(self, reduction='mean', alpha=1.0, beta=1.0):
         """
         Initialize the MSEwithEntropy loss module.
@@ -206,13 +227,13 @@ class MSEwithEntropy(nn.Module):
             None
         """
         super().__init__()
-        
+
         self.reduction = reduction
         self.alpha = alpha
         self.beta  = beta
-        
+
         self.MSE = nn.MSELoss(reduction=reduction.replace('batch',''))
-        
+
     def forward(self, preds, targets):
         """
         Calculate the combined loss by combining MSE and SDE losses based on entropy.
@@ -226,16 +247,16 @@ class MSEwithEntropy(nn.Module):
         """
         pred_entropy = nn.Softmax(dim=1)(preds)
         pred_entropy = torch.sum(- pred_entropy * torch.log(pred_entropy), dim=1)
-        
+
         targ_entropy = nn.Softmax(dim=1)(targets)
         targ_entropy = torch.sum(- targ_entropy * torch.log(targ_entropy), dim=1)
-        
+
         MSE_loss = self.MSE(preds, targets)
         EDE_loss = self.MSE(pred_entropy, targ_entropy)
-        
+
         combined_loss = MSE_loss.mul(self.alpha) + \
                         EDE_loss.mul(self.beta)
-        
+
         return combined_loss.div(self.alpha+self.beta)
 
 class L1withEntropy(nn.Module):
@@ -261,7 +282,7 @@ class L1withEntropy(nn.Module):
         loss_fn = L1withEntropy()
         loss = loss_fn(predictions, targets)
     """
-    
+
     def __init__(self, reduction='mean', alpha=1.0, beta=1.0):
         """
         Initialize the L1withEntropy loss module.
@@ -275,13 +296,13 @@ class L1withEntropy(nn.Module):
             None
         """
         super().__init__()
-        
+
         self.reduction = reduction
         self.alpha = alpha
         self.beta  = beta
-        
+
         self.MSE = nn.L1Loss(reduction=reduction.replace('batch',''))
-        
+
     def forward(self, preds, targets):
         """
         Calculate the combined loss by combining L1 and entropy-based losses.
@@ -295,34 +316,34 @@ class L1withEntropy(nn.Module):
         """
         pred_entropy = nn.Softmax(dim=1)(preds)
         pred_entropy = torch.sum(- pred_entropy * torch.log(pred_entropy), dim=1)
-        
+
         targ_entropy = nn.Softmax(dim=1)(targets)
         targ_entropy = torch.sum(- targ_entropy * torch.log(targ_entropy), dim=1)
-        
+
         MSE_loss = self.MSE(preds, targets)
         EDE_loss = self.MSE(pred_entropy, targ_entropy)
-        
+
         combined_loss = MSE_loss.mul(self.alpha) + \
                         EDE_loss.mul(self.beta)
-        
+
         return combined_loss.div(self.alpha+self.beta)
-    
+
 class DirichletNLLLoss(nn.Module):
-    
+
     def __init__(self, reduction='mean', eps=1e-8):
         super().__init__()
-        
+
         self.reduction = reduction
         self.eps = eps
         self.activation= nn.Softplus()
-        
+
         assert reduction in ['mean', 'sum', 'none'], "reduction must be 'mean'|'sum'|'none'"
-        
+
     def forward(self, preds, targets):
-        
+
         preds   = self.activation(preds)
         targets = targets.clamp(min=self.eps)
-        
+
         term1 = torch.lgamma(preds.sum(dim=-1))
         term2 = torch.lgamma(preds).sum(dim=-1)
         term3 = torch.xlogy(preds - 1.0, targets).sum(dim=-1)
@@ -332,45 +353,45 @@ class DirichletNLLLoss(nn.Module):
         #- torch.lgamma(self.concentration).sum(-1)
 
         result = -term1 + term2 - term3
-        
+
         if self.reduction == 'mean':
             result = result.mean()
         elif self.reduction == 'sum':
             result = result.sum()
         else:
             result = result
-        
+
         return result
-        
+
 class JeffreysDivLoss(nn.Module):
-    
+
     def __init__(self, reduction='batchmean', log_target=False, eps=1e-12):
         super().__init__()
-        
+
         self.reduction = reduction
         self.log_target= log_target
         self.eps = eps
         self.activation= nn.LogSoftmax()
         self.KL = nn.KLDivLoss(reduction=reduction, log_target=True) # expect all inputs as log-space for symmetric use
-        
+
     def forward(self, preds, targets):
-        
+
         preds = self.activation(preds)
         if self.log_target:
             targets = targets.clip(torch.log(self.eps))
         else:
             targets = targets.clip(self.eps)
             targets = torch.log(targets)
-        
+
         return self.KL(preds, targets) + self.KL(targets, preds)
-        
-        
+
+
 L1Loss, MSELoss, CrossEntropyLoss, CTCLoss, NLLLoss, PoissonNLLLoss, GaussianNLLLoss, KLDivLoss, BCELoss, BCEWithLogitsLoss, MarginRankingLoss, HingeEmbeddingLoss, MultiLabelMarginLoss, HuberLoss, SmoothL1Loss, SoftMarginLoss, MultiLabelSoftMarginLoss, CosineEmbeddingLoss, MultiMarginLoss, TripletMarginLoss, TripletMarginWithDistanceLoss
 
 def add_criterion_specific_args(parser, criterion_name):
-    
+
     group = parser.add_argument_group('Criterion args')
-    
+
     if criterion_name == 'L1Loss':
         group.add_argument('--reduction', type=str, default='mean', help='Specifies reduction applied when loss is calculated: `"none"`|`"mean"`|`"sum"`. See torch.nn docs for more details.')
     elif criterion_name == 'MSELoss':
@@ -460,5 +481,5 @@ def add_criterion_specific_args(parser, criterion_name):
         group.add_argument('--log_target', type=utils.str2bool, default=False, help='Specifies whether target is in the log space.')
     else:
         raise RuntimeError(f'{criterion_name} not supported. Try: [L1Loss, CrossEntropyLoss, CTCLoss, NLLLoss, PoissonNLLLoss, GaussianNLLLoss, KLDivLoss, BCELoss, BCEWithLogitsLoss, MarginRankingLoss, HingeEmbeddingLoss, MultiLabelMarginLoss, HuberLoss, SmoothL1Loss, SoftMarginLoss, MultiLabelSoftMarginLoss, CosineEmbeddingLoss, MultiMarginLoss, TripletMarginLoss, TripletMarginWithDistanceLoss, MSEKLmixed, L1KLmixed, MSEwithEntropy, L1withEntropy]')
-        
+
     return parser

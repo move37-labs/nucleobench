@@ -1,0 +1,33 @@
+# Root pyproject.toml — tool configuration only.
+# Package-specific build metadata lives in pypi/pyproject.full.toml
+# and pypi/pyproject.optimizers.toml.
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+exclude = [
+    "*.ipynb",
+    "nucleobench/models/rna/rinalmo_mrl/rinalmo",
+    "nucleobench/models/malinois/model",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "W",   # pycodestyle warnings
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["nucleobench"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+warn_unused_ignores = true
+warn_redundant_casts = true

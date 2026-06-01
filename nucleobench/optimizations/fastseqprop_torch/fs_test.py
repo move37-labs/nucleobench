@@ -9,7 +9,6 @@ pytest nucleobench/optimizations/fastseqprop_torch/fs_test.py
 import numpy as np
 import torch
 
-from nucleobench.common import string_utils
 from nucleobench.common import testing_utils
 
 from . import fs
@@ -22,10 +21,11 @@ def test_init_sanity():
 
 def test_reset_sanity():
     init_args = fs.FastSeqProp.debug_init_args()
-    init_args['start_sequence'] = 'AAAA'
+    init_args["start_sequence"] = "AAAA"
     fs_opt = fs.FastSeqProp(**init_args)
-    assert fs_opt.start_sequence == 'AAAA'
+    assert fs_opt.start_sequence == "AAAA"
     _ = fs_opt.get_samples(1)[0]
+
 
 def test_opt_changes_param():
     init_args = fs.FastSeqProp.debug_init_args()
@@ -41,7 +41,7 @@ def test_opt_changes_param():
 def test_correctness():
     torch.manual_seed(10)
     init_args = fs.FastSeqProp.debug_init_args()
-    init_args['model_fn'] = testing_utils.CountLetterModel(flip_sign=True)
+    init_args["model_fn"] = testing_utils.CountLetterModel(flip_sign=True)
     fs_opt = fs.FastSeqProp(**init_args)
 
     start_params = fs_opt.opt_module.params.detach().clone().numpy()
@@ -59,16 +59,16 @@ def test_correctness():
 def test_respects_pos_to_mutate():
     start_sequence = "A" * 20
     positions_to_mutate = [2, 5, 10]
-    
+
     model_fn = testing_utils.CountLetterModel()
-    
+
     opt = fs.FastSeqProp(
         model_fn=model_fn,
         start_sequence=start_sequence,
         positions_to_mutate=positions_to_mutate,
         learning_rate=0.1,
         batch_size=4,
-        eta_min=1e-6
+        eta_min=1e-6,
     )
 
     for _ in range(10):
@@ -76,4 +76,5 @@ def test_respects_pos_to_mutate():
         proposals = opt.get_samples(n_samples=10)
         for proposal in proposals:
             testing_utils.assert_proposal_respects_positions_to_mutate(
-                start_sequence, proposal, positions_to_mutate)
+                start_sequence, proposal, positions_to_mutate
+            )

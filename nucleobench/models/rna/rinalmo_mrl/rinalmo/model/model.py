@@ -1,7 +1,8 @@
 import torch
 from torch import nn
 
-from .modules import Transformer, MaskedLanguageModelHead, TokenDropout
+from .modules import MaskedLanguageModelHead, TokenDropout, Transformer
+
 
 class RiNALMo(nn.Module):
     def __init__(self, config):
@@ -36,5 +37,5 @@ class RiNALMo(nn.Module):
         result = {"logits": x, "representation": representation}
         if need_attn_weights:
             result["attentions"] = torch.stack(attn_weights, dim=1)
-        
+
         return result

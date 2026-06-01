@@ -1,7 +1,7 @@
+import numpy as np
 import torch
 import torch.nn as nn
 
-import numpy as np
 
 # Inspired by https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html
 class StandardScaler(nn.Module):

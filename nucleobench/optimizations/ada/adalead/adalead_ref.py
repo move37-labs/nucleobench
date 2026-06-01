@@ -14,26 +14,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-"""
-This code was adapted from the following source:
-https://github.com/samsinai/FLEXS/blob/master/flexs/baselines/explorers/adalead.py
+# This code was adapted from the following source:
+# https://github.com/samsinai/FLEXS/blob/master/flexs/baselines/explorers/adalead.py
+#
+# It has been modified to conform to the nucleobench optimization class interface, and to remove the
+# dependence on pandas.
 
-It has been modified to conform to the nucleobench optimization class interface, and to remove the
-dependence on pandas.
-"""
-
-from typing import Optional
-
-from nucleobench.common import testing_utils
-from nucleobench.common import constants
 import argparse
-import numpy as np
 import random
 
-from nucleobench.optimizations import optimization_class as oc
+import numpy as np
 
-from nucleobench.optimizations.typing import ModelType, SequenceType, SamplesType
+from nucleobench.common import constants, testing_utils
+from nucleobench.optimizations import optimization_class as oc
 from nucleobench.optimizations.ada import ada_utils
+from nucleobench.optimizations.typing import ModelType, SamplesType, SequenceType
 
 
 class AdaLeadRef(oc.SequenceOptimizer):
@@ -140,9 +135,9 @@ class AdaLeadRef(oc.SequenceOptimizer):
         rng_seed: int,
         mutation_rate: float,
         recombination_rate: float,
-        positions_to_mutate: Optional[list[int]] = None,
+        positions_to_mutate: list[int] | None = None,
         debug: bool = False,
-    ):  
+    ):
         self.model = ada_utils.ModelWrapper(model_fn)
         self.start_sequence = start_sequence
         self.sequences_batch_size = sequences_batch_size
@@ -154,7 +149,9 @@ class AdaLeadRef(oc.SequenceOptimizer):
         self.rho = rho
         self.eval_batch_size = eval_batch_size
         self.rng = random.Random(rng_seed)
-        self.positions_to_mutate = positions_to_mutate or list(range(len(start_sequence)))
+        self.positions_to_mutate = positions_to_mutate or list(
+            range(len(start_sequence))
+        )
         self.debug = debug
 
         assert min(self.positions_to_mutate) >= 0
@@ -164,10 +161,10 @@ class AdaLeadRef(oc.SequenceOptimizer):
         assert isinstance(start_sequence, str)
         self.seed_population = [
             ada_utils.generate_random_mutant(
-                sequence=start_sequence, 
-                positions_to_mutate=self.positions_to_mutate, 
-                mu=mutation_rate, 
-                alphabet=self.alphabet, 
+                sequence=start_sequence,
+                positions_to_mutate=self.positions_to_mutate,
+                mu=mutation_rate,
+                alphabet=self.alphabet,
                 rng=self.rng,
             )
             for _ in range(sequences_batch_size)
@@ -184,8 +181,9 @@ class AdaLeadRef(oc.SequenceOptimizer):
     def run(self, n_steps: int):
         for _step in range(n_steps):
             self.current_population, self.current_scores = self.propose_sequences(
-                self.current_population, self.current_scores)
-        print(f'Current scores: {self.current_scores}')
+                self.current_population, self.current_scores
+            )
+        print(f"Current scores: {self.current_scores}")
 
     def get_samples(self, n_samples: int) -> SamplesType:
         """Get samples."""
@@ -209,7 +207,7 @@ class AdaLeadRef(oc.SequenceOptimizer):
         parent_inds = np.argwhere(parent_mask).flatten()
         parents = [in_seqs[i] for i in parent_inds]
         if self.debug:
-            print(f'After thresholding, went from {len(parent_inds)} to {len(parents)}')
+            print(f"After thresholding, went from {len(parent_inds)} to {len(parents)}")
 
         sequences = {}
         previous_model_cost = self.model.cost
@@ -217,8 +215,11 @@ class AdaLeadRef(oc.SequenceOptimizer):
             # Generate recombinant mutants.
             for i in range(self.rho):
                 parents = ada_utils.recombine_population(
-                    gen=parents, rng=self.rng, recomb_rate=self.recomb_rate, 
-                    positions_to_mutate=self.positions_to_mutate)
+                    gen=parents,
+                    rng=self.rng,
+                    recomb_rate=self.recomb_rate,
+                    positions_to_mutate=self.positions_to_mutate,
+                )
 
             for i in range(0, len(parents), self.eval_batch_size):
                 # Here we do rollouts from each parent (root of rollout tree).
@@ -258,8 +259,8 @@ class AdaLeadRef(oc.SequenceOptimizer):
                         else:
                             pass
                     if self.debug:
-                        print(f'It took {round_num} tries to generate a child.')
-                    
+                        print(f"It took {round_num} tries to generate a child.")
+
                     # Stop the rollout once the child has worse predicted
                     # fitness than the root of the rollout tree.
                     # Otherwise, set node = child and add child to the list
@@ -272,9 +273,9 @@ class AdaLeadRef(oc.SequenceOptimizer):
                         if fitness >= root_fitnesses[idx]:
                             nodes.append((idx, child))
                     rollout_length += 1
-                
+
                 if self.debug:
-                    print(f'Rollout length: {rollout_length}')
+                    print(f"Rollout length: {rollout_length}")
 
         if len(sequences) == 0:
             raise ValueError(
@@ -284,7 +285,9 @@ class AdaLeadRef(oc.SequenceOptimizer):
 
         # We propose the top `self.sequences_batch_size` new sequences we have generated.
         if self.debug:
-            print(f'Proposing {self.sequences_batch_size} sequences out of {len(sequences)}')
+            print(
+                f"Proposing {self.sequences_batch_size} sequences out of {len(sequences)}"
+            )
         new_seqs = list(sequences.keys())
         preds = np.array(list(sequences.values()))
         sorted_order = np.argsort(preds)[: -self.sequences_batch_size : -1]

@@ -6,11 +6,10 @@ pytest nucleobench/optimizations/ada/adalead/adalead_ref_test.py
 ```
 """
 
-import pytest
 import numpy as np
 
-from nucleobench.optimizations.ada.adalead.adalead_ref import AdaLeadRef
 from nucleobench.common import testing_utils
+from nucleobench.optimizations.ada.adalead.adalead_ref import AdaLeadRef
 
 
 def test_adalead_ref():
@@ -71,12 +70,12 @@ def test_positions_to_mutate():
 
     for i in range(4):
         adalead.run(n_steps=1)
-        print(f'Finished step {i}')
+        print(f"Finished step {i}")
 
         out_seqs = adalead.get_samples(seq_batch_size)
         for seq in out_seqs:
             for s in seq[2:]:
-                assert s == 'A', seq
+                assert s == "A", seq
 
 
 def test_zero_is_not_none():

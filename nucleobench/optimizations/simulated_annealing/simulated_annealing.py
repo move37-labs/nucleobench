@@ -1,13 +1,17 @@
-from nucleobench.common import testing_utils
-from nucleobench.common import constants
-from typing import Callable, Optional
 import argparse
-import numpy as np
 import random
+from collections.abc import Callable
 
+import numpy as np
+
+from nucleobench.common import constants, testing_utils
 from nucleobench.optimizations import optimization_class as oc
-
-from nucleobench.optimizations.typing import ModelType, PositionsToMutateType, SequenceType, SamplesType
+from nucleobench.optimizations.typing import (
+    ModelType,
+    PositionsToMutateType,
+    SamplesType,
+    SequenceType,
+)
 
 
 class SimulatedAnnealingBase:
@@ -94,7 +98,7 @@ class UniformProposal:
         self,
         alphabet: str,
         n_mutations: int,
-        positions_to_mutate: Optional[list[int]],
+        positions_to_mutate: list[int] | None,
     ):
         self.alphabet = alphabet
         self.n_mutations = n_mutations
@@ -124,7 +128,7 @@ class SimulatedAnnealing(oc.SequenceOptimizer):
         polynomial_decay_p: float,
         n_mutations_per_proposal: int,
         rng_seed: int,
-        positions_to_mutate: Optional[PositionsToMutateType] = None,
+        positions_to_mutate: PositionsToMutateType | None = None,
     ):
         proposal_fn = UniformProposal(
             "".join(constants.VOCAB), n_mutations_per_proposal, positions_to_mutate
@@ -156,7 +160,7 @@ class SimulatedAnnealing(oc.SequenceOptimizer):
 
     def is_finished(self) -> bool:
         return False
-    
+
     @staticmethod
     def init_parser():
         parser = argparse.ArgumentParser(description="", add_help=False)

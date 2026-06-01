@@ -1,20 +1,20 @@
+import math
+
 import torch
 from torch import nn
-
-import math
-import warnings
 
 from .rope import RotaryPositionEmbedding
 
 try:
-    from flash_attn import flash_attn_varlen_qkvpacked_func, flash_attn_qkvpacked_func
+    from flash_attn import flash_attn_qkvpacked_func, flash_attn_varlen_qkvpacked_func
+    from flash_attn.bert_padding import pad_input, unpad_input
     from flash_attn.layers.rotary import RotaryEmbedding
-    from flash_attn.bert_padding import unpad_input, pad_input
 except ModuleNotFoundError:
     #warnings.warn("Flash attention not found. Skipping import.")
     pass
 
 from einops import rearrange
+
 
 def dot_product_attention(q, k, v, attn_mask=None, key_pad_mask=None, dropout=None):
     c = q.shape[-1]
@@ -212,17 +212,17 @@ class FlashMultiHeadSelfAttention(nn.Module):
             seqlen = qkv.shape[1]
             x_unpad, indices, cu_seqlens, max_s = unpad_input(qkv, key_padding_mask)
             output_unpad = self.flash_self_attn(
-                    x_unpad, 
-                    cu_seqlens=cu_seqlens, 
-                    max_seqlen=max_s, 
+                    x_unpad,
+                    cu_seqlens=cu_seqlens,
+                    max_seqlen=max_s,
                     return_attn_probs=return_attn_probs
                     )
             out = pad_input(rearrange(output_unpad, '... h d -> ... (h d)'), indices, batch_size, seqlen)
         else:
             output = self.flash_self_attn(
-                    qkv, 
-                    cu_seqlens=None, 
-                    max_seqlen=None, 
+                    qkv,
+                    cu_seqlens=None,
+                    max_seqlen=None,
                     return_attn_probs=return_attn_probs
                     )
             out = rearrange(output, '... h d -> ... (h d)')

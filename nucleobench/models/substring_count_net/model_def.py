@@ -1,25 +1,28 @@
 """Model for counting substrings."""
 
 import argparse
+
+import numpy as np
 import torch
 import torch.nn.functional as F
-import numpy as np
 
-from nucleobench.common import argparse_lib
-from nucleobench.common import constants
-from nucleobench.common import attribution_lib_torch as att_lib
-from nucleobench.common import string_utils
-
+from nucleobench.common import argparse_lib, constants, string_utils
 from nucleobench.optimizations import model_class as mc
 
-class CountSubstringModel(torch.nn.Module, mc.PyTorchDifferentiableModel, mc.TISMModelClass):
+
+class CountSubstringModel(
+    torch.nn.Module, mc.PyTorchDifferentiableModel, mc.TISMModelClass
+):
     """Count number of substrings, using convs."""
-    def __init__(self,
-                 substring: str,
-                 tism_times: int = 3,
-                 tism_stdev: float = 0.25,
-                 flip_sign: bool = False,
-                 vocab: list[str] = constants.VOCAB):
+
+    def __init__(
+        self,
+        substring: str,
+        tism_times: int = 3,
+        tism_stdev: float = 0.25,
+        flip_sign: bool = False,
+        vocab: list[str] = constants.VOCAB,
+    ):
         super().__init__()
         self.substring = substring
         self.tism_times = tism_times
@@ -29,8 +32,7 @@ class CountSubstringModel(torch.nn.Module, mc.PyTorchDifferentiableModel, mc.TIS
         self.vocab_to_idx = {nt: i for i, nt in enumerate(vocab)}
         self.vocab_array = np.array(vocab)
 
-        self.substr_tensor = string_utils.dna2tensor(
-            substring, vocab_list=self.vocab)
+        self.substr_tensor = string_utils.dna2tensor(substring, vocab_list=self.vocab)
         self.substr_tensor = torch.unsqueeze(self.substr_tensor, dim=0)
         self.substr_tensor.requires_grad = False
 
@@ -58,10 +60,9 @@ class CountSubstringModel(torch.nn.Module, mc.PyTorchDifferentiableModel, mc.TIS
     @staticmethod
     def debug_init_args():
         return {
-            'substring': 'AG',
-            'flip_sign': True,
+            "substring": "AG",
+            "flip_sign": True,
         }
-
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         assert x.ndim == 3
