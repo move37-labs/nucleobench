@@ -5,7 +5,10 @@
 [tool.ruff]
 line-length = 88
 target-version = "py310"
-exclude = ["*.ipynb"]
+exclude = [
+    "*.ipynb",
+    "nucleobench/models/rna/rinalmo_mrl/rinalmo",
+]
 
 [tool.ruff.lint]
 select = [
