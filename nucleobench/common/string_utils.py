@@ -2,7 +2,6 @@
 
 import os
 import subprocess
-from typing import Union
 
 import numpy as np
 import torch
@@ -150,7 +149,7 @@ def np2str(sequence_np: np.ndarray, vocab_list=constants.VOCAB) -> str:
     return "".join([vocab_list[letter] for letter in sequence_np])
 
 
-SeqOrSeqsType = Union[str, list[str]]
+SeqOrSeqsType = str | list[str]
 
 
 def load_sequences(

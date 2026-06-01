@@ -8,6 +8,7 @@ target-version = "py310"
 exclude = [
     "*.ipynb",
     "nucleobench/models/rna/rinalmo_mrl/rinalmo",
+    "nucleobench/models/malinois/model",
 ]
 
 [tool.ruff.lint]

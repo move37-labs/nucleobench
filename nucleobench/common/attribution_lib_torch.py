@@ -92,7 +92,8 @@ def grad_to_tism(sg: SmoothgradVocabType, base_seq: str) -> TISMOutputType:
     for base_nt, sg_dict in zip(base_seq, sg):
         cur_tism = {}
         for nt, sg in sg_dict.items():
-            if nt == base_nt: continue
+            if nt == base_nt:
+                continue
             cur_tism[nt] = float(sg - sg_dict[base_nt])
         tism.append(cur_tism)
 

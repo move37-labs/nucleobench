@@ -38,7 +38,8 @@ def test_tism():
             assert cur_tism['A'] == cur_tism['T'] == cur_tism['G'] < 0
         else:
             for nt in ['A', 'T', 'G']:
-                if nt == base_c: continue
+                if nt == base_c:
+                    continue
                 assert cur_tism[nt] == 0
             cur_tism['C'] > 0
 

@@ -53,57 +53,57 @@ def download(model_name: str):
 
 # TODO(joelshor): Figure out how to import these directly from bpnet.
 class CountWrapper(torch.nn.Module):
-	"""A wrapper class that only returns the predicted counts.
+    """A wrapper class that only returns the predicted counts.
 
     Copied from https://github.com/jmschrei/bpnet-lite/blob/master/bpnetlite/bpnet.py,
     under the MIT license.
 
-	This class takes in a trained model and returns only the second output.
-	For BPNet models, this means that it is only returning the count
-	predictions. This is for convenience when using captum to calculate
-	attribution scores.
+    This class takes in a trained model and returns only the second output.
+    For BPNet models, this means that it is only returning the count
+    predictions. This is for convenience when using captum to calculate
+    attribution scores.
 
-	Parameters
-	----------
-	model: torch.nn.Module
-		A torch model to be wrapped.
-	"""
+    Parameters
+    ----------
+    model: torch.nn.Module
+        A torch model to be wrapped.
+    """
 
-	def __init__(self, model):
-		super().__init__()
-		self.model = model
+    def __init__(self, model):
+        super().__init__()
+        self.model = model
 
-	def forward(self, X, X_ctl=None, **kwargs):
-		return self.model(X, X_ctl, **kwargs)[1]
+    def forward(self, X, X_ctl=None, **kwargs):
+        return self.model(X, X_ctl, **kwargs)[1]
 
 
 # TODO(joelshor): Figure out how to import these directly from bpnet.
 class ControlWrapper(torch.nn.Module):
-	"""This wrapper automatically creates a control track of all zeroes.
+    """This wrapper automatically creates a control track of all zeroes.
 
     Copied from https://github.com/jmschrei/bpnet-lite/blob/master/bpnetlite/bpnet.py,
     under the MIT license.
 
-	This wrapper will check to see whether the model is expecting a control
-	track (e.g., most BPNet-style models) and will create one with the expected
-	shape. If no control track is expected then it will provide the normal
-	output from the model.
-	"""
+    This wrapper will check to see whether the model is expecting a control
+    track (e.g., most BPNet-style models) and will create one with the expected
+    shape. If no control track is expected then it will provide the normal
+    output from the model.
+    """
 
-	def __init__(self, model):
-		super().__init__()
-		self.model = model
+    def __init__(self, model):
+        super().__init__()
+        self.model = model
 
-	def forward(self, X, X_ctl=None):
-		if X_ctl is not None:
-			return self.model(X, X_ctl)
+    def forward(self, X, X_ctl=None):
+        if X_ctl is not None:
+            return self.model(X, X_ctl)
 
-		if self.model.n_control_tracks == 0:
-			return self.model(X)
+        if self.model.n_control_tracks == 0:
+            return self.model(X)
 
-		X_ctl = torch.zeros(X.shape[0], self.model.n_control_tracks,
-			X.shape[-1], dtype=X.dtype, device=X.device)
-		return self.model(X, X_ctl)
+        X_ctl = torch.zeros(X.shape[0], self.model.n_control_tracks,
+            X.shape[-1], dtype=X.dtype, device=X.device)
+        return self.model(X, X_ctl)
 
 
 if __name__ == '__main__':

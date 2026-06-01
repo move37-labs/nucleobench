@@ -253,7 +253,8 @@ def main(dry_run: bool = False):
     print(f'[main] main_args: {all_args.main_args}')
     print('[main] Running...')
 
-    if dry_run: return True
+    if dry_run:
+        return True
     run_loop(
         model=model_fn,
         opt=opt,

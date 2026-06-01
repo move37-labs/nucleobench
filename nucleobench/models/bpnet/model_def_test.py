@@ -38,7 +38,8 @@ def test_tism_correctness():
         else:
             # TISM should show that the greatest change comes from adding a 'C'.
             for nt in ['A', 'T', 'G']:
-                if nt == base_nt: continue
+                if nt == base_nt:
+                    continue
                 assert tism_dict[nt] == 0  # changing to a non-C should be no change.
             assert tism_dict['C'] < 0
 
