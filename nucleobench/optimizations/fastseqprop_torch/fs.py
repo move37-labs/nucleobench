@@ -27,17 +27,18 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
     1. From the authors: [here](https://github.com/johli/seqprop/)
     1. From boda2: [here](https://github.com/sjgosai/boda2)"""
 
-    def __init__(self,
-                 model_fn: PyTorchDifferentiableModel,
-                 start_sequence: SequenceType,
-                 learning_rate: float,
-                 batch_size: int,
-                 eta_min: float = 1e-6,
-                 positions_to_mutate: PositionsToMutateType | None = None,
-                 log_min: float = 0.25,
-                 vocab: list[str] = constants.VOCAB,
-                 rnd_seed: int = 10,
-                 ):
+    def __init__(
+        self,
+        model_fn: PyTorchDifferentiableModel,
+        start_sequence: SequenceType,
+        learning_rate: float,
+        batch_size: int,
+        eta_min: float = 1e-6,
+        positions_to_mutate: PositionsToMutateType | None = None,
+        log_min: float = 0.25,
+        vocab: list[str] = constants.VOCAB,
+        rnd_seed: int = 10,
+    ):
         torch.nn.Module.__init__(self)
         torch.manual_seed(rnd_seed)
 
@@ -55,7 +56,7 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
         # TODO(joelshor): Consider checking that the callable is a torch.nn.Module.
         ret = self.model_fn.inference_on_tensor(self.get_samples_tensor(n_samples=2))
         if not isinstance(ret, torch.Tensor):
-            raise ValueError('FastSeqProp model must be pytorch.')
+            raise ValueError("FastSeqProp model must be pytorch.")
 
     def reset(self, seq: SequenceType, positions_to_mutate: list[int] | None = None):
         self.start_sequence = seq
@@ -71,12 +72,10 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
             tau=1.0,
         )
 
-
     def energy(self, batch_size: int) -> torch.Tensor:
         """Energy on current params."""
         sampled_nts_onehot = self.opt_module.get_samples_onehot(batch_size)
         return self.model_fn.inference_on_tensor(sampled_nts_onehot)
-
 
     def run(self, n_steps: int) -> list[np.ndarray]:
         """Runs the optimization.
@@ -88,7 +87,8 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
 
         optimizer = torch.optim.Adam([only_param], lr=self.learning_rate)
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer, T_max=n_steps, eta_min=self.eta_min)
+            optimizer, T_max=n_steps, eta_min=self.eta_min
+        )
 
         energies = []
         for _ in tqdm.tqdm(range(n_steps)):
@@ -103,10 +103,8 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
             scheduler.step()
         return energies
 
-
     def get_samples_tensor(self, n_samples: int) -> torch.Tensor:
         return self.opt_module.get_samples_onehot(n_samples)
-
 
     def get_samples(self, n_samples: int) -> SamplesType:
         """Get samples."""
@@ -116,7 +114,7 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
 
         all_ret = []
         for cur_tensor in samples_onehot:
-            cur_str = ''
+            cur_str = ""
             for onehot_nt in cur_tensor.T:
                 assert onehot_nt.sum() == 1
                 nonzeros = onehot_nt.nonzero()
@@ -132,23 +130,25 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
     @staticmethod
     def init_parser():
         parser = argparse.ArgumentParser(description="", add_help=False)
-        group = parser.add_argument_group('FastSeqprop init args')
+        group = parser.add_argument_group("FastSeqprop init args")
 
-        group.add_argument('--learning_rate', type=float, default=0.5, required=True, help='')
-        group.add_argument('--eta_min', type=float, required=True, help='')
-        group.add_argument('--rnd_seed', type=int, required=True, help='')
-        group.add_argument('--batch_size', type=int, required=True, help='')
+        group.add_argument(
+            "--learning_rate", type=float, default=0.5, required=True, help=""
+        )
+        group.add_argument("--eta_min", type=float, required=True, help="")
+        group.add_argument("--rnd_seed", type=int, required=True, help="")
+        group.add_argument("--batch_size", type=int, required=True, help="")
 
         return parser
 
     @staticmethod
     def debug_init_args():
         return {
-            'model_fn': testing_utils.CountLetterModel(),
-            'start_sequence': 'AA',
-            'rnd_seed': 0,
-            'learning_rate': 0.5,
-            'eta_min': 1e-6,
-            'batch_size': 4,
-            'log_min': 0.25,
+            "model_fn": testing_utils.CountLetterModel(),
+            "start_sequence": "AA",
+            "rnd_seed": 0,
+            "learning_rate": 0.5,
+            "eta_min": 1e-6,
+            "batch_size": 4,
+            "log_min": 0.25,
         }

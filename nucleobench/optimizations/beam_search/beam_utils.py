@@ -1,8 +1,8 @@
-
 from collections.abc import Generator
 from typing import Any
 
 BeamValue = float
+
 
 # TODO(joelshor): Consider storing string deltas instead of full strings, to decrease
 # memory usage.
@@ -14,6 +14,7 @@ class Beam:
 
     TODO(joelshor): Make this more efficient with a heap / heapq.
     """
+
     def __init__(self, max_items: int):
         self.max_items = max_items
         self.beam = []
@@ -22,12 +23,11 @@ class Beam:
         self.beam.extend(itms)
         self.beam.sort(key=lambda x: x[0], reverse=False)
         if len(self.beam) > self.max_items:
-            self.beam = self.beam[:self.max_items]
+            self.beam = self.beam[: self.max_items]
 
     def get_items(self) -> Generator[str, None, None]:
         for x in self.beam:
             yield x[1]
-
 
     def get_best_state(self) -> Any:
         return self.beam[0][1]

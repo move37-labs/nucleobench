@@ -29,15 +29,16 @@ class Enformer(grelu_md.GReluModel):
     def init_parser():
         parser = argparse.ArgumentParser()
         group = parser.add_argument_group("Enformer init args")
-        group.add_argument("--aggregation_type", type=str, required=True,
-                           choices=['muscle_not_liver'])
+        group.add_argument(
+            "--aggregation_type", type=str, required=True, choices=["muscle_not_liver"]
+        )
         return parser
 
     @staticmethod
     def debug_init_args():
         return {
-            'aggregation_type': 'muscle_not_liver',
-            'run_sanity_checks': False,
+            "aggregation_type": "muscle_not_liver",
+            "run_sanity_checks": False,
         }
 
     # List of possible tasks.
@@ -49,7 +50,7 @@ class Enformer(grelu_md.GReluModel):
         aggregation_type: str,
         spatial_bins_to_aggregate: list[int] | None = None,
         override_model: torch.nn.Module | None = None,
-        override_aggregation = None,
+        override_aggregation=None,
         run_sanity_checks: bool = True,
     ):
         """Init.
@@ -66,12 +67,13 @@ class Enformer(grelu_md.GReluModel):
         )
         self.model.eval()
 
-        if aggregation_type not in ['muscle_not_liver']:
-            raise ValueError(f'Unknown aggregation type: {aggregation_type}')
+        if aggregation_type not in ["muscle_not_liver"]:
+            raise ValueError(f"Unknown aggregation type: {aggregation_type}")
 
         # Create aggregation method.
         if override_aggregation is None:
             positive_idxs, negative_idxs = constants.idxs_by_name(aggregation_type)
+
             def _aggregation(model_out: torch.Tensor) -> torch.Tensor:
                 assert model_out.ndim == 3
                 assert model_out.shape[1] == len(constants.ENFORMER_TASKS_)
@@ -80,36 +82,36 @@ class Enformer(grelu_md.GReluModel):
                 if spatial_bins_to_aggregate is not None:
                     model_out = model_out[:, :, spatial_bins_to_aggregate]
 
-                ret = (torch.sum(model_out[:, positive_idxs], axis=(1, 2)) -
-                       torch.sum(model_out[:, negative_idxs], axis=(1, 2)))
+                ret = torch.sum(model_out[:, positive_idxs], axis=(1, 2)) - torch.sum(
+                    model_out[:, negative_idxs], axis=(1, 2)
+                )
                 assert ret.ndim == 1
                 return ret
+
             self.aggregation = _aggregation
         else:
             self.aggregation = override_aggregation
 
         # Sanity check inference.
         if run_sanity_checks:
-            ret = self.model(self.string_to_onehot(['A' * self.sequence_length]))
+            ret = self.model(self.string_to_onehot(["A" * self.sequence_length]))
             assert ret.shape == (1, 5313, 896), ret.shape
             # Apparently
-            ret = self.model(self.string_to_onehot(['A' * 82_000]))
+            ret = self.model(self.string_to_onehot(["A" * 82_000]))
             assert ret.shape == (1, 5313, 1), ret.shape
 
-            ret = self.inference_on_strings(['A' * self.sequence_length])
+            ret = self.inference_on_strings(["A" * self.sequence_length])
             assert ret.ndim == 1
-
-
 
     def inference_on_tensor(
         self,
         x: torch.Tensor,
         return_debug_info: bool = False,
-        ) -> torch.Tensor | tuple[torch.Tensor, np.ndarray]:
+    ) -> torch.Tensor | tuple[torch.Tensor, np.ndarray]:
         """Run inference on a one-hot tensor."""
         assert x.ndim == 3  # Batched.
         assert x.shape[1] == 4
-        #assert x.shape[2] == self.sequence_length, x.shape
+        # assert x.shape[2] == self.sequence_length, x.shape
 
         m_out = self.model(x)
         assert m_out.ndim == 3
@@ -127,20 +129,20 @@ class Enformer(grelu_md.GReluModel):
             return ret
 
 
-
-
-
 if __name__ == "__main__":
     # Test with a real model.
     import time
 
     import tqdm
-    print('Starting Enformer...')
-    m = Enformer(aggregation_type='muscle_not_liver')
+
+    print("Starting Enformer...")
+    m = Enformer(aggregation_type="muscle_not_liver")
     ntimes = 10
     s_time = time.time()
     # Runs at roughly 15s / iteration, on my macbook.
     for _ in tqdm.trange(ntimes):
         ret = m(["A" * 196_608])
     e_time = time.time()
-    print(f'Finished in {e_time - s_time} seconds: {(e_time - s_time) / ntimes} s / iter')
+    print(
+        f"Finished in {e_time - s_time} seconds: {(e_time - s_time) / ntimes} s / iter"
+    )

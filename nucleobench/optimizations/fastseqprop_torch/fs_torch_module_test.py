@@ -16,10 +16,10 @@ from . import fs_torch_module as fst
 
 
 def test_shape_sanity():
-    start_tensor = string_utils.dna2tensor('ACTGC')
+    start_tensor = string_utils.dna2tensor("ACTGC")
     fs_opt = fst.TorchFastSeqPropOptimizer(
         torch.unsqueeze(start_tensor, dim=0),
-        positions_to_mutate = [0, 2, 3],
+        positions_to_mutate=[0, 2, 3],
         vocab_len=4,
     )
 
@@ -32,12 +32,12 @@ def test_shape_sanity():
 
 
 def test_prob_correctness():
-    seed = 'ACTGC'
-    vocab = ['A', 'C', 'G', 'T']
+    seed = "ACTGC"
+    vocab = ["A", "C", "G", "T"]
 
     fs_opt = fst.TorchFastSeqPropOptimizer(
         string_utils.dna2tensor_batch([seed], vocab_list=vocab),
-        positions_to_mutate = [0, 2, 3],
+        positions_to_mutate=[0, 2, 3],
         vocab_len=4,
     )
     probs = fs_opt.get_probs().detach().numpy()
@@ -46,16 +46,20 @@ def test_prob_correctness():
         mll_char = vocab[np.argmax(prob_v)]
         assert mll_char == expected_char
 
-@pytest.mark.parametrize("start_str", [
-    'ACTGC',
-    'ACTG',
-    'ACT',
-])
+
+@pytest.mark.parametrize(
+    "start_str",
+    [
+        "ACTGC",
+        "ACTG",
+        "ACT",
+    ],
+)
 def test_params(start_str: str):
     start_tensor = string_utils.dna2tensor(start_str)
     fs_opt = fst.TorchFastSeqPropOptimizer(
         torch.unsqueeze(start_tensor, dim=0),
-        positions_to_mutate = [0, 2],
+        positions_to_mutate=[0, 2],
         vocab_len=4,
     )
     all_params = list(fs_opt.parameters())
@@ -67,14 +71,13 @@ def test_params(start_str: str):
 
 def test_respects_pos_to_mutate():
     # Make a random 20-long sequence.
-    start_sequence = ''.join(np.random.choice(list('ACGT'), size=20))
+    start_sequence = "".join(np.random.choice(list("ACGT"), size=20))
     positions_to_mutate = [2, 5, 10]
     start_probs = string_utils.dna2tensor(start_sequence)
     start_probs = torch.unsqueeze(start_probs, 0)
 
     module = fst.TorchFastSeqPropOptimizer(
-        start_probs=start_probs,
-        positions_to_mutate=positions_to_mutate
+        start_probs=start_probs, positions_to_mutate=positions_to_mutate
     )
 
     optimizer = torch.optim.Adam(module.parameters(), lr=0.1)
@@ -85,7 +88,8 @@ def test_respects_pos_to_mutate():
         proposals = string_utils.tensor2dna_batch(samples)
         for proposal in proposals:
             testing_utils.assert_proposal_respects_positions_to_mutate(
-                start_sequence, proposal, positions_to_mutate)
+                start_sequence, proposal, positions_to_mutate
+            )
 
         # Create a dummy loss
         optimizer.zero_grad()
@@ -98,4 +102,5 @@ def test_respects_pos_to_mutate():
 
     for proposal in proposals:
         testing_utils.assert_proposal_respects_positions_to_mutate(
-            start_sequence, proposal, positions_to_mutate)
+            start_sequence, proposal, positions_to_mutate
+        )

@@ -25,16 +25,19 @@ from nucleobench.models.bpnet import constants as bp_constants
 
 def get_url(model_name: str) -> str:
     assert model_name in bp_constants.AVAILABLE_MODELS_
-    return f'{bp_constants.RECORDS_}/files/{model_name}.torch'
+    return f"{bp_constants.RECORDS_}/files/{model_name}.torch"
+
 
 def download(model_name: str):
     assert model_name in bp_constants.AVAILABLE_MODELS_
     url = get_url(model_name)
 
     with tempfile.TemporaryDirectory() as tmpdirname:
-        model_path = os.path.join(tmpdirname, f'{model_name}.torch')
-        subprocess.run(['curl', url, '--output', model_path])
-        model = torch.load(model_path, weights_only=False, map_location=torch.device('cpu'))
+        model_path = os.path.join(tmpdirname, f"{model_name}.torch")
+        subprocess.run(["curl", url, "--output", model_path])
+        model = torch.load(
+            model_path, weights_only=False, map_location=torch.device("cpu")
+        )
 
     # Text copied from `https://github.com/jmschrei/ledidi/blob/master/tutorials/Tutorial%201%20-%20Design%20of%20Protein%20Binding%20Sites.ipynb`:
     # There are two technical details of the BPNet models we need to account for before they
@@ -101,10 +104,15 @@ class ControlWrapper(torch.nn.Module):
         if self.model.n_control_tracks == 0:
             return self.model(X)
 
-        X_ctl = torch.zeros(X.shape[0], self.model.n_control_tracks,
-            X.shape[-1], dtype=X.dtype, device=X.device)
+        X_ctl = torch.zeros(
+            X.shape[0],
+            self.model.n_control_tracks,
+            X.shape[-1],
+            dtype=X.dtype,
+            device=X.device,
+        )
         return self.model(X, X_ctl)
 
 
-if __name__ == '__main__':
-    download('GATA2')
+if __name__ == "__main__":
+    download("GATA2")

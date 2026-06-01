@@ -70,12 +70,12 @@ def test_positions_to_mutate():
 
     for i in range(4):
         adalead.run(n_steps=1)
-        print(f'Finished step {i}')
+        print(f"Finished step {i}")
 
         out_seqs = adalead.get_samples(seq_batch_size)
         for seq in out_seqs:
             for s in seq[2:]:
-                assert s == 'A', seq
+                assert s == "A", seq
 
 
 def test_zero_is_not_none():

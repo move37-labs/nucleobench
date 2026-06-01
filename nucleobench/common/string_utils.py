@@ -10,7 +10,9 @@ import torch.nn.functional as F
 from nucleobench.common import constants
 
 
-def dna2tensor(sequence_str: str, vocab_list: list[str] = constants.VOCAB) -> torch.Tensor:
+def dna2tensor(
+    sequence_str: str, vocab_list: list[str] = constants.VOCAB
+) -> torch.Tensor:
     """
     Convert a DNA sequence to a one-hot encoded tensor.
 
@@ -26,7 +28,9 @@ def dna2tensor(sequence_str: str, vocab_list: list[str] = constants.VOCAB) -> to
     return one_hot_tensor.T.float()
 
 
-def dna2tensor_integer(sequence_str: str, vocab_list: list[str] = constants.VOCAB) -> torch.Tensor:
+def dna2tensor_integer(
+    sequence_str: str, vocab_list: list[str] = constants.VOCAB
+) -> torch.Tensor:
     """
     Convert a DNA sequence to an integer encoded tensor.
     """
@@ -36,7 +40,9 @@ def dna2tensor_integer(sequence_str: str, vocab_list: list[str] = constants.VOCA
     return torch.tensor([vocab_map[c] for c in sequence_str], dtype=torch.long)
 
 
-def dna2tensor_batch(sequence_strs: list[str], vocab_list: list[str] = constants.VOCAB) -> torch.Tensor:
+def dna2tensor_batch(
+    sequence_strs: list[str], vocab_list: list[str] = constants.VOCAB
+) -> torch.Tensor:
     """
     Efficiently convert a batch of DNA sequences to a one-hot encoded tensor.
     Assumes all sequences in the batch are the same length.
@@ -53,8 +59,9 @@ def dna2tensor_batch(sequence_strs: list[str], vocab_list: list[str] = constants
 
     # 1. Convert the list of strings to a 2D tensor of integer indices.
     # This is done in a single tensor creation call.
-    int_tensor = torch.tensor([[vocab_map[c] for c in seq] for seq in sequence_strs],
-                              dtype=torch.long)
+    int_tensor = torch.tensor(
+        [[vocab_map[c] for c in seq] for seq in sequence_strs], dtype=torch.long
+    )
     # The resulting tensor has shape: (batch_size, sequence_length)
 
     # 2. Apply one-hot encoding to the entire batch tensor at once.
@@ -67,9 +74,7 @@ def dna2tensor_batch(sequence_strs: list[str], vocab_list: list[str] = constants
     return one_hot_tensor.permute(0, 2, 1).float()
 
 
-def tensor2dna(
-    tensor: torch.Tensor | np.ndarray, vocab_list=constants.VOCAB
-) -> str:
+def tensor2dna(tensor: torch.Tensor | np.ndarray, vocab_list=constants.VOCAB) -> str:
     """
     Convert a one-hot encoded tensor to a DNA sequence.
 
@@ -85,7 +90,6 @@ def tensor2dna(
 
     if tensor.ndim != 2 or tensor.shape[0] != len(vocab_list):
         raise ValueError("Invalid tensor shape for the given vocabulary.")
-
 
     indices = np.argmax(tensor, axis=0)
     vocab_array = np.array(vocab_list)

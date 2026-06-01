@@ -64,11 +64,11 @@ class DataLoader(ABC):
         df = self._download_and_process()
 
         # Save to cache (use parquet if path ends with .parquet, gzip if .gz, otherwise CSV)
-        if cache_path.suffix == '.parquet':
+        if cache_path.suffix == ".parquet":
             df.to_parquet(cache_path, index=False)
-        elif cache_path.suffix == '.gz' or cache_path.suffixes[-1] == '.gz':
+        elif cache_path.suffix == ".gz" or cache_path.suffixes[-1] == ".gz":
             # Save as gzipped CSV
-            df.to_csv(cache_path, index=False, compression='gzip')
+            df.to_csv(cache_path, index=False, compression="gzip")
         else:
             df.to_csv(cache_path, index=False)
 
@@ -86,11 +86,11 @@ class DataLoader(ABC):
         # Check if cache exists
         if cache_path.exists():
             print(f"Loading data from cache: {cache_path}")
-            if cache_path.suffix == '.parquet':
+            if cache_path.suffix == ".parquet":
                 return pd.read_parquet(cache_path)
-            elif cache_path.suffix == '.gz' or cache_path.suffixes[-1] == '.gz':
+            elif cache_path.suffix == ".gz" or cache_path.suffixes[-1] == ".gz":
                 # Handle gzipped CSV files
-                return pd.read_csv(cache_path, compression='gzip')
+                return pd.read_csv(cache_path, compression="gzip")
             else:
                 return pd.read_csv(cache_path)
 
@@ -99,11 +99,10 @@ class DataLoader(ABC):
         self.populate_cache()
 
         # Load from the newly created cache
-        if cache_path.suffix == '.parquet':
+        if cache_path.suffix == ".parquet":
             return pd.read_parquet(cache_path)
-        elif cache_path.suffix == '.gz' or cache_path.suffixes[-1] == '.gz':
+        elif cache_path.suffix == ".gz" or cache_path.suffixes[-1] == ".gz":
             # Handle gzipped CSV files
-            return pd.read_csv(cache_path, compression='gzip')
+            return pd.read_csv(cache_path, compression="gzip")
         else:
             return pd.read_csv(cache_path)
-

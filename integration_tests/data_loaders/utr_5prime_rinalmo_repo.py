@@ -13,7 +13,9 @@ from .base import DataLoader
 MEGABYTE = 1_000_000
 
 # URL for downloading Human 5'UTR library from NCBI GEO (GSE114002)
-HUMAN_5UTR_LIB_URL = "https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE114002&format=file"
+HUMAN_5UTR_LIB_URL = (
+    "https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE114002&format=file"
+)
 
 
 class UTR5PrimeRinalmoRepo(DataLoader):
@@ -74,8 +76,10 @@ class UTR5PrimeRinalmoRepo(DataLoader):
         print(f"Downloading archive from {url}...")
         r = requests.get(url, stream=True)
 
-        with open(local_file_path, 'wb') as f:
-            with tqdm(total=int(r.headers['Content-Length']) / MEGABYTE, unit="MB") as progress_bar:
+        with open(local_file_path, "wb") as f:
+            with tqdm(
+                total=int(r.headers["Content-Length"]) / MEGABYTE, unit="MB"
+            ) as progress_bar:
                 for chunk in r.iter_content(chunk_size=1024):
                     self._write_and_update_progress_bar(f, progress_bar, chunk)
 
@@ -98,13 +102,14 @@ class UTR5PrimeRinalmoRepo(DataLoader):
 
             # Extract archive
             print("Extracting archive...")
-            with tarfile.open(archive_path, 'r') as tar:
+            with tarfile.open(archive_path, "r") as tar:
                 tar.extractall(tmpdir)
 
             # Find the expected CSV file
             csv_path = tmpdir / self.EXPECTED_FILENAME
-            assert csv_path.exists(), \
+            assert csv_path.exists(), (
                 f"Expected file {self.EXPECTED_FILENAME} not found in extracted archive"
+            )
 
             # Load the CSV
             print(f"Loading data from {csv_path}...")
@@ -114,4 +119,3 @@ class UTR5PrimeRinalmoRepo(DataLoader):
             print(f"Success! Loaded {len(data_df)} rows")
 
             return data_df
-

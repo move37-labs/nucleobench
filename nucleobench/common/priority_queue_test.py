@@ -23,9 +23,9 @@ def test_onesided_priority_queue():
         q.push(_w(str(i)))
 
     assert len(q.q) == 4
-    assert set(q.get(4)) == set(['6', '7', '8', '9'])
-    assert set(q.get(3)) == set(['7', '8', '9'])
+    assert set(q.get(4)) == set(["6", "7", "8", "9"])
+    assert set(q.get(3)) == set(["7", "8", "9"])
 
-    q.push_batch([_w('-1'), _w('10'), _w('11')])
+    q.push_batch([_w("-1"), _w("10"), _w("11")])
     assert len(q.q) == 4
-    assert set(q.get(4)) == set(['8', '9', '10', '11'])
+    assert set(q.get(4)) == set(["8", "9", "10", "11"])

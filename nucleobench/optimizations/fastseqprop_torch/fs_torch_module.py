@@ -1,20 +1,20 @@
 """Sets up a torch NN for optimization of the input."""
 
-
 import numpy as np
 import torch
 
 
 class TorchFastSeqPropOptimizer(torch.nn.Module):
-    def __init__(self,
-                 start_probs: torch.Tensor,
-                 positions_to_mutate: list[int] | None = None,
-                 vocab_len: int = 4,
-                 tau: float = 1.0,
-                 use_norm: bool = False,
-                 use_slope_annealing: bool = True,
-                 log_min: float = 0.25,
-                 ):
+    def __init__(
+        self,
+        start_probs: torch.Tensor,
+        positions_to_mutate: list[int] | None = None,
+        vocab_len: int = 4,
+        tau: float = 1.0,
+        use_norm: bool = False,
+        use_slope_annealing: bool = True,
+        log_min: float = 0.25,
+    ):
         super().__init__()
 
         # Quick & dirty checks on probs.
@@ -38,31 +38,38 @@ class TorchFastSeqPropOptimizer(torch.nn.Module):
             inverse_pos_to_mask[positions_to_mutate] = False
 
             top_bp = start_logits.argmax(dim=1, keepdim=True)
-            start_logits[:, :, inverse_pos_to_mask] = -10**9  # Assign negative inf
-            sliced_logits = start_logits[:, :, inverse_pos_to_mask] # 1. Get the slice (this is a copy)
-            sliced_indices = top_bp[:, :, inverse_pos_to_mask] # 2. Get the indices corresponding to that slice
-            scattered_slice = sliced_logits.scatter(dim=1, index=sliced_indices, value=10**9)  # 3. Perform the scatter (use the non-in-place version)
-            start_logits[:, :, inverse_pos_to_mask] = scattered_slice  # 4. Assign the new tensor back to the original tensor's slice
+            start_logits[:, :, inverse_pos_to_mask] = -(10**9)  # Assign negative inf
+            sliced_logits = start_logits[
+                :, :, inverse_pos_to_mask
+            ]  # 1. Get the slice (this is a copy)
+            sliced_indices = top_bp[
+                :, :, inverse_pos_to_mask
+            ]  # 2. Get the indices corresponding to that slice
+            scattered_slice = sliced_logits.scatter(
+                dim=1, index=sliced_indices, value=10**9
+            )  # 3. Perform the scatter (use the non-in-place version)
+            start_logits[:, :, inverse_pos_to_mask] = (
+                scattered_slice  # 4. Assign the new tensor back to the original tensor's slice
+            )
 
             # Set up gradient mask.
             self.gradient_mask = torch.zeros_like(start_logits)
             self.gradient_mask[:, :, positions_to_mutate] = 1
 
         self.register_parameter(
-            'params', torch.nn.Parameter(start_logits.detach().clone()))
+            "params", torch.nn.Parameter(start_logits.detach().clone())
+        )
 
         if self.use_norm:
             self.normalization = torch.nn.InstanceNorm1d(
-                num_features=vocab_len,
-                affine=False)
+                num_features=vocab_len, affine=False
+            )
         self.vocab_len = vocab_len
         self.tau = tau
-
 
     @staticmethod
     def probs_to_logits(probs: torch.Tensor, log_min: float) -> torch.Tensor:
         return torch.log(probs + log_min)
-
 
     def get_logits(self) -> torch.Tensor:
         if self.gradient_mask is None:
@@ -97,9 +104,11 @@ class TorchFastSeqPropOptimizer(torch.nn.Module):
         probs = torch.squeeze(probs, dim=0)
 
         sampled_idxs = torch.distributions.categorical.Categorical(probs.T)
-        samples = sampled_idxs.sample( (n_samples, ) )
+        samples = sampled_idxs.sample((n_samples,))
         assert list(samples.shape) == [n_samples, seq_len]
-        samples_onehot = torch.nn.functional.one_hot(samples, num_classes=self.vocab_len)
+        samples_onehot = torch.nn.functional.one_hot(
+            samples, num_classes=self.vocab_len
+        )
 
         if self.use_slope_annealing:
             # Apply the "slope annealing trick", as described in https://arxiv.org/pdf/1609.01704
@@ -111,11 +120,10 @@ class TorchFastSeqPropOptimizer(torch.nn.Module):
         assert list(samples_onehot.shape) == [n_samples, self.vocab_len, seq_len]
         return samples_onehot
 
-
     def mask_gradients(self, x: torch.Tensor) -> torch.Tensor:
         assert self.gradient_mask is not None
 
-        grad_pass  = x.mul(self.gradient_mask)
+        grad_pass = x.mul(self.gradient_mask)
         grad_block = x.detach().mul(1 - self.gradient_mask)
 
         return grad_pass + grad_block

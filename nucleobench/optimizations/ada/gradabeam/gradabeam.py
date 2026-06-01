@@ -19,17 +19,25 @@ from .. import ada_utils
 
 PositionsAndCharactersType = ada_utils.PositionsAndCharactersType
 
+
 @dataclasses.dataclass(frozen=True)
 class RolloutNodeWithProbs(ada_utils.RolloutNode):
     """Class for tracking rollout node with probabilities."""
+
     probs: np.ndarray | None = field(default=None, hash=False, compare=False)
-    pos_and_chars: PositionsAndCharactersType | None = field(default=None, hash=False, compare=False)
+    pos_and_chars: PositionsAndCharactersType | None = field(
+        default=None, hash=False, compare=False
+    )
     edits_since_root: int | None = None
     # [PBT Modification]:
-    mutations_per_sequence: float = dataclasses.field(default=1.0, compare=False, hash=True)
+    mutations_per_sequence: float = dataclasses.field(
+        default=1.0, compare=False, hash=True
+    )
     exploration_alpha: float = dataclasses.field(default=0.05, compare=False, hash=True)
 
+
 RolloutNode = RolloutNodeWithProbs
+
 
 class GradaBeam(oc.SequenceOptimizer):
     """GradaBeam nucleic acid sequence designer with PBT."""
@@ -55,8 +63,10 @@ class GradaBeam(oc.SequenceOptimizer):
             range(len(start_sequence))
         )
         self.tism_positions = (
-            None if len(self.positions_to_mutate) == len(start_sequence)
-            else self.positions_to_mutate)
+            None
+            if len(self.positions_to_mutate) == len(start_sequence)
+            else self.positions_to_mutate
+        )
 
         assert min(self.positions_to_mutate) >= 0
         assert max(self.positions_to_mutate) < len(start_sequence)
@@ -96,12 +106,14 @@ class GradaBeam(oc.SequenceOptimizer):
             edits_since_root=0,
             probs=None,
             pos_and_chars=None,
-            mutations_per_sequence=float(mutations_per_sequence), # [PBT Modification]
-            exploration_alpha=float(exploration_alpha) # [PBT Modification]
+            mutations_per_sequence=float(mutations_per_sequence),  # [PBT Modification]
+            exploration_alpha=float(exploration_alpha),  # [PBT Modification]
         )
 
         # Initialize with gradient-based mutations
-        initialized_roots = self.initialize_roots_with_gradients([seed_node] * beam_size)
+        initialized_roots = self.initialize_roots_with_gradients(
+            [seed_node] * beam_size
+        )
 
         # [PBT Modification]: Setup initial PBT sampling
         initial_sampler = self.get_sampler(seed_node.mutations_per_sequence)
@@ -116,16 +128,21 @@ class GradaBeam(oc.SequenceOptimizer):
                     cur_roots,
                     cur_num_edits,
                     [seed_node.mutations_per_sequence] * len(cur_num_edits),
-            ))
+                )
+            )
 
     # [PBT Modification]: Added helper
-    def get_sampler(self, mutations_per_sequence: float) -> ada_utils.NumberEditsSampler:
+    def get_sampler(
+        self, mutations_per_sequence: float
+    ) -> ada_utils.NumberEditsSampler:
         rounded_rate = round(mutations_per_sequence, 4)
         return self._get_sampler_cached(rounded_rate)
 
     # [PBT Modification]: Added helper
     @cache
-    def _get_sampler_cached(self, mutations_per_sequence: float) -> ada_utils.NumberEditsSampler:
+    def _get_sampler_cached(
+        self, mutations_per_sequence: float
+    ) -> ada_utils.NumberEditsSampler:
         mu = mutations_per_sequence / len(self.positions_to_mutate)
         return ada_utils.NumberEditsSamplerAdaBeam(
             sequence_len=len(self.positions_to_mutate),
@@ -168,9 +185,16 @@ class GradaBeam(oc.SequenceOptimizer):
         group.add_argument("--rng_seed", type=int, default=42, required=False)
         group.add_argument("--exploration_alpha", type=float, required=True)
         group.add_argument("--max_rollout_len", type=int, default=200, required=False)
-        group.add_argument("--use_pbt", type=argparse_lib.str_to_bool, default=True, required=False,
-                          help="Enable Population Based Training for adaptive mutation rates.")
-        group.add_argument("--debug", type=argparse_lib.str_to_bool, default=None, required=False)
+        group.add_argument(
+            "--use_pbt",
+            type=argparse_lib.str_to_bool,
+            default=True,
+            required=False,
+            help="Enable Population Based Training for adaptive mutation rates.",
+        )
+        group.add_argument(
+            "--debug", type=argparse_lib.str_to_bool, default=None, required=False
+        )
         return parser
 
     @staticmethod
@@ -191,11 +215,13 @@ class GradaBeam(oc.SequenceOptimizer):
         for _step in range(n_steps):
             self.current_nodes = self.propose_sequences(self.current_nodes)
             if self.debug and len(self.current_nodes) > 0:
-                print(f'Step {_step} top score: {self.current_nodes[0].fitness}')
+                print(f"Step {_step} top score: {self.current_nodes[0].fitness}")
                 rates = [n.mutations_per_sequence for n in self.current_nodes]
                 print(f"[PBT] Mutation Rates of top candidates: {rates}")
                 alphas = [n.exploration_alpha for n in self.current_nodes]
-                print(f"[PBT] Exploration Alphas of top candidates (high is uniform): {alphas}")
+                print(
+                    f"[PBT] Exploration Alphas of top candidates (high is uniform): {alphas}"
+                )
 
     def get_samples(self, n_samples: int) -> SamplesType:
         """Get samples."""
@@ -216,7 +242,9 @@ class GradaBeam(oc.SequenceOptimizer):
             cur_root_nodes = root_nodes_effective[i : i + self.eval_batch_size]
             parent_nodes = cur_root_nodes
 
-            assert len(parent_nodes) == 1, "GradaBeam propose_sequences expects exactly one parent node."
+            assert len(parent_nodes) == 1, (
+                "GradaBeam propose_sequences expects exactly one parent node."
+            )
             parent_seq = parent_nodes[0].seq
 
             if parent_seq in gradient_node_cache:
@@ -237,30 +265,37 @@ class GradaBeam(oc.SequenceOptimizer):
 
         return top_nodes
 
-    def initialize_roots_with_gradients(self, nodes: list[RolloutNode]) -> list[RolloutNode]:
+    def initialize_roots_with_gradients(
+        self, nodes: list[RolloutNode]
+    ) -> list[RolloutNode]:
         """Calculates gradients for roots and upgrades them to GradientRolloutNodes."""
-        probs_list, pos_and_chars_list = self.probabilities_over_actions_from_tism(nodes)
+        probs_list, pos_and_chars_list = self.probabilities_over_actions_from_tism(
+            nodes
+        )
 
         grad_nodes = []
         for node, probs, pos_and_chars in zip(nodes, probs_list, pos_and_chars_list):
-            grad_nodes.append(RolloutNode(
-                seq=node.seq,
-                fitness=node.fitness,
-                edits_since_root=0,
-                probs=probs,
-                pos_and_chars=pos_and_chars,
-                mutations_per_sequence=node.mutations_per_sequence,
-                exploration_alpha=node.exploration_alpha
-            ))
+            grad_nodes.append(
+                RolloutNode(
+                    seq=node.seq,
+                    fitness=node.fitness,
+                    edits_since_root=0,
+                    probs=probs,
+                    pos_and_chars=pos_and_chars,
+                    mutations_per_sequence=node.mutations_per_sequence,
+                    exploration_alpha=node.exploration_alpha,
+                )
+            )
         return grad_nodes
 
-    def rollout(self, parent_nodes: list[RolloutNode]) -> tuple[set[RolloutNode], list[int]]:
+    def rollout(
+        self, parent_nodes: list[RolloutNode]
+    ) -> tuple[set[RolloutNode], list[int]]:
         """Rollout with PBT."""
         nodes_visited, rollout_lengths = set(), []
 
         cur_rollout_length = 0
         while len(parent_nodes) > 0 and cur_rollout_length < self.max_rollout_len:
-
             # [PBT Modification]: Calculate dynamic rates/edits/alpha per parent
             num_edit_locs, new_rates = [], []
             for n in parent_nodes:
@@ -269,7 +304,9 @@ class GradaBeam(oc.SequenceOptimizer):
                 new_rates.append(new_rate)
 
             # [PBT Modification]: Pass new rates and target alphas to mutate
-            children = self.mutate_nodes_gradabeam(parent_nodes, num_edit_locs, new_rates)
+            children = self.mutate_nodes_gradabeam(
+                parent_nodes, num_edit_locs, new_rates
+            )
 
             nodes_visited.update(children)
 
@@ -289,10 +326,12 @@ class GradaBeam(oc.SequenceOptimizer):
         nodes: list[RolloutNode],
         num_edit_locs: list[int],
         new_rates: list[float],
-        ) -> list[RolloutNode]:
+    ) -> list[RolloutNode]:
 
         # [PBT Modification]: Validation
-        assert len(nodes) == len(num_edit_locs) == len(new_rates) <= self.eval_batch_size
+        assert (
+            len(nodes) == len(num_edit_locs) == len(new_rates) <= self.eval_batch_size
+        )
 
         seqs, new_probs, num_edits_effective, child_alphas = [], [], [], []
         for node, num_edits in zip(nodes, num_edit_locs):
@@ -333,7 +372,9 @@ class GradaBeam(oc.SequenceOptimizer):
                 P_final_values = node.probs[rel_pos_of_mutations]
                 # Calculate posterior per mutation: P(uniform | observed) = (alpha * p_uniform) / P_final
                 # Add small epsilon to avoid division by zero
-                posteriors = (node.exploration_alpha * p_uniform) / (P_final_values + 1e-10)
+                posteriors = (node.exploration_alpha * p_uniform) / (
+                    P_final_values + 1e-10
+                )
                 # Average this posterior over the number of edits made
                 avg_posterior = float(np.mean(posteriors))
                 child_alpha = float(np.clip(avg_posterior, 0.01, 0.99))
@@ -354,26 +395,37 @@ class GradaBeam(oc.SequenceOptimizer):
                 pos_and_chars=n.pos_and_chars,
                 # [PBT Modification]: Child inherits new rate and alpha
                 mutations_per_sequence=new_rate,
-                exploration_alpha=child_alpha
+                exploration_alpha=child_alpha,
             )
-            for seq, f, probs, n, num_edits, new_rate, child_alpha in zip(seqs, fitnesses, new_probs, nodes, num_edits_effective, new_rates, child_alphas)
+            for seq, f, probs, n, num_edits, new_rate, child_alpha in zip(
+                seqs,
+                fitnesses,
+                new_probs,
+                nodes,
+                num_edits_effective,
+                new_rates,
+                child_alphas,
+            )
         ]
 
     # ... [Rest of file: probabilities_over_actions_from_tism, logits_to_probs] ...
     # (Functions below can remain identical to the original)
-    def probabilities_over_actions_from_tism(self, nodes: list[RolloutNode]) -> tuple[list[float], list[PositionsAndCharactersType]]:
+    def probabilities_over_actions_from_tism(
+        self, nodes: list[RolloutNode]
+    ) -> tuple[list[float], list[PositionsAndCharactersType]]:
         # ... [Same as original] ...
         probs_list, pos_and_chars_list = [], []
         for n in nodes:
             pos_and_chars, logits = self.model.get_tism(
-                sequence=n.seq,
-                idxs=self.tism_positions,
-                debug=self.debug
+                sequence=n.seq, idxs=self.tism_positions, debug=self.debug
             )
             # Make sure `pos_to_mutate` is respected.
-            assert len(pos_and_chars) == 3 * len(self.positions_to_mutate), (len(pos_and_chars), len(self.positions_to_mutate), self.tism_positions)
+            assert len(pos_and_chars) == 3 * len(self.positions_to_mutate), (
+                len(pos_and_chars),
+                len(self.positions_to_mutate),
+                self.tism_positions,
+            )
             assert len(pos_and_chars) == len(logits)
-
 
             # 2. Compute Probabilities
             # This handles Temperature, Stability, and Exploration in one step.
@@ -402,6 +454,6 @@ class GradaBeam(oc.SequenceOptimizer):
         # Mix in uniform exploration.
         n_actions = len(scaled_logits)
         uniform_probs = np.ones(n_actions) / n_actions
-        final_probs = (((1.0 - alpha) * gradient_probs) + (alpha * uniform_probs))
+        final_probs = ((1.0 - alpha) * gradient_probs) + (alpha * uniform_probs)
 
         return final_probs / np.sum(final_probs)

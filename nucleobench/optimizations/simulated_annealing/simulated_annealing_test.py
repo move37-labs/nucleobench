@@ -1,4 +1,3 @@
-
 from nucleobench.common import testing_utils
 from nucleobench.optimizations.simulated_annealing.simulated_annealing import (
     SimulatedAnnealing,

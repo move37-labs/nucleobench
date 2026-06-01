@@ -15,12 +15,12 @@ def get_locations_to_edit(
     assert random_n_loc > 0
     assert random_n_loc <= len(positions_to_mutate)
 
-    if method == 'all':
+    if method == "all":
         return positions_to_mutate
-    elif method == 'random':
+    elif method == "random":
         return rng.choice(positions_to_mutate, size=random_n_loc, replace=False)
     else:
-        raise ValueError('Arg not recognized.')
+        raise ValueError("Arg not recognized.")
 
 
 def generate_single_edit_mutants(
@@ -29,20 +29,20 @@ def generate_single_edit_mutants(
     alphabet: list[str],
     rng: np.random.Generator,
     method: str,
-    ) -> Generator[str, None, None]:
+) -> Generator[str, None, None]:
     """Return a generator of potential next strings."""
     assert isinstance(alphabet, list)
     assert len(alphabet) > 1
 
     for loc in loc_to_edit:
-        if method == 'all':
+        if method == "all":
             chars = alphabet
-        elif method == 'random':
+        elif method == "random":
             chars = rng.choice(alphabet)
         else:
-            raise ValueError('Arg not recognized.')
+            raise ValueError("Arg not recognized.")
         for c in chars:
-            yield base_str[:loc] + c + base_str[loc + 1:]
+            yield base_str[:loc] + c + base_str[loc + 1 :]
 
 
 def generate_single_mutant_multiedits(
@@ -50,7 +50,7 @@ def generate_single_mutant_multiedits(
     locs_to_edit: list[int],
     alphabet: list[str],
     rng: np.random.Generator,
-    ) -> str:
+) -> str:
     """Return a mutant."""
     assert isinstance(alphabet, list)
     assert len(alphabet) > 1

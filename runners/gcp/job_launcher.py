@@ -46,10 +46,7 @@ from runners.gcp.job_template import create_job_definition
 def setup_logging(verbose: bool = False) -> None:
     """Setup logging configuration."""
     level = logging.DEBUG if verbose else logging.INFO
-    logging.basicConfig(
-        level=level,
-        format='%(asctime)s - %(levelname)s - %(message)s'
-    )
+    logging.basicConfig(level=level, format="%(asctime)s - %(levelname)s - %(message)s")
 
 
 def read_tsv_hyperparameters(tsv_path: str) -> list[dict[str, str]]:
@@ -57,21 +54,25 @@ def read_tsv_hyperparameters(tsv_path: str) -> list[dict[str, str]]:
     jobs = []
 
     with open(tsv_path) as f:
-        reader = csv.DictReader(f, delimiter='\t')
+        reader = csv.DictReader(f, delimiter="\t")
         for row_num, row in enumerate(reader, 1):
             # Generate job name if missing
-            assert 'job_name' not in row
-            assert 'model' in row and row['model']
-            assert 'optimization' in row and row['optimization']
+            assert "job_name" not in row
+            assert "model" in row and row["model"]
+            assert "optimization" in row and row["optimization"]
 
-            possible_keys = ['target_feature', 'protein', 'aggregation_type']
+            possible_keys = ["target_feature", "protein", "aggregation_type"]
             possible_values = [row[k] for k in possible_keys if k in row and row[k]]
             assert len(possible_values) == 1
             target_feature = possible_values[0]
-            target_feature = target_feature.replace('_', '-').lower()
+            target_feature = target_feature.replace("_", "-").lower()
 
-            job_name = f"{row['model']}-{target_feature}-{row['optimization']}-{row_num:03d}"
-            row['job_name'] = job_name + datetime.datetime.now().strftime('%Y%m%d-%H-%M-%S')
+            job_name = (
+                f"{row['model']}-{target_feature}-{row['optimization']}-{row_num:03d}"
+            )
+            row["job_name"] = job_name + datetime.datetime.now().strftime(
+                "%Y%m%d-%H-%M-%S"
+            )
             logging.info(f"Row {row_num}: Generated job name: {job_name}")
 
             jobs.append(row)
@@ -93,14 +94,10 @@ def launch_job(
         # Create job request from the Job object
         parent = f"projects/{project_id}/locations/{region}"
 
-        request = batch_v1.CreateJobRequest(
-            parent=parent,
-            job_id=job_name,
-            job=job
-        )
+        request = batch_v1.CreateJobRequest(parent=parent, job_id=job_name, job=job)
 
         if dry_run:
-            job_name_full = 'dry-run-job-id'
+            job_name_full = "dry-run-job-id"
             logging.info(f"DRY RUN - Would have launched job: launched job: {job_name}")
         else:
             created_job = client.create_job(request=request)
@@ -114,10 +111,7 @@ def launch_job(
         return None
 
 
-def launch_jobs(
-    tsv_path: str,
-    dry_run: bool = False
-) -> None:
+def launch_jobs(tsv_path: str, dry_run: bool = False) -> None:
     """Launch multiple jobs sequentially from TSV file."""
     # Read hyperparameters
     jobs = read_tsv_hyperparameters(tsv_path)
@@ -128,7 +122,7 @@ def launch_jobs(
 
     # Setup Google Cloud clients
     credentials, _ = default()
-    project_id = config.PROJECT_ID # Explicitly use the project from config
+    project_id = config.PROJECT_ID  # Explicitly use the project from config
 
     client = batch_v1.BatchServiceClient(credentials=credentials)
 
@@ -138,9 +132,13 @@ def launch_jobs(
 
     for hyperparams in jobs:
         assert isinstance(hyperparams, dict)
-        hyperparams = {k: v for k, v in hyperparams.items() if k is not None and v is not None and len(v) > 0}
+        hyperparams = {
+            k: v
+            for k, v in hyperparams.items()
+            if k is not None and v is not None and len(v) > 0
+        }
 
-        job_name = hyperparams['job_name']
+        job_name = hyperparams["job_name"]
         try:
             job_def = create_job_definition(hyperparams)
             job_id = launch_job(
@@ -162,7 +160,9 @@ def launch_jobs(
 
     # Summary
     if dry_run:
-        logging.info(f"DRY RUN MODE - No jobs were launched. Would have launched: {len(successful_jobs) + len(failed_jobs)}")
+        logging.info(
+            f"DRY RUN MODE - No jobs were launched. Would have launched: {len(successful_jobs) + len(failed_jobs)}"
+        )
     else:
         logging.info("\nJob Launch Summary:")
         logging.info(f"Successful: {len(successful_jobs)}")
@@ -175,10 +175,15 @@ def launch_jobs(
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(description="Launch Google Batch jobs from TSV file")
+    parser = argparse.ArgumentParser(
+        description="Launch Google Batch jobs from TSV file"
+    )
     parser.add_argument("tsv_file", help="Path to TSV file with hyperparameters")
-    parser.add_argument("--dry-run", action="store_true",
-                       help="Show what would be launched without actually launching")
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would be launched without actually launching",
+    )
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose logging")
 
     args = parser.parse_args()
@@ -203,10 +208,7 @@ def main():
         sys.exit(1)
 
     # Launch jobs
-    launch_jobs(
-        args.tsv_file,
-        dry_run=args.dry_run
-    )
+    launch_jobs(args.tsv_file, dry_run=args.dry_run)
 
 
 if __name__ == "__main__":

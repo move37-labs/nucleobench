@@ -21,10 +21,10 @@ from .base import DataLoader
 
 # URLs for different MTtrans datasets
 STRIDE_DATA_URLS = {
-    '3M': 'https://raw.githubusercontent.com/holab-hku/MTtrans/main/evaluation/testset_result/stride1113_3M_pred.csv',
-    '3M_H': 'https://raw.githubusercontent.com/holab-hku/MTtrans/main/evaluation/testset_result/stride11133m_MPA_H_pred.csv',
-    '3M_U': 'https://raw.githubusercontent.com/holab-hku/MTtrans/main/evaluation/testset_result/stride11133m_MPA_U_pred.csv',
-    '3M_V': 'https://raw.githubusercontent.com/holab-hku/MTtrans/main/evaluation/testset_result/stride11133m_MPA_V_pred.csv',
+    "3M": "https://raw.githubusercontent.com/holab-hku/MTtrans/main/evaluation/testset_result/stride1113_3M_pred.csv",
+    "3M_H": "https://raw.githubusercontent.com/holab-hku/MTtrans/main/evaluation/testset_result/stride11133m_MPA_H_pred.csv",
+    "3M_U": "https://raw.githubusercontent.com/holab-hku/MTtrans/main/evaluation/testset_result/stride11133m_MPA_U_pred.csv",
+    "3M_V": "https://raw.githubusercontent.com/holab-hku/MTtrans/main/evaluation/testset_result/stride11133m_MPA_V_pred.csv",
 }
 
 
@@ -48,7 +48,9 @@ class RibosomalLoadingMTtransRepo(DataLoader):
                       in integration_tests/data_loaders/cache/
         """
         if dataset_name not in STRIDE_DATA_URLS:
-            raise ValueError(f"Unknown dataset_name: {dataset_name}. Must be one of {list(STRIDE_DATA_URLS.keys())}")
+            raise ValueError(
+                f"Unknown dataset_name: {dataset_name}. Must be one of {list(STRIDE_DATA_URLS.keys())}"
+            )
 
         self.dataset_name = dataset_name
         super().__init__(cache_dir)
@@ -71,7 +73,7 @@ class RibosomalLoadingMTtransRepo(DataLoader):
             path: Local path to save the file
         """
         path.parent.mkdir(parents=True, exist_ok=True)
-        subprocess.run(['curl', '-L', url, '--output', str(path)], check=True)
+        subprocess.run(["curl", "-L", url, "--output", str(path)], check=True)
 
     def _download_and_process(self) -> pd.DataFrame:
         """Download data from MTtrans repository and process it.
@@ -84,14 +86,17 @@ class RibosomalLoadingMTtransRepo(DataLoader):
 
         # Use temporary directory for download
         with tempfile.TemporaryDirectory() as tmpdirname:
-            tmp_path = Path(tmpdirname) / f'{self.dataset_name}.csv'
+            tmp_path = Path(tmpdirname) / f"{self.dataset_name}.csv"
             self._download_real_data(url, tmp_path)
 
             # Load the CSV
             data_df = pd.read_csv(tmp_path)
 
-            assert len(data_df) > 0, f"Loaded DataFrame for {self.dataset_name} is empty"
-            print(f"Success! Loaded {len(data_df)} rows for dataset '{self.dataset_name}'")
+            assert len(data_df) > 0, (
+                f"Loaded DataFrame for {self.dataset_name} is empty"
+            )
+            print(
+                f"Success! Loaded {len(data_df)} rows for dataset '{self.dataset_name}'"
+            )
 
             return data_df
-

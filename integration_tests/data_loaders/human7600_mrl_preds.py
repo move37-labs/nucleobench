@@ -30,7 +30,9 @@ class Human7600MRLPreds(DataLoader):
     """
 
     # URL for the dataset
-    DATA_URL = 'https://github.com/user-attachments/files/23168017/human7600_mrl_preds.csv'
+    DATA_URL = (
+        "https://github.com/user-attachments/files/23168017/human7600_mrl_preds.csv"
+    )
 
     def __init__(self, cache_dir: Path | None = None):
         """Initialize the human7600 MRL predictions data loader.
@@ -62,4 +64,3 @@ class Human7600MRLPreds(DataLoader):
 
         print(f"Success! Loaded {len(df)} rows")
         return df
-

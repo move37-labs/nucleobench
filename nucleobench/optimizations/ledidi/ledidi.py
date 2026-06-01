@@ -21,16 +21,17 @@ class Ledidi(oc.SequenceOptimizer):
     Original paper [here](https://www.biorxiv.org/content/10.1101/2020.05.21.109686v1.full).
     """
 
-    def __init__(self,
-                 model_fn: PyTorchDifferentiableModel,
-                 start_sequence: SequenceType,
-                 train_batch_size,
-                 lr: float,
-                 positions_to_mutate: PositionsToMutateType | None = None,
-                 vocab: list[str] = constants.VOCAB,
-                 rng_seed: int = 0,
-                 debug: bool = False,
-                 ):
+    def __init__(
+        self,
+        model_fn: PyTorchDifferentiableModel,
+        start_sequence: SequenceType,
+        train_batch_size,
+        lr: float,
+        positions_to_mutate: PositionsToMutateType | None = None,
+        vocab: list[str] = constants.VOCAB,
+        rng_seed: int = 0,
+        debug: bool = False,
+    ):
         torch.manual_seed(rng_seed)
         np.random.seed(rng_seed)
 
@@ -57,7 +58,7 @@ class Ledidi(oc.SequenceOptimizer):
         # TODO(joelshor): Consider checking that the callable is a torch.nn.Module.
         ret = self.model_fn.inference_on_tensor(torch.unsqueeze(self.seed_tensor, 0))
         if not isinstance(ret, torch.Tensor):
-            raise ValueError('Ledidi model must be pytorch.')
+            raise ValueError("Ledidi model must be pytorch.")
 
         # Initializing ledidi obj modeled after gRelu.
         def loss_func(x):
@@ -83,11 +84,9 @@ class Ledidi(oc.SequenceOptimizer):
         self.designer.max_iter = n_steps
 
         assert self.designer.batch_size == self.train_batch_size
-        _, history = self.designer.fit_transform(
-            torch.unsqueeze(self.seed_tensor, 0))
+        _, history = self.designer.fit_transform(torch.unsqueeze(self.seed_tensor, 0))
 
-        return history['output_loss']
-
+        return history["output_loss"]
 
     def get_samples(self, n_samples: int) -> SamplesType:
         """Get samples."""
@@ -103,21 +102,29 @@ class Ledidi(oc.SequenceOptimizer):
     @staticmethod
     def init_parser():
         parser = argparse.ArgumentParser(description="", add_help=False)
-        group = parser.add_argument_group('Ledidi init args')
+        group = parser.add_argument_group("Ledidi init args")
 
-        group.add_argument('--train_batch_size', type=int, default=256, required=True, help='')
-        group.add_argument('--lr', type=float, default=0.1, required=True, help='')
-        group.add_argument('--rng_seed', type=int, default=0, required=False, help='')
-        group.add_argument('--debug', type=argparse_lib.str_to_bool, default=None, required=False, help='')
+        group.add_argument(
+            "--train_batch_size", type=int, default=256, required=True, help=""
+        )
+        group.add_argument("--lr", type=float, default=0.1, required=True, help="")
+        group.add_argument("--rng_seed", type=int, default=0, required=False, help="")
+        group.add_argument(
+            "--debug",
+            type=argparse_lib.str_to_bool,
+            default=None,
+            required=False,
+            help="",
+        )
 
         return parser
 
     @staticmethod
     def debug_init_args():
         return {
-            'model_fn': testing_utils.CountLetterModel(),
-            'start_sequence': 'AA',
-            'train_batch_size': 4,
-            'lr': 1.0,
-            'rng_seed': 0,
+            "model_fn": testing_utils.CountLetterModel(),
+            "start_sequence": "AA",
+            "train_batch_size": 4,
+            "lr": 1.0,
+            "rng_seed": 0,
         }

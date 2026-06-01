@@ -93,11 +93,15 @@ def evolve(
                     cur_seqs.extend(single_bp_ism(seq, positions, vocab))
                 elif tism_args.location_only:
                     cur_positions, must_change_mask = positions_from_tism(
-                        seq, model, positions, tism_args)
-                    cur_seqs.extend(single_bp_ism(seq, cur_positions, vocab, must_change_mask))
+                        seq, model, positions, tism_args
+                    )
+                    cur_seqs.extend(
+                        single_bp_ism(seq, cur_positions, vocab, must_change_mask)
+                    )
                 else:
-                    cur_seqs.extend(tism_guided_ism(
-                        seq, model, positions, vocab, tism_args))
+                    cur_seqs.extend(
+                        tism_guided_ism(seq, model, positions, vocab, tism_args)
+                    )
 
     return best_seqs, best_score, np.array(list_of_energies)
 
@@ -139,8 +143,7 @@ def get_predictions(
 
 def batchify(lst: list, minibatch_size: int):
     """Reshapes a list into batches of a given size."""
-    return [lst[i:i + minibatch_size]
-            for i in range(0, len(lst), minibatch_size)]
+    return [lst[i : i + minibatch_size] for i in range(0, len(lst), minibatch_size)]
 
 
 def single_bp_ism(
@@ -148,7 +151,7 @@ def single_bp_ism(
     positions: list[int],
     vocab: list[str],
     must_change_mask: list[bool] | None = None,
-    ) -> list[str]:
+) -> list[str]:
     if must_change_mask is None:
         must_change_mask = [False] * len(positions)
     assert len(positions) == len(must_change_mask)
@@ -161,7 +164,7 @@ def single_bp_ism(
         else:
             new_char = random.choice(list(vocab_set))
 
-        new_seq = base_seq[:idx] + new_char + base_seq[idx+1:]
+        new_seq = base_seq[:idx] + new_char + base_seq[idx + 1 :]
         ret.append(new_seq)
     return ret
 
@@ -169,12 +172,13 @@ def single_bp_ism(
 PositionType = list[int]
 TISMPosMaskType = list[bool]
 
+
 def positions_from_tism(
     base_seq,
     model,
     positions,
     tism_args: TISMArgs,
-    ) -> tuple[PositionType, TISMPosMaskType]:
+) -> tuple[PositionType, TISMPosMaskType]:
     """Determine positions to mutate based on TISM.
 
     Algo:
@@ -188,7 +192,8 @@ def positions_from_tism(
 
     _, tism_list = model.tism(base_seq)
     expected_energy_change_and_pos = [
-        (np.mean(list(d.values())), i) for i, d in enumerate(tism_list)]
+        (np.mean(list(d.values())), i) for i, d in enumerate(tism_list)
+    ]
     expected_energy_change_and_pos = sorted(expected_energy_change_and_pos)
 
     # Select positions to edit based on the above.
@@ -214,13 +219,14 @@ def positions_from_tism(
 
     return positions, tism_mask
 
+
 def tism_guided_ism(
     base_seq: str,
     model,
     positions: list[int],
     vocab: list[str],
     tism_args: TISMArgs,
-    ) -> list[str]:
+) -> list[str]:
     """Select positions to mutate based on TISM.
 
     General flow:
@@ -233,7 +239,9 @@ def tism_guided_ism(
 
     _, tism_list = model.tism(base_seq)
 
-    energy_change_pos_mutation = [(v, i, k) for i, d in enumerate(tism_list) for k, v in d.items()]
+    energy_change_pos_mutation = [
+        (v, i, k) for i, d in enumerate(tism_list) for k, v in d.items()
+    ]
     energy_change_pos_mutation = sorted(energy_change_pos_mutation)
 
     # Select positions to edit based on the above.
@@ -259,6 +267,6 @@ def tism_guided_ism(
 
     ret = []
     for idx, new_char in mutations:
-        new_seq = base_seq[:idx] + new_char + base_seq[idx+1:]
+        new_seq = base_seq[:idx] + new_char + base_seq[idx + 1 :]
         ret.append(new_seq)
     return ret

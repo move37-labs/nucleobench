@@ -28,8 +28,10 @@ def get_filepath(
     model: str,
     exp_start_time: str,
     timestamp: str,
-    ) -> str:
-    return os.path.join(base_dir, f'{opt_method}_{model}', exp_start_time, f'{timestamp}')
+) -> str:
+    return os.path.join(
+        base_dir, f"{opt_method}_{model}", exp_start_time, f"{timestamp}"
+    )
 
 
 def _write_dicts_to_save_dicts(write_dicts: list[dict]) -> list[dict]:
@@ -38,6 +40,7 @@ def _write_dicts_to_save_dicts(write_dicts: list[dict]) -> list[dict]:
         if isinstance(k, np.ndarray) and k.ndim == 0:
             k = k.item()
         return k
+
     return [{k: _tensor2np(v) for k, v in x.items()} for x in write_dicts]
 
 
@@ -58,14 +61,15 @@ def _flatten_dicts_to_dataframe(write_dicts: list[dict]) -> pd.DataFrame:
     Returns:
         A pandas DataFrame representing the flattened data.
     """
-    def _flatten_recursive(obj: Any, parent_key: str = '', sep: str = ':') -> dict:
+
+    def _flatten_recursive(obj: Any, parent_key: str = "", sep: str = ":") -> dict:
         """Recursively flattens a dictionary-like object."""
         items = []
 
         # Convert the object to a dictionary if possible
-        if hasattr(obj, '_asdict'): # Handle namedtuples
+        if hasattr(obj, "_asdict"):  # Handle namedtuples
             obj = obj._asdict()
-        elif hasattr(obj, '__dict__'): # Handle Namespace and other custom objects
+        elif hasattr(obj, "__dict__"):  # Handle Namespace and other custom objects
             obj = vars(obj)
 
         if isinstance(obj, dict):
@@ -87,7 +91,7 @@ def save_proposals(
     args: argparse.Namespace,
     output_path: str,
     format: str,
-    ):
+):
     """
     Save proposals and associated arguments to a file in either Parquet or Pickle format.
 
@@ -97,7 +101,7 @@ def save_proposals(
         output_path: Directory to write the output to, either locally or on GCP.
         format: The format to save the file in, either 'parquet' or 'pkl'.
     """
-    if format not in ['parquet', 'pkl', 'csv']:
+    if format not in ["parquet", "pkl", "csv"]:
         raise ValueError(f"Unsupported format: '{format}'. Must be 'parquet' or 'pkl'.")
 
     save_dicts = _write_dicts_to_save_dicts(write_dicts)
@@ -106,41 +110,49 @@ def save_proposals(
         base_dir=output_path,
         opt_method=args.optimization,
         model=args.model,
-        exp_start_time=save_dicts[0]['exp_starttime_str'],
+        exp_start_time=save_dicts[0]["exp_starttime_str"],
         timestamp=time.strftime("%Y%m%d_%H%M%S"),
     )
-    filename = f'{base_filename}.{format}'
+    filename = f"{base_filename}.{format}"
 
-    is_gcs = filename.startswith('gs://')
+    is_gcs = filename.startswith("gs://")
 
-    if format in ['parquet', 'csv']:
+    if format in ["parquet", "csv"]:
         try:
             data_df = _flatten_dicts_to_dataframe(save_dicts)
             if is_gcs:
-                data_df.to_parquet(filename, compression='zstd', compression_level=10) if format == 'parquet' else data_df.to_csv(filename)
+                data_df.to_parquet(
+                    filename, compression="zstd", compression_level=10
+                ) if format == "parquet" else data_df.to_csv(filename)
             else:
                 dir_name = os.path.dirname(filename)
                 if dir_name:
                     os.makedirs(dir_name, exist_ok=True)
-                with open(filename, 'wb') as f:
-                    data_df.to_parquet(f, compression='zstd', compression_level=10) if format == 'parquet' else data_df.to_csv(f)
+                with open(filename, "wb") as f:
+                    data_df.to_parquet(
+                        f, compression="zstd", compression_level=10
+                    ) if format == "parquet" else data_df.to_csv(f)
         except pyarrow.lib.ArrowInvalid as e:
-            with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+            with pd.option_context(
+                "display.max_rows", None, "display.max_columns", None
+            ):
                 print(data_df)
             raise e
-    elif format == 'pkl':
+    elif format == "pkl":
         if is_gcs:
-            write_str_to_gcp(gcs_output_path=filename, content=pickle.dumps(save_dicts), binary=True)
+            write_str_to_gcp(
+                gcs_output_path=filename, content=pickle.dumps(save_dicts), binary=True
+            )
         else:
             dir_name = os.path.dirname(filename)
             if dir_name:
                 os.makedirs(dir_name, exist_ok=True)
-            with open(filename, 'wb') as f:
+            with open(filename, "wb") as f:
                 pickle.dump(save_dicts, f)
     else:
         raise ValueError(f"Unsupported format: '{format}'. Must be 'parquet' or 'pkl'.")
 
-    print(f'Proposals deposited at:\n\t{filename}')
+    print(f"Proposals deposited at:\n\t{filename}")
 
 
 def get_role_client(service_json_path: str = constants.SERVICE_KEY_FILE_LOCATION):
@@ -152,9 +164,9 @@ def get_role_client(service_json_path: str = constants.SERVICE_KEY_FILE_LOCATION
 
 
 def parse_gcp_output_path(gcs_output_path: str) -> tuple[str, str]:
-    assert gcs_output_path.startswith('gs://'), 'gcs_output_path must be a GCS path.'
-    gcs_output_path = gcs_output_path[len('gs://'):]
-    bucket_name, blob_fn = gcs_output_path.split('/', 1)
+    assert gcs_output_path.startswith("gs://"), "gcs_output_path must be a GCS path."
+    gcs_output_path = gcs_output_path[len("gs://") :]
+    bucket_name, blob_fn = gcs_output_path.split("/", 1)
     return bucket_name, blob_fn
 
 
@@ -163,7 +175,7 @@ def write_str_to_gcp(
     content: Any,
     binary: bool,
     bucket_name: str = constants.GCP_OUTPUT_BUCKET_NAME,
-    ):
+):
     bucket_name, blob_fn = parse_gcp_output_path(gcs_output_path)
 
     # Instantiates a client.
@@ -171,7 +183,7 @@ def write_str_to_gcp(
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(blob_fn)
 
-    write_type = 'wb' if binary else 'w'
+    write_type = "wb" if binary else "w"
     with blob.open(write_type) as f:
         f.write(content)
 
@@ -185,16 +197,16 @@ def list_files_recursively(local_dir: str) -> Generator[str, None, None]:
 
 def write_txt_file(output_path: str, content: str):
     """Write a ex. 'SUCCESS.txt' file."""
-    if output_path.startswith('gs://'):
+    if output_path.startswith("gs://"):
         write_str_to_gcp(
-            gcs_output_path=os.path.join(output_path, f'{content}.txt'),
+            gcs_output_path=os.path.join(output_path, f"{content}.txt"),
             content=content,
             binary=False,
-            bucket_name=output_path.split('/')[2],
+            bucket_name=output_path.split("/")[2],
         )
     else:
         os.makedirs(output_path, exist_ok=True)
-        with open(os.path.join(output_path, f'{content}.txt'), 'w') as f:
+        with open(os.path.join(output_path, f"{content}.txt"), "w") as f:
             f.write(content)
 
 

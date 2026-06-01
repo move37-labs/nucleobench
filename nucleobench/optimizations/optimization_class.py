@@ -1,6 +1,5 @@
 """Parent class for optimizers."""
 
-
 from nucleobench.optimizations.typing import (
     ModelType,
     PositionsToMutateType,
@@ -15,7 +14,7 @@ class SequenceOptimizer:
         model_fn: ModelType,
         start_sequence: SequenceType,
         positions_to_mutate: PositionsToMutateType | None = None,
-        ):
+    ):
         raise NotImplementedError("Not implemented.")
 
     def run(self, n_steps: int):

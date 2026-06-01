@@ -64,10 +64,8 @@ class AdaBeam(oc.SequenceOptimizer):
         assert n_rollouts_per_root > 0
 
         self.model = ada_utils.ModelWrapper(
-            model_fn,
-            use_cache=True,
-            debug=debug,
-            start_sequence=start_sequence)
+            model_fn, use_cache=True, debug=debug, start_sequence=start_sequence
+        )
 
         self.skip_repeat_sequences = skip_repeat_sequences
         self.start_sequence = start_sequence
@@ -94,8 +92,8 @@ class AdaBeam(oc.SequenceOptimizer):
                 self.mutate_nodes(
                     [seed_node] * len(cur_num_edits),
                     cur_num_edits,
-            ))
-
+                )
+            )
 
     def get_batched_fitness(self, sequences: list[str]) -> np.ndarray:
         """Get fitness for a batch of sequences."""
@@ -104,7 +102,6 @@ class AdaBeam(oc.SequenceOptimizer):
             sequences=sequences,
             batch_size=self.eval_batch_size,
         )
-
 
     def generate_mutations(self, sequence: str, random_n_locs: int) -> str:
         """Convenience wrapper."""
@@ -115,7 +112,6 @@ class AdaBeam(oc.SequenceOptimizer):
             alphabet=self.alphabet,
             rng=self.rng,
         )
-
 
     def get_sampler(self, mu: float) -> ada_utils.NumberEditsSampler:
         """Get a sampler for the number of mutations."""
@@ -197,7 +193,9 @@ class AdaBeam(oc.SequenceOptimizer):
     def run(self, n_steps: int):
         for _step in range(n_steps):
             self.current_nodes = self.propose_sequences(self.current_nodes)
-        print(f'Step {_step} current scores: {sorted([x.fitness for x in self.current_nodes], reverse=True)}')
+        print(
+            f"Step {_step} current scores: {sorted([x.fitness for x in self.current_nodes], reverse=True)}"
+        )
 
     def get_samples(self, n_samples: int) -> SamplesType:
         """Get samples."""
@@ -249,13 +247,17 @@ class AdaBeam(oc.SequenceOptimizer):
 
         return top_nodes
 
-
-    def mutate_nodes(self,
-                     nodes: list[RolloutNode],
-                     num_edit_locs: list[int],
-                     max_num_tries: int = 300,
-                     ) -> list[RolloutNode]:
-        assert len(nodes) == len(num_edit_locs) <= self.eval_batch_size, (len(nodes), len(num_edit_locs), self.eval_batch_size)
+    def mutate_nodes(
+        self,
+        nodes: list[RolloutNode],
+        num_edit_locs: list[int],
+        max_num_tries: int = 300,
+    ) -> list[RolloutNode]:
+        assert len(nodes) == len(num_edit_locs) <= self.eval_batch_size, (
+            len(nodes),
+            len(num_edit_locs),
+            self.eval_batch_size,
+        )
         seqs = []
         for n, random_n_loc in zip(nodes, num_edit_locs):
             # If `self.skip_repeat_sequences=True` keep trying until we get a new sequence.
@@ -263,12 +265,16 @@ class AdaBeam(oc.SequenceOptimizer):
             while True:
                 candidate = self.generate_mutations(n.seq, random_n_loc)
                 try_cnt += 1
-                if not self.skip_repeat_sequences or not self.model.str_in_cache(candidate):
+                if not self.skip_repeat_sequences or not self.model.str_in_cache(
+                    candidate
+                ):
                     break
                 if try_cnt > max_num_tries:
-                    raise ValueError(f"Couldn't find unique child after {try_cnt} tries.")
+                    raise ValueError(
+                        f"Couldn't find unique child after {try_cnt} tries."
+                    )
                 if self.debug and try_cnt % 50 == 0:
-                    print(f'Couldnt find unique child after {try_cnt} tries...')
+                    print(f"Couldnt find unique child after {try_cnt} tries...")
             if self.debug:
                 if try_cnt > 1:
                     print(f"Found child after {try_cnt} tries")

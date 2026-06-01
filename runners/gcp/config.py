@@ -10,14 +10,14 @@ USAGE:
 """
 
 # Google Cloud configuration
-PROJECT_ID = ''
-REGION = ''
-BUCKET_NAME = ''
+PROJECT_ID = ""
+REGION = ""
+BUCKET_NAME = ""
 # Optional: service account for the job. If empty, uses the default Compute Engine service account.
-SERVICE_ACCOUNT_EMAIL = ''
+SERVICE_ACCOUNT_EMAIL = ""
 
 # Docker image configuration
-DOCKER_IMAGE = 'joelshor/nucleobench:latest'
+DOCKER_IMAGE = "joelshor/nucleobench:latest"
 
 # Job configuration
 DEFAULT_DISK_SIZE_GB = 20

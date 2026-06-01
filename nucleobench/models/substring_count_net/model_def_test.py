@@ -16,7 +16,7 @@ def test_inference_correctness():
         substring="ATCG",
     )
 
-    rets = m(['AAAAAAAAAAAA', 'ATCGATCGATCG', 'ATCAATCAATCA'])
+    rets = m(["AAAAAAAAAAAA", "ATCGATCGATCG", "ATCAATCAATCA"])
     assert len(rets) == 3
     assert rets[1] > rets[2] > rets[0]
 
@@ -36,17 +36,17 @@ def test_tism():
         tism_stdev=0.1,
     )
 
-    seq = 'ATCATGATC'
+    seq = "ATCATGATC"
     v, tism = m.tism(seq)
     assert v[0] == m([seq])[0]
 
     other_tisms = []
     for i in range(len(seq)):
         if i == 5:
-            assert tism[i]['C'] > 0
-            assert tism[i]['C'] > tism[i]['A']
-            assert tism[i]['C'] > tism[i]['T']
-            should_be_max_tism = tism[i]['C']
+            assert tism[i]["C"] > 0
+            assert tism[i]["C"] > tism[i]["A"]
+            assert tism[i]["C"] > tism[i]["T"]
+            should_be_max_tism = tism[i]["C"]
         else:
             other_tisms.extend(tism[i].values())
             for v in tism[i].values():
@@ -63,22 +63,22 @@ def test_tism_sanity():
         tism_stdev=0.1,
     )
 
-    seq = 'ATCATGATC'
+    seq = "ATCATGATC"
     for idx in range(len(seq) - 1):
-        v, tism = m.tism(seq, [idx, idx+1])
+        v, tism = m.tism(seq, [idx, idx + 1])
 
 
 def test_tism_torch_correctness():
-    vocab = ['A', 'C']
+    vocab = ["A", "C"]
     # Use a simple substring and sequence
     model = model_def.CountSubstringModel(
-        substring='A',
+        substring="A",
         tism_times=1,
         tism_stdev=0.0,
         vocab=vocab,
-        )
+    )
 
-    seq = 'AAC'
+    seq = "AAC"
     # tism_torch should return a tensor of shape (vocab_size, seq_len)
     tism_tensor = model.tism_torch(seq)
     assert isinstance(tism_tensor, torch.Tensor)
@@ -93,16 +93,16 @@ def test_tism_torch_correctness():
 
 
 def test_tism_torch_consistency_with_tism():
-    vocab = ['A', 'C']
+    vocab = ["A", "C"]
 
     # Use a simple substring and sequence
     model = model_def.CountSubstringModel(
-        substring='A',
+        substring="A",
         tism_times=1,
         tism_stdev=0.0,
         vocab=vocab,
-        )
-    seq = 'AAC'
+    )
+    seq = "AAC"
     # tism returns (y, sg_dicts), tism_torch returns tensor
     _, sg_dicts = model.tism(seq)
     tism_tensor = model.tism_torch(seq)

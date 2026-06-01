@@ -52,7 +52,7 @@ def _override_model():
 def test_rinalmo_mrl_sanity():
     """Basic sanity test with override model."""
     m = model_def.RinalmoMRL(override_model=_override_model())
-    ret = m.inference_on_strings(['AAA', 'CCC', 'TTT', 'GGG', 'ACT'])
+    ret = m.inference_on_strings(["AAA", "CCC", "TTT", "GGG", "ACT"])
     assert list(ret.shape) == [5]
 
 
@@ -60,7 +60,7 @@ def test_rinalmo_mrl_inference_on_tensor():
     """Test inference_on_tensor method with one-hot encoded input."""
     m = model_def.RinalmoMRL(override_model=_override_model())
 
-    dnas = ['AAA', 'CCC', 'TTT']
+    dnas = ["AAA", "CCC", "TTT"]
     # Convert to one-hot tensors (API now requires one-hot, not token indices)
     onehot_tensors = []
     for seq in dnas:
@@ -78,7 +78,7 @@ def test_rinalmo_mrl_inference_on_strings():
     """Test inference_on_strings method."""
     m = model_def.RinalmoMRL(override_model=_override_model())
 
-    ret = m.inference_on_strings(['AAA', 'CCC', 'TTT'])
+    ret = m.inference_on_strings(["AAA", "CCC", "TTT"])
 
     assert isinstance(ret, np.ndarray)
     assert list(ret.shape) == [3]
@@ -88,7 +88,7 @@ def test_rinalmo_mrl_call_method():
     """Test __call__ method."""
     m = model_def.RinalmoMRL(override_model=_override_model())
 
-    ret = m(['AAA', 'CCC', 'TTT'])
+    ret = m(["AAA", "CCC", "TTT"])
 
     assert isinstance(ret, np.ndarray)
     assert list(ret.shape) == [3]
@@ -98,8 +98,8 @@ def test_rinalmo_mrl_call_raises_on_string():
     """Test that __call__ raises ValueError when given a single string."""
     m = model_def.RinalmoMRL(override_model=_override_model())
 
-    with pytest.raises(ValueError, match='needs to be list of strings'):
-        m('AAA')
+    with pytest.raises(ValueError, match="needs to be list of strings"):
+        m("AAA")
 
 
 def test_debug_init_args():
@@ -114,7 +114,7 @@ def test_rinalmo_mrl_batch_processing():
 
     # Test with different batch sizes
     for batch_size in [1, 5, 10]:
-        seqs = ['ACGT'] * batch_size
+        seqs = ["ACGT"] * batch_size
         ret = m(seqs)
         assert ret.shape[0] == batch_size
 
@@ -122,7 +122,7 @@ def test_rinalmo_mrl_batch_processing():
 def test_embedding_module():
     """Test that the embedding model has properties needed for TISM."""
     m = model_def.RinalmoMRL(override_model=_override_model())
-    embeddings = m._batch_embed(['AAA'])
+    embeddings = m._batch_embed(["AAA"])
     assert isinstance(embeddings, torch.Tensor)
     assert embeddings.shape == (1, 3 + 2, m.model.lm.embedding.embedding_dim)
     # Check that embeddings are floating point.
@@ -147,7 +147,7 @@ def test_inference_on_tensor_with_onehot():
     onehot_tensors = []
     for seq in test_seqs:
         # Convert RNA to DNA notation (U -> T) for standard vocab
-        seq_dna = seq.replace('U', 'T')
+        seq_dna = seq.replace("U", "T")
         onehot = string_utils.dna2tensor(seq_dna, vocab_list=constants.VOCAB)
         onehot_tensors.append(onehot)
 
@@ -157,12 +157,15 @@ def test_inference_on_tensor_with_onehot():
     onehot_outputs = m.inference_on_tensor(batch_onehot)
 
     # Check basic properties
-    assert onehot_outputs.shape == (3,), \
+    assert onehot_outputs.shape == (3,), (
         f"Expected shape (3,), got {onehot_outputs.shape}"
-    assert not torch.isnan(onehot_outputs).any(), \
+    )
+    assert not torch.isnan(onehot_outputs).any(), (
         f"NaN values in output: {onehot_outputs}"
-    assert not torch.isinf(onehot_outputs).any(), \
+    )
+    assert not torch.isinf(onehot_outputs).any(), (
         f"Inf values in output: {onehot_outputs}"
+    )
 
     # Note: Token indices are no longer supported as input to inference_on_tensor
     # The model now exclusively uses one-hot encoding for gradient compatibility
@@ -182,7 +185,7 @@ def test_inference_with_gradient_flow():
 
     # Create a simple test sequence
     test_seq = "ACGT"
-    seq_dna = test_seq.replace('U', 'T')
+    seq_dna = test_seq.replace("U", "T")
     onehot = string_utils.dna2tensor(seq_dna, vocab_list=constants.VOCAB)
     batch_onehot = onehot.unsqueeze(0).float()  # Add batch dimension and ensure float
 
@@ -229,7 +232,7 @@ def test_custom_onehot_embeddings_match_normal_tokenization():
     # Method 1: Custom one-hot to embedding logic (replicate the logic from inference_on_tensor)
     onehot_tensors = []
     for seq in test_seqs:
-        seq_dna = seq.replace('U', 'T')
+        seq_dna = seq.replace("U", "T")
         onehot = string_utils.dna2tensor(seq_dna, vocab_list=constants.VOCAB)
         onehot_tensors.append(onehot)
 
@@ -242,7 +245,9 @@ def test_custom_onehot_embeddings_match_normal_tokenization():
     device = batch_onehot.device
 
     # Replicate the custom embedding logic from inference_on_tensor
-    nucleotide_token_indices = torch.tensor([5, 6, 7, 8], dtype=torch.long, device=device)
+    nucleotide_token_indices = torch.tensor(
+        [5, 6, 7, 8], dtype=torch.long, device=device
+    )
     if m.has_cuda:
         nucleotide_token_indices = nucleotide_token_indices.cuda()
     nucleotide_embeddings = m.model.lm.embedding(nucleotide_token_indices)
@@ -259,7 +264,9 @@ def test_custom_onehot_embeddings_match_normal_tokenization():
 
     cls_embedding = m.model.lm.embedding(cls_token_idx).expand(batch_size, 1, -1)
     eos_embedding = m.model.lm.embedding(eos_token_idx).expand(batch_size, 1, -1)
-    full_embeddings_custom = torch.cat([cls_embedding, sequence_embeddings_custom, eos_embedding], dim=1)
+    full_embeddings_custom = torch.cat(
+        [cls_embedding, sequence_embeddings_custom, eos_embedding], dim=1
+    )
 
     # Method 2: Normal RiNALMo tokenization (strings -> tokens -> embeddings)
     tokens = m.batch_tokenize(test_seqs)
@@ -271,7 +278,8 @@ def test_custom_onehot_embeddings_match_normal_tokenization():
 
     # Compare: They should be identical when one-hot is truly one-hot
     # (i.e., when argmax gives the same result as the weighted sum)
-    assert torch.allclose(full_embeddings_custom, full_embeddings_normal, atol=1e-6), \
-        f"Custom embedding logic doesn't match normal tokenization!\n" \
-        f"Max difference: {torch.abs(full_embeddings_custom - full_embeddings_normal).max()}\n" \
+    assert torch.allclose(full_embeddings_custom, full_embeddings_normal, atol=1e-6), (
+        f"Custom embedding logic doesn't match normal tokenization!\n"
+        f"Max difference: {torch.abs(full_embeddings_custom - full_embeddings_normal).max()}\n"
         f"Custom shape: {full_embeddings_custom.shape}, Normal shape: {full_embeddings_normal.shape}"
+    )

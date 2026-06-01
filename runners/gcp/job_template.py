@@ -39,10 +39,10 @@ def create_job_definition(hyperparams: dict[str, str]) -> batch_v1.Job:
         assert len(v) > 0
 
     # Extract key parameters with defaults
-    job_name = hyperparams['job_name']
-    job_type = 'enformer' if 'enformer' in job_name else 'default'
+    job_name = hyperparams["job_name"]
+    job_type = "enformer" if "enformer" in job_name else "default"
 
-    if job_type == 'enformer':
+    if job_type == "enformer":
         machine_type = config.ENFORMER_MACHINE_TYPE
         cpu_count = int(config.ENFORMER_CPU_COUNT)
         memory_gb = int(config.ENFORMER_MEMORY_GB)
@@ -63,12 +63,14 @@ def create_job_definition(hyperparams: dict[str, str]) -> batch_v1.Job:
     runnable = batch_v1.Runnable(container=container)
 
     # Define the task spec
-    if 'max_seconds' not in hyperparams or not hyperparams['max_seconds']:
-        raise ValueError("The 'max_seconds' column is required in the TSV file and cannot be empty.")
+    if "max_seconds" not in hyperparams or not hyperparams["max_seconds"]:
+        raise ValueError(
+            "The 'max_seconds' column is required in the TSV file and cannot be empty."
+        )
 
     # Double the timeout to allow for a natural job completion.
     # Also add time to allow for the job to start.
-    timeout_seconds = int(hyperparams['max_seconds']) * 2 + 600
+    timeout_seconds = int(hyperparams["max_seconds"]) * 2 + 600
     task_spec = batch_v1.TaskSpec(
         runnables=[runnable],
         compute_resource=batch_v1.ComputeResource(
@@ -80,22 +82,20 @@ def create_job_definition(hyperparams: dict[str, str]) -> batch_v1.Job:
             variables={
                 "GOOGLE_CLOUD_PROJECT_ID": config.PROJECT_ID,
                 "GOOGLE_CLOUD_BUCKET": config.BUCKET_NAME,
-                "DOCKER_IMAGE": config.DOCKER_IMAGE
+                "DOCKER_IMAGE": config.DOCKER_IMAGE,
             }
-        )
+        ),
     )
 
     # Define the task group
-    task_group = batch_v1.TaskGroup(
-        task_count=1,
-        parallelism=1,
-        task_spec=task_spec
-    )
+    task_group = batch_v1.TaskGroup(task_count=1, parallelism=1, task_spec=task_spec)
 
     # Define the allocation policy
-    service_account = batch_v1.ServiceAccount(
-        email=config.SERVICE_ACCOUNT_EMAIL
-    ) if config.SERVICE_ACCOUNT_EMAIL else None
+    service_account = (
+        batch_v1.ServiceAccount(email=config.SERVICE_ACCOUNT_EMAIL)
+        if config.SERVICE_ACCOUNT_EMAIL
+        else None
+    )
 
     allocation_policy = batch_v1.AllocationPolicy(
         instances=[
@@ -103,7 +103,7 @@ def create_job_definition(hyperparams: dict[str, str]) -> batch_v1.Job:
                 install_ops_agent=True,
                 policy=batch_v1.AllocationPolicy.InstancePolicy(
                     machine_type=machine_type
-                )
+                ),
             )
         ],
         service_account=service_account,
@@ -123,10 +123,12 @@ def create_job_definition(hyperparams: dict[str, str]) -> batch_v1.Job:
 
 def build_docker_command(hyperparams: dict[str, str]) -> list[tuple[str, str]]:
     """Build docker command arguments from hyperparameters."""
-    for k in ['Docker image', 'job_name', 'Entrypoint']:
+    for k in ["Docker image", "job_name", "Entrypoint"]:
         if k in hyperparams:
             del hyperparams[k]
-    if 'seed_sequence' in hyperparams:
-        hyperparams['start_sequence'] = hyperparams['seed_sequence']
-        del hyperparams['seed_sequence']
-    return [f"--{k}={v}" for k, v in hyperparams.items() if v is not None and len(v) > 0]
+    if "seed_sequence" in hyperparams:
+        hyperparams["start_sequence"] = hyperparams["seed_sequence"]
+        del hyperparams["seed_sequence"]
+    return [
+        f"--{k}={v}" for k, v in hyperparams.items() if v is not None and len(v) > 0
+    ]

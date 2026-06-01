@@ -30,20 +30,23 @@ class Borzoi(grelu_md.GReluModel):
     def init_parser():
         parser = argparse.ArgumentParser()
         group = parser.add_argument_group("Borzoi init args")
-        group.add_argument("--aggregation_type", type=str, required=True,
-                           choices=['muscle_not_liver'])
+        group.add_argument(
+            "--aggregation_type", type=str, required=True, choices=["muscle_not_liver"]
+        )
 
         return parser
 
     @staticmethod
     def debug_init_args():
         return {
-            'aggregation_type': 'muscle_not_liver',
-            'run_sanity_checks': False,
+            "aggregation_type": "muscle_not_liver",
+            "run_sanity_checks": False,
         }
 
     @staticmethod
-    def write_dummy_sequence_to_file(filepath: str, sequence_length: int = constants.BORZOI_TRAIN_LEN_) -> None:
+    def write_dummy_sequence_to_file(
+        filepath: str, sequence_length: int = constants.BORZOI_TRAIN_LEN_
+    ) -> None:
         """Write a dummy sequence of specified length to a text file.
 
         Args:
@@ -51,12 +54,15 @@ class Borzoi(grelu_md.GReluModel):
             sequence_length: Length of the sequence to generate (default: 524_288)
         """
         # Generate a dummy sequence (to be determined later, using 'A' as placeholder)
-        dummy_sequence = 'A' * sequence_length
+        dummy_sequence = "A" * sequence_length
 
         # Ensure directory exists
-        os.makedirs(os.path.dirname(filepath) if os.path.dirname(filepath) else '.', exist_ok=True)
+        os.makedirs(
+            os.path.dirname(filepath) if os.path.dirname(filepath) else ".",
+            exist_ok=True,
+        )
 
-        with open(filepath, 'w') as f:
+        with open(filepath, "w") as f:
             f.write(dummy_sequence)
 
     @staticmethod
@@ -67,10 +73,12 @@ class Borzoi(grelu_md.GReluModel):
         middle_length: int = enformer_constants.ENFORMER_TRAIN_LEN_,
     ) -> str:
         """Inject a middle sequence into a base sequence."""
-        assert len(base_sequence) == total_length, \
+        assert len(base_sequence) == total_length, (
             f"Base sequence length {len(base_sequence)} != expected {total_length}"
-        assert len(middle_sequence) == middle_length, \
+        )
+        assert len(middle_sequence) == middle_length, (
             f"Middle sequence length {len(middle_sequence)} != expected {middle_length}"
+        )
 
         # Calculate padding on each side
         padding_length = (total_length - middle_length) // 2
@@ -78,12 +86,13 @@ class Borzoi(grelu_md.GReluModel):
         # Construct: [left_pad] + [middle_sequence] + [right_pad]
         # Use the original sequence's left and right parts as padding
         left_pad = base_sequence[:padding_length]
-        right_pad = base_sequence[padding_length + middle_length:]
+        right_pad = base_sequence[padding_length + middle_length :]
 
         modified_sequence = left_pad + middle_sequence + right_pad
 
-        assert len(modified_sequence) == total_length, \
+        assert len(modified_sequence) == total_length, (
             f"Modified sequence length {len(modified_sequence)} != expected {total_length}"
+        )
 
         return modified_sequence
 
@@ -137,7 +146,7 @@ class Borzoi(grelu_md.GReluModel):
         aggregation_type: str,
         spatial_bins_to_aggregate: list[int] | None = None,
         override_model: torch.nn.Module | None = None,
-        override_aggregation = None,
+        override_aggregation=None,
         run_sanity_checks: bool = True,
     ):
         super().__init__(
@@ -148,11 +157,12 @@ class Borzoi(grelu_md.GReluModel):
         )
         self.model.eval()
 
-        if aggregation_type not in ['muscle_not_liver']:
-            raise ValueError(f'Unknown aggregation type: {aggregation_type}')
+        if aggregation_type not in ["muscle_not_liver"]:
+            raise ValueError(f"Unknown aggregation type: {aggregation_type}")
 
         if override_aggregation is None:
             positive_idxs, negative_idxs = constants.idxs_by_name(aggregation_type)
+
             def _aggregation(model_out: torch.Tensor) -> torch.Tensor:
                 assert model_out.ndim == 3
                 assert model_out.shape[1] == len(constants.BORZOI_TASKS_)
@@ -160,33 +170,34 @@ class Borzoi(grelu_md.GReluModel):
                 if spatial_bins_to_aggregate is not None:
                     model_out = model_out[:, :, spatial_bins_to_aggregate]
 
-                ret = (torch.sum(model_out[:, positive_idxs], axis=(1, 2)) -
-                       torch.sum(model_out[:, negative_idxs], axis=(1, 2)))
+                ret = torch.sum(model_out[:, positive_idxs], axis=(1, 2)) - torch.sum(
+                    model_out[:, negative_idxs], axis=(1, 2)
+                )
                 assert ret.ndim == 1
                 return ret
+
             self.aggregation = _aggregation
         else:
             self.aggregation = override_aggregation
 
         # Sanity check inference.
         if run_sanity_checks:
-            ret = self.model(self.string_to_onehot(['A' * self.sequence_length]))
+            ret = self.model(self.string_to_onehot(["A" * self.sequence_length]))
             assert ret.shape == (1, 7611, 6144), ret.shape
 
-            ret = self.inference_on_strings(['A' * self.sequence_length])
+            ret = self.inference_on_strings(["A" * self.sequence_length])
             assert ret.ndim == 1
-
 
     def inference_on_tensor(
         self,
         x: torch.Tensor,
         return_debug_info: bool = False,
-        ) -> torch.Tensor:
+    ) -> torch.Tensor:
         """Run inference on a one-hot tensor."""
         del return_debug_info
         assert x.ndim == 3  # Batched.
         assert x.shape[1] == 4
-        #assert x.shape[2] == self.sequence_length, x.shape
+        # assert x.shape[2] == self.sequence_length, x.shape
 
         m_out = self.model(x)
         assert m_out.ndim == 3
@@ -206,12 +217,15 @@ if __name__ == "__main__":
     import time
 
     import tqdm
-    print('Starting muscle_not_liver...')
-    m = Borzoi(aggregation_type='muscle_not_liver')
+
+    print("Starting muscle_not_liver...")
+    m = Borzoi(aggregation_type="muscle_not_liver")
     ntimes = 1
     s_time = time.time()
     for _ in tqdm.trange(ntimes):
         o = m.model(m.string_to_onehot(["A" * 524_288]))
-        print(f'Output shape: {o.shape}')
+        print(f"Output shape: {o.shape}")
     e_time = time.time()
-    print(f'Finished in {e_time - s_time} seconds: {(e_time - s_time) / ntimes} s / iter')
+    print(
+        f"Finished in {e_time - s_time} seconds: {(e_time - s_time) / ntimes} s / iter"
+    )

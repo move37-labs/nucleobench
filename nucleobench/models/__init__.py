@@ -7,13 +7,14 @@ from nucleobench.models.substring_count_net import model_def as substring_model_
 from nucleobench.optimizations import model_class as mc
 
 MODELS_ = {
-    'dummy': dummy_model_def.DummyModel,
-    'enformer': enformer_model_def.Enformer,
-    'malinois': malinois_model_def.Malinois,
-    'substring_count': substring_model_def.CountSubstringModel,
-    'bpnet': bpnet_model_def.BPNet,
-    'rinalmo_mrl': rinalmo_mrl_model_def.RinalmoMRL,
+    "dummy": dummy_model_def.DummyModel,
+    "enformer": enformer_model_def.Enformer,
+    "malinois": malinois_model_def.Malinois,
+    "substring_count": substring_model_def.CountSubstringModel,
+    "bpnet": bpnet_model_def.BPNet,
+    "rinalmo_mrl": rinalmo_mrl_model_def.RinalmoMRL,
 }
+
 
 def get_model(model_name: str) -> mc.ModelClass:
     return MODELS_[model_name]

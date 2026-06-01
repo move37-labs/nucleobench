@@ -26,7 +26,7 @@ def grad_torch(
     model: Callable[[torch.Tensor], torch.Tensor],
     idxs: TISMLocationsType | None = None,
     force_mem_clear: bool = False,
-    ) -> torch.Tensor:
+) -> torch.Tensor:
     """Generates gradients from a function.
 
     NOTE: For simplicity, for now, we work with SINGLE TENSORS. Assume no batch dimension.
@@ -73,12 +73,16 @@ def grad_torch(
 
 
 # TODO(joelshor): Add `attribution_lib.py` test, taken from `malinois/model_def_test.py`.
-def grad_tensor_to_dict(smooth_grad: torch.Tensor, vocab: list[str]) -> SmoothgradVocabType:
+def grad_tensor_to_dict(
+    smooth_grad: torch.Tensor, vocab: list[str]
+) -> SmoothgradVocabType:
     """Map the smoothgrad indices to the vocab."""
     assert smooth_grad.ndim == 2
     assert list(smooth_grad.shape)[0] == len(vocab)
+
     def _to_dict(x: torch.Tensor) -> dict[str, torch.Tensor]:
         return {vocab[i]: x[i] for i in range(len(vocab))}
+
     return [_to_dict(x) for x in smooth_grad.T]
 
 
@@ -100,7 +104,9 @@ def grad_to_tism(sg: SmoothgradVocabType, base_seq: str) -> TISMOutputType:
     return tism
 
 
-def grad_torch_to_tism_torch(sg_tensor: torch.Tensor, base_seq: torch.Tensor) -> torch.Tensor:
+def grad_torch_to_tism_torch(
+    sg_tensor: torch.Tensor, base_seq: torch.Tensor
+) -> torch.Tensor:
     """Returns result according to Taylor in-silico mutagenesis.
 
     Paper: https://www.cell.com/iscience/fulltext/S2589-0042(24)02032-7
@@ -133,8 +139,8 @@ def grad_torch_to_tism_torch(sg_tensor: torch.Tensor, base_seq: torch.Tensor) ->
 
 
 def apply_gradient_mask_deprecated(
-    x: torch.Tensor,
-    idxs: TISMLocationsType) -> tuple[torch.Tensor, torch.Tensor]:
+    x: torch.Tensor, idxs: TISMLocationsType
+) -> tuple[torch.Tensor, torch.Tensor]:
     """Applies a gradient mask to the input tensor.
 
     NOTE: Do NOT just multiply by 0. This will run out of memory in large models.
@@ -155,15 +161,20 @@ def apply_gradient_mask_deprecated(
 
     # Instead of using `torch.where`, we use this method to make our gradient tensor
     # as small as possible, to preserve memory.
-    tensor_slices = [x_grad[:, :, x_grad_i[i]:x_grad_i[i]+1] if i in idxs
-                     else no_gradient[:, :, i:i+1]
-                     for i in range(no_gradient.shape[2])]
+    tensor_slices = [
+        x_grad[:, :, x_grad_i[i] : x_grad_i[i] + 1]
+        if i in idxs
+        else no_gradient[:, :, i : i + 1]
+        for i in range(no_gradient.shape[2])
+    ]
     x = torch.concat(tensor_slices, dim=2)
 
     return x, x_grad
 
 
-def apply_gradient_mask(x: torch.Tensor, idxs: TISMLocationsType) -> tuple[torch.Tensor, torch.Tensor]:
+def apply_gradient_mask(
+    x: torch.Tensor, idxs: TISMLocationsType
+) -> tuple[torch.Tensor, torch.Tensor]:
     """Applies a gradient mask by creating a computational graph where only 'idxs' are inputs.
 
     This effectively 'gathers' the values at idxs into a small tensor (x_grad),

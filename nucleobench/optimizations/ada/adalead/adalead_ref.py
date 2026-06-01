@@ -149,7 +149,9 @@ class AdaLeadRef(oc.SequenceOptimizer):
         self.rho = rho
         self.eval_batch_size = eval_batch_size
         self.rng = random.Random(rng_seed)
-        self.positions_to_mutate = positions_to_mutate or list(range(len(start_sequence)))
+        self.positions_to_mutate = positions_to_mutate or list(
+            range(len(start_sequence))
+        )
         self.debug = debug
 
         assert min(self.positions_to_mutate) >= 0
@@ -179,8 +181,9 @@ class AdaLeadRef(oc.SequenceOptimizer):
     def run(self, n_steps: int):
         for _step in range(n_steps):
             self.current_population, self.current_scores = self.propose_sequences(
-                self.current_population, self.current_scores)
-        print(f'Current scores: {self.current_scores}')
+                self.current_population, self.current_scores
+            )
+        print(f"Current scores: {self.current_scores}")
 
     def get_samples(self, n_samples: int) -> SamplesType:
         """Get samples."""
@@ -204,7 +207,7 @@ class AdaLeadRef(oc.SequenceOptimizer):
         parent_inds = np.argwhere(parent_mask).flatten()
         parents = [in_seqs[i] for i in parent_inds]
         if self.debug:
-            print(f'After thresholding, went from {len(parent_inds)} to {len(parents)}')
+            print(f"After thresholding, went from {len(parent_inds)} to {len(parents)}")
 
         sequences = {}
         previous_model_cost = self.model.cost
@@ -212,8 +215,11 @@ class AdaLeadRef(oc.SequenceOptimizer):
             # Generate recombinant mutants.
             for i in range(self.rho):
                 parents = ada_utils.recombine_population(
-                    gen=parents, rng=self.rng, recomb_rate=self.recomb_rate,
-                    positions_to_mutate=self.positions_to_mutate)
+                    gen=parents,
+                    rng=self.rng,
+                    recomb_rate=self.recomb_rate,
+                    positions_to_mutate=self.positions_to_mutate,
+                )
 
             for i in range(0, len(parents), self.eval_batch_size):
                 # Here we do rollouts from each parent (root of rollout tree).
@@ -253,7 +259,7 @@ class AdaLeadRef(oc.SequenceOptimizer):
                         else:
                             pass
                     if self.debug:
-                        print(f'It took {round_num} tries to generate a child.')
+                        print(f"It took {round_num} tries to generate a child.")
 
                     # Stop the rollout once the child has worse predicted
                     # fitness than the root of the rollout tree.
@@ -269,7 +275,7 @@ class AdaLeadRef(oc.SequenceOptimizer):
                     rollout_length += 1
 
                 if self.debug:
-                    print(f'Rollout length: {rollout_length}')
+                    print(f"Rollout length: {rollout_length}")
 
         if len(sequences) == 0:
             raise ValueError(
@@ -279,7 +285,9 @@ class AdaLeadRef(oc.SequenceOptimizer):
 
         # We propose the top `self.sequences_batch_size` new sequences we have generated.
         if self.debug:
-            print(f'Proposing {self.sequences_batch_size} sequences out of {len(sequences)}')
+            print(
+                f"Proposing {self.sequences_batch_size} sequences out of {len(sequences)}"
+            )
         new_seqs = list(sequences.keys())
         preds = np.array(list(sequences.values()))
         sorted_order = np.argsort(preds)[: -self.sequences_batch_size : -1]

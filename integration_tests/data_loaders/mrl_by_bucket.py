@@ -26,20 +26,38 @@ class MRLByBucket(DataLoader):
     # The dataset: High (Housekeeping), Medium (Regulated), Low (Repressed/uORFs)
     GENE_TARGETS = [
         # --- HIGH BUCKET ---
-        {"gene": "ACTB",     "accession": "NM_001101.5", "bucket": "HIGH"},
-        {"gene": "GAPDH",    "accession": "NM_002046.7", "bucket": "HIGH"},
-        {"gene": "EEF1A1",   "accession": "NM_001402.6", "bucket": "HIGH"},  # Elongation factor, extremely high expression
-        {"gene": "RPL13A",   "accession": "NM_000977.4", "bucket": "HIGH"},  # Ribosomal protein, standard ref gene
-
+        {"gene": "ACTB", "accession": "NM_001101.5", "bucket": "HIGH"},
+        {"gene": "GAPDH", "accession": "NM_002046.7", "bucket": "HIGH"},
+        {
+            "gene": "EEF1A1",
+            "accession": "NM_001402.6",
+            "bucket": "HIGH",
+        },  # Elongation factor, extremely high expression
+        {
+            "gene": "RPL13A",
+            "accession": "NM_000977.4",
+            "bucket": "HIGH",
+        },  # Ribosomal protein, standard ref gene
         # --- MEDIUM BUCKET ---
-        {"gene": "TP53",     "accession": "NM_000546.6", "bucket": "MEDIUM"},
-        {"gene": "MAPK1",    "accession": "NM_002745.5", "bucket": "MEDIUM"}, # ERK2, standard signaling
-        {"gene": "CTNNB1",   "accession": "NM_001904.4", "bucket": "MEDIUM"}, # Beta-catenin
-
+        {"gene": "TP53", "accession": "NM_000546.6", "bucket": "MEDIUM"},
+        {
+            "gene": "MAPK1",
+            "accession": "NM_002745.5",
+            "bucket": "MEDIUM",
+        },  # ERK2, standard signaling
+        {
+            "gene": "CTNNB1",
+            "accession": "NM_001904.4",
+            "bucket": "MEDIUM",
+        },  # Beta-catenin
         # --- LOW BUCKET ---
-        {"gene": "ATF4",     "accession": "NM_001675.4", "bucket": "LOW"},
-        {"gene": "DDIT3",    "accession": "NM_004083.6", "bucket": "LOW"},    # CHOP
-        {"gene": "PPP1R15A", "accession": "NM_014330.5", "bucket": "LOW"},    # GADD34, has known uORFs
+        {"gene": "ATF4", "accession": "NM_001675.4", "bucket": "LOW"},
+        {"gene": "DDIT3", "accession": "NM_004083.6", "bucket": "LOW"},  # CHOP
+        {
+            "gene": "PPP1R15A",
+            "accession": "NM_014330.5",
+            "bucket": "LOW",
+        },  # GADD34, has known uORFs
     ]
 
     def __init__(self, cache_dir: Path | None = None):
@@ -81,7 +99,9 @@ class MRLByBucket(DataLoader):
 
             try:
                 # Fetch FASTA record from NCBI Nucleotide database
-                handle = Entrez.efetch(db="nucleotide", id=acc_id, rettype="fasta", retmode="text")
+                handle = Entrez.efetch(
+                    db="nucleotide", id=acc_id, rettype="fasta", retmode="text"
+                )
                 record = SeqIO.read(handle, "fasta")
                 handle.close()
 
@@ -89,19 +109,23 @@ class MRLByBucket(DataLoader):
                 full_seq = str(record.seq)
 
                 # Truncate to desired length
-                truncated_seq = full_seq[:self.SEQUENCE_LENGTH]
+                truncated_seq = full_seq[: self.SEQUENCE_LENGTH]
 
                 # Validation warning if sequence is too short
                 if len(truncated_seq) < self.SEQUENCE_LENGTH:
-                    print(f"  [WARNING] {gene_name} is shorter than {self.SEQUENCE_LENGTH} nt (Length: {len(truncated_seq)})")
+                    print(
+                        f"  [WARNING] {gene_name} is shorter than {self.SEQUENCE_LENGTH} nt (Length: {len(truncated_seq)})"
+                    )
 
-                results.append({
-                    'gene': gene_name,
-                    'accession': acc_id,
-                    'bucket': bucket,
-                    'sequence_length': len(truncated_seq),
-                    'sequence': truncated_seq
-                })
+                results.append(
+                    {
+                        "gene": gene_name,
+                        "accession": acc_id,
+                        "bucket": bucket,
+                        "sequence_length": len(truncated_seq),
+                        "sequence": truncated_seq,
+                    }
+                )
 
                 # Be polite to the NCBI server
                 time.sleep(0.5)
@@ -112,4 +136,3 @@ class MRLByBucket(DataLoader):
         df = pd.DataFrame(results)
         print(f"\nSuccess! Processed {len(df)} sequences")
         return df
-

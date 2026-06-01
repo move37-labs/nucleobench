@@ -39,8 +39,7 @@ class RinalmoMRL(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
 
     @staticmethod
     def debug_init_args():
-        return {
-        }
+        return {}
 
     def __init__(
         self,
@@ -51,7 +50,9 @@ class RinalmoMRL(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         if override_model:
             self.model = override_model
         elif override_ft_wts_local_path:
-            self.model = load_model.load_model(ft_wts_url=override_ft_wts_local_path, has_cuda=self.has_cuda)
+            self.model = load_model.load_model(
+                ft_wts_url=override_ft_wts_local_path, has_cuda=self.has_cuda
+            )
         else:
             self.model = load_model.load_model(has_cuda=self.has_cuda)
         # Disable dropout for inference.
@@ -68,23 +69,31 @@ class RinalmoMRL(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         nucleotide_token_indices = torch.tensor([5, 6, 7, 8], dtype=torch.long)
         if self.has_cuda:
             nucleotide_token_indices = nucleotide_token_indices.cuda()
-        self._nucleotide_embeddings = self.model.lm.embedding(nucleotide_token_indices).detach()  # Shape: (4, embed_dim)
+        self._nucleotide_embeddings = self.model.lm.embedding(
+            nucleotide_token_indices
+        ).detach()  # Shape: (4, embed_dim)
 
         # Cache CLS and EOS embeddings
         cls_eos_token_indices = torch.tensor([0, 2], dtype=torch.long)  # CLS=0, EOS=2
         if self.has_cuda:
             cls_eos_token_indices = cls_eos_token_indices.cuda()
-        cls_eos_embeddings = self.model.lm.embedding(cls_eos_token_indices)  # Shape: (2, embed_dim)
+        cls_eos_embeddings = self.model.lm.embedding(
+            cls_eos_token_indices
+        )  # Shape: (2, embed_dim)
         self._cls_embedding = cls_eos_embeddings[0:1].detach()  # Shape: (1, embed_dim)
         self._eos_embedding = cls_eos_embeddings[1:2].detach()  # Shape: (1, embed_dim)
 
     def _tokenize(self, x: str) -> torch.Tensor:
         encoded_seq = self.alphabet.encode(x)
-        return torch.tensor(encoded_seq, dtype=torch.int64, device='gpu' if self.has_cuda else 'cpu')
+        return torch.tensor(
+            encoded_seq, dtype=torch.int64, device="gpu" if self.has_cuda else "cpu"
+        )
 
     def batch_tokenize(self, x: list[str]) -> torch.Tensor:
         encoded_seq = self.alphabet.batch_tokenize(x)
-        return torch.tensor(encoded_seq, dtype=torch.int64, device='gpu' if self.has_cuda else 'cpu')
+        return torch.tensor(
+            encoded_seq, dtype=torch.int64, device="gpu" if self.has_cuda else "cpu"
+        )
 
     def _batch_embed(self, x: list[str]) -> torch.Tensor:
         return self.model.lm.embedding(self.batch_tokenize(x))
@@ -104,8 +113,9 @@ class RinalmoMRL(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
             Tensor of shape (batch_size,) with model predictions
         """
         # ONLY accept one-hot encoded input (shape: batch_size, 4, seq_len)
-        assert x.ndim == 3 and x.shape[1] == 4, \
+        assert x.ndim == 3 and x.shape[1] == 4, (
             f"Expected one-hot tensor with shape (batch, 4, seq_len), got {x.shape}"
+        )
 
         batch_size = x.shape[0]
         seq_len = x.shape[2]
@@ -113,19 +123,29 @@ class RinalmoMRL(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
 
         # Use cached nucleotide embeddings (computed once during __init__)
         # Move to the same device as input if needed
-        nucleotide_embeddings = self._nucleotide_embeddings.to(device)  # Shape: (4, embed_dim)
+        nucleotide_embeddings = self._nucleotide_embeddings.to(
+            device
+        )  # Shape: (4, embed_dim)
 
         # Compute weighted sum of embeddings using one-hot weights (soft indexing)
         # This maintains gradient flow through the one-hot weights
         x_transposed = x.transpose(1, 2)  # Shape: (batch_size, seq_len, 4)
-        sequence_embeddings = torch.matmul(x_transposed, nucleotide_embeddings)  # Shape: (batch_size, seq_len, embed_dim)
+        sequence_embeddings = torch.matmul(
+            x_transposed, nucleotide_embeddings
+        )  # Shape: (batch_size, seq_len, embed_dim)
 
         # Use cached CLS and EOS embeddings
-        cls_embedding = self._cls_embedding.to(device).expand(batch_size, 1, -1)  # Shape: (batch_size, 1, embed_dim)
-        eos_embedding = self._eos_embedding.to(device).expand(batch_size, 1, -1)  # Shape: (batch_size, 1, embed_dim)
+        cls_embedding = self._cls_embedding.to(device).expand(
+            batch_size, 1, -1
+        )  # Shape: (batch_size, 1, embed_dim)
+        eos_embedding = self._eos_embedding.to(device).expand(
+            batch_size, 1, -1
+        )  # Shape: (batch_size, 1, embed_dim)
 
         # Concatenate embeddings
-        full_embeddings = torch.cat([cls_embedding, sequence_embeddings, eos_embedding], dim=1)  # Shape: (batch_size, seq_len+2, embed_dim)
+        full_embeddings = torch.cat(
+            [cls_embedding, sequence_embeddings, eos_embedding], dim=1
+        )  # Shape: (batch_size, seq_len+2, embed_dim)
 
         # Create padding mask (all False since we're not padding)
         pad_mask = torch.zeros(batch_size, seq_len + 2, dtype=torch.bool, device=device)
@@ -165,7 +185,7 @@ class RinalmoMRL(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         # Convert strings to one-hot tensors
         # RiNALMo expects RNA sequences, but standard vocab uses T not U
         # So we convert U to T for one-hot encoding
-        seqs_dna = [seq.replace('U', 'T') for seq in x]
+        seqs_dna = [seq.replace("U", "T") for seq in x]
         batch_onehot = string_utils.dna2tensor_batch(seqs_dna, vocab_list=self.vocab)
 
         if self.has_cuda:
@@ -176,5 +196,5 @@ class RinalmoMRL(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
 
     def __call__(self, x: list[str]) -> np.ndarray:
         if isinstance(x, str):
-            raise ValueError(f'Input needs to be list of strings, not just string: {x}')
+            raise ValueError(f"Input needs to be list of strings, not just string: {x}")
         return self.inference_on_strings(x)

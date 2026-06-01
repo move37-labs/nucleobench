@@ -34,7 +34,8 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         parser = argparse.ArgumentParser()
         group = parser.add_argument_group("Malinois init args")
         group.add_argument(
-            "--model_artifact", type=str,
+            "--model_artifact",
+            type=str,
             default="gs://tewhey-public-data/CODA_resources/malinois_artifacts__20211113_021200__287348.tar.gz",
         )
         group.add_argument("--target_feature", type=int)
@@ -45,15 +46,14 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         group.add_argument("--flank_length", type=int, default=200)
         # Smoothgrad args.
 
-
         return parser
 
     @staticmethod
     def debug_init_args():
         return {
-            'target_feature': 0,
-            'bending_factor': 0.0,
-            'check_input_shape': True,
+            "target_feature": 0,
+            "bending_factor": 0.0,
+            "check_input_shape": True,
         }
 
     def __init__(
@@ -85,8 +85,8 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
 
         self.flank_length = flank_length
         if self.flank_length > 0:
-            self.left_flank = constants.MPRA_UPSTREAM[-self.flank_length:]
-            self.right_flank = constants.MPRA_DOWNSTREAM[:self.flank_length]
+            self.left_flank = constants.MPRA_UPSTREAM[-self.flank_length :]
+            self.right_flank = constants.MPRA_DOWNSTREAM[: self.flank_length]
         else:
             self.left_flank = None
             self.right_flank = None
@@ -117,14 +117,14 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         self,
         x: torch.Tensor,
         return_debug_info: bool = False,
-        ) -> torch.Tensor:
+    ) -> torch.Tensor:
         """Run inference on a one-hot tensor."""
         assert x.ndim == 3  # Batched.
         x_flanked = self.add_flanks_tensor(x)
         if self.has_cuda:
             x_flanked = x_flanked.cuda()
         if self.check_input_shape and x_flanked.shape[2] != 600:
-            raise ValueError(f'Malinois input wrong size: {x.shape} {x_flanked.shape}')
+            raise ValueError(f"Malinois input wrong size: {x.shape} {x_flanked.shape}")
         m_out = self.model(x_flanked)
         ret_energy = energy_calc_from_output_tensor(
             model_output_tensor=m_out,
@@ -136,7 +136,7 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         )
 
         if return_debug_info:
-            return ret_energy, {'malinois_output': m_out}
+            return ret_energy, {"malinois_output": m_out}
         else:
             return ret_energy
 
@@ -167,7 +167,7 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         self,
         x: list[str],
         return_debug_info: bool = False,
-        ) -> np.ndarray:
+    ) -> np.ndarray:
         tensor = string_utils.dna2tensor_batch(x, vocab_list=self.vocab)
         ret = self.inference_on_tensor(tensor, return_debug_info)
         if return_debug_info:
@@ -194,9 +194,11 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         self,
         x: list[str],
         return_debug_info: bool = False,
-        ) -> np.ndarray:
+    ) -> np.ndarray:
         if isinstance(x, str):
-            raise ValueError(f'Malinois input needs to be list of strings, not just string: {x}')
+            raise ValueError(
+                f"Malinois input needs to be list of strings, not just string: {x}"
+            )
         return self.inference_on_strings(x, return_debug_info)
 
 

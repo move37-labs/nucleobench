@@ -35,7 +35,7 @@ def load_model(artifact_path: str, has_cuda: bool | None = None):
 
     with tempfile.TemporaryDirectory() as tmpdirname:
         unpack_artifact(artifact_path, download_path=tmpdirname)
-        my_model = model_fn(os.path.join(tmpdirname, 'artifacts'))
+        my_model = model_fn(os.path.join(tmpdirname, "artifacts"))
 
     my_model.eval()
     if has_cuda:
@@ -44,7 +44,7 @@ def load_model(artifact_path: str, has_cuda: bool | None = None):
     return my_model
 
 
-def unpack_artifact(artifact_path, download_path='./'):
+def unpack_artifact(artifact_path, download_path="./"):
     """
     Unpack a tar archive artifact.
 
@@ -52,21 +52,26 @@ def unpack_artifact(artifact_path, download_path='./'):
         artifact_path (str): Path to the artifact.
         download_path (str, optional): Path to extract the artifact. Defaults to './'.
     """
-    if artifact_path.startswith('gs://'):
+    if artifact_path.startswith("gs://"):
         storage_client = storage.Client.create_anonymous_client()
 
-        bucket = storage_client.bucket(artifact_path.split('/')[2])
-        blob = bucket.blob('/'.join(artifact_path.split('/')[3:]))
+        bucket = storage_client.bucket(artifact_path.split("/")[2])
+        blob = bucket.blob("/".join(artifact_path.split("/")[3:]))
         tar_model = os.path.join(download_path, os.path.basename(artifact_path))
         blob.download_to_filename(tar_model)
     else:
         assert os.path.isfile(artifact_path), "Could not find file at expected path."
         tar_model = artifact_path
 
-    assert tarfile.is_tarfile(tar_model), f"Expected a tarfile at {tar_model}. Not found."
+    assert tarfile.is_tarfile(tar_model), (
+        f"Expected a tarfile at {tar_model}. Not found."
+    )
 
     shutil.unpack_archive(tar_model, download_path)
-    print(f'archive unpacked in {download_path}',)
+    print(
+        f"archive unpacked in {download_path}",
+    )
+
 
 def model_fn(model_dir):
     """
@@ -80,17 +85,19 @@ def model_fn(model_dir):
     """
     # The following line is needed because `weights_only=False` is required here.
     torch.serialization.add_safe_globals([_model.BassetBranched])
-    checkpoint = torch.load(os.path.join(model_dir,'torch_checkpoint.pt'), weights_only=False)
-    model_module = getattr(_model, checkpoint['model_module'])
-    model        = model_module(**vars(checkpoint['model_hparams']))
-    model.load_state_dict(checkpoint['model_state_dict'])
-    print(f'Loaded model from {checkpoint["timestamp"]} in eval mode')
+    checkpoint = torch.load(
+        os.path.join(model_dir, "torch_checkpoint.pt"), weights_only=False
+    )
+    model_module = getattr(_model, checkpoint["model_module"])
+    model = model_module(**vars(checkpoint["model_hparams"]))
+    model.load_state_dict(checkpoint["model_state_dict"])
+    print(f"Loaded model from {checkpoint['timestamp']} in eval mode")
     model.eval()
     return model
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Test with real data or local data.
-    #model = load_model('gs://tewhey-public-data/CODA_resources/malinois_artifacts__20211113_021200__287348.tar.gz')
-    model = load_model('./malinois_artifacts__20211113_021200__287348.tar.gz')
+    # model = load_model('gs://tewhey-public-data/CODA_resources/malinois_artifacts__20211113_021200__287348.tar.gz')
+    model = load_model("./malinois_artifacts__20211113_021200__287348.tar.gz")
     assert isinstance(model, torch.nn.Module)

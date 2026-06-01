@@ -45,15 +45,21 @@ class BPNet(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         """
         parser = argparse.ArgumentParser()
         group = parser.add_argument_group("BPNet init args")
-        group.add_argument("--protein", type=str, required=True,
-                           choices=bp_constants.AVAILABLE_MODELS_),
+        (
+            group.add_argument(
+                "--protein",
+                type=str,
+                required=True,
+                choices=bp_constants.AVAILABLE_MODELS_,
+            ),
+        )
 
         return parser
 
     @staticmethod
     def debug_init_args():
         return {
-            'protein': 'GATA2',
+            "protein": "GATA2",
         }
 
     def __init__(
@@ -76,12 +82,11 @@ class BPNet(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
 
         self.has_cuda = torch.cuda.is_available()
 
-
     def inference_on_tensor(
         self,
         x: torch.Tensor,
         return_debug_info: bool = False,
-        ) -> torch.Tensor:
+    ) -> torch.Tensor:
         """Run inference on a one-hot tensor."""
         assert x.ndim == 3  # Batched.
         assert x.shape[1] == 4
@@ -103,7 +108,9 @@ class BPNet(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
 
     def __call__(self, x: list[str], return_debug_info: bool = False) -> np.ndarray:
         if isinstance(x, str):
-            raise ValueError(f'Malinois input needs to be list of strings, not just string: {x}')
+            raise ValueError(
+                f"Malinois input needs to be list of strings, not just string: {x}"
+            )
         ret = self.inference_on_strings(x)
         if return_debug_info:
             return ret, {}
@@ -114,12 +121,15 @@ class BPNet(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
 if __name__ == "__main__":
     # Test with a real model.
     import time
+
     for prot in bp_constants.AVAILABLE_MODELS_:
-        print(f'Starting {prot}...')
+        print(f"Starting {prot}...")
         m = BPNet(protein=prot)
         ntimes = 100
         s_time = time.time()
         for _ in range(ntimes):
             m(["A" * 3_000])
         e_time = time.time()
-        print(f'Finished {prot} in {e_time - s_time} seconds: {(e_time - s_time) / ntimes} s / iter')
+        print(
+            f"Finished {prot} in {e_time - s_time} seconds: {(e_time - s_time) / ntimes} s / iter"
+        )

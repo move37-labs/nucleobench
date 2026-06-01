@@ -10,17 +10,18 @@ from nucleobench.optimizations import model_class as mc
 class CountLetterModel(torch.nn.Module, mc.TISMModelClass):
     """Count number of occurrences of first vocab letter."""
 
-    def __init__(self,
-                 vocab_i: int = 1,
-                 flip_sign: bool = False,
-                 extra_channels: int = 0,
-                 call_is_on_strings: bool = True,
-                 add_unsqueeze_to_output: bool = False,
-                 train_seq_len: int = 200,
-                 vocab_len: int = 4,
-                 aggregate: bool = True,
-                 vocab: list[str] = constants.VOCAB,
-                 ):
+    def __init__(
+        self,
+        vocab_i: int = 1,
+        flip_sign: bool = False,
+        extra_channels: int = 0,
+        call_is_on_strings: bool = True,
+        add_unsqueeze_to_output: bool = False,
+        train_seq_len: int = 200,
+        vocab_len: int = 4,
+        aggregate: bool = True,
+        vocab: list[str] = constants.VOCAB,
+    ):
         super().__init__()
         self.vocab_i = vocab_i
         self.flip_sign = flip_sign
@@ -43,7 +44,10 @@ class CountLetterModel(torch.nn.Module, mc.TISMModelClass):
         if self.flip_sign:
             out_tensor *= -1
         if self.extra_channels:
-            out_tensor = torch.stack([out_tensor] + [torch.ones_like(out_tensor)] * self.extra_channels, dim=1)
+            out_tensor = torch.stack(
+                [out_tensor] + [torch.ones_like(out_tensor)] * self.extra_channels,
+                dim=1,
+            )
         if self.add_unsqueeze_to_output:
             out_tensor = torch.unsqueeze(out_tensor, dim=-1)
         return out_tensor
@@ -66,8 +70,8 @@ class CountLetterModel(torch.nn.Module, mc.TISMModelClass):
     @property
     def data_params(self):
         return {
-            'tasks': {'name':[f'task{i}' for i in range(3)] + ['Neuron']},
-            'train': {'seq_len': self.train_seq_len},
+            "tasks": {"name": [f"task{i}" for i in range(3)] + ["Neuron"]},
+            "train": {"seq_len": self.train_seq_len},
         }
 
     # Method needed for gRelu.
@@ -79,7 +83,7 @@ def assert_proposal_respects_positions_to_mutate(
     start_sequence: str,
     proposal_sequence: str,
     positions_to_mutate: list[int] | None = None,
-    ):
+):
     if positions_to_mutate is None:
         return
 
