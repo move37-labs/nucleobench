@@ -22,15 +22,12 @@ import argparse
 import datetime
 import sys
 import time
-import tqdm
 from typing import Any
 
-from nucleobench.common import gcp_utils
-from nucleobench.common import testing_utils
+import tqdm
 
-from nucleobench import models
-from nucleobench.common import argparse_lib
-from nucleobench import optimizations
+from nucleobench import models, optimizations
+from nucleobench.common import argparse_lib, gcp_utils, testing_utils
 from nucleobench.optimizations import model_class as mc
 from nucleobench.optimizations import optimization_class as oc
 
@@ -42,7 +39,7 @@ def run_loop(
     ignore_errors: bool = False,
     ):
     args = all_args.main_args
-    
+
     # Determine whether the end condition should be met by time or number of rounds.
     if args.max_number_of_rounds is None:
         max_time = args.max_seconds
@@ -51,7 +48,7 @@ def run_loop(
         if args.max_number_of_rounds == 0:
             args.max_number_of_rounds = 99999999
         max_time = None
-        
+
     # Determine whether to record intermediate steps or not.
     if args.optimization_steps_per_output == -1:
         optimization_steps_per_output_effective = 1
@@ -68,19 +65,19 @@ def run_loop(
 
     # Log a "starting" round for graphs to look reasonable.
     to_write = _get_dict_to_write(
-        opt=opt, 
-        all_args=all_args, 
-        model=model, 
-        exp_start_time=exp_start_time, 
-        exp_starttime_str=exp_starttime_str, 
-        opt_time=opt_time, 
+        opt=opt,
+        all_args=all_args,
+        model=model,
+        exp_start_time=exp_start_time,
+        exp_starttime_str=exp_starttime_str,
+        opt_time=opt_time,
         round_i=-1)
     all_dicts_to_write.append(to_write)
 
     print('Starting loop...')
     # At the start, write a 'START.txt' file.
     gcp_utils.write_txt_file(args.output_path, content='START')
-    
+
     for round_i in tqdm.tqdm(range(args.max_number_of_rounds)):
         try:
             if opt.is_finished():
@@ -99,12 +96,12 @@ def run_loop(
 
             if record_intermediate_steps:
                 to_write = _get_dict_to_write(
-                    opt=opt, 
-                    all_args=all_args, 
-                    model=model, 
-                    exp_start_time=exp_start_time, 
-                    exp_starttime_str=exp_starttime_str, 
-                    opt_time=opt_time, 
+                    opt=opt,
+                    all_args=all_args,
+                    model=model,
+                    exp_start_time=exp_start_time,
+                    exp_starttime_str=exp_starttime_str,
+                    opt_time=opt_time,
                     round_i=round_i)
                 all_dicts_to_write.append(to_write)
 
@@ -120,20 +117,20 @@ def run_loop(
 
     # Add one more entry at the end, that includes the proposals.
     to_write = _get_dict_to_write(
-        opt=opt, 
-        model=model, 
-        all_args=all_args, 
-        exp_start_time=exp_start_time, 
-        exp_starttime_str=exp_starttime_str, 
-        opt_time=opt_time, 
-        round_i=args.max_number_of_rounds, 
+        opt=opt,
+        model=model,
+        all_args=all_args,
+        exp_start_time=exp_start_time,
+        exp_starttime_str=exp_starttime_str,
+        opt_time=opt_time,
+        round_i=args.max_number_of_rounds,
         write_proposals=True)
     all_dicts_to_write.append(to_write)
 
     # After safe completion, write everything.
     gcp_utils.save_proposals(
-        all_dicts_to_write, 
-        args, 
+        all_dicts_to_write,
+        args,
         args.output_path,
         format='parquet',
     )
@@ -154,7 +151,7 @@ def _get_dict_to_write(
     ) -> dict[str, Any]:
     # Get some proposals.
     proposals = opt.get_samples(all_args.main_args.proposals_per_round)
-    
+
     # Check that positions to mutate are respected.
     try:
         start_sequence = all_args.main_args.start_sequence
@@ -209,12 +206,12 @@ def parse_all(argv: list) -> tuple[mc.ModelClass, oc.SequenceOptimizer, argparse
     group.add_argument('--output_path', type=str, required=True,
                        help='Directory for all the structured output.')
     group.add_argument(
-        '--optimization_steps_per_output', type=int, default=10, 
+        '--optimization_steps_per_output', type=int, default=10,
         help='The number of optimization steps to run before recording a step. Note that `-1` means "do not record any intermediate steps."')
     group.add_argument('--proposals_per_round', type=int, default=1, help='')
     group.add_argument('--ignore_errors', type=argparse_lib.str_to_bool, default=False, help='')
     group.add_argument(
-        '--ignore_empty_cmd_args', type=argparse_lib.str_to_bool, default=False, 
+        '--ignore_empty_cmd_args', type=argparse_lib.str_to_bool, default=False,
         help='Ignore empty commandline args. Useful to have one script for all models/optimizers.')
 
     group = parser.add_mutually_exclusive_group()
@@ -231,7 +228,7 @@ def parse_all(argv: list) -> tuple[mc.ModelClass, oc.SequenceOptimizer, argparse
     if len(leftover_args) > 0:
         argparse_lib.handle_leftover_args(known_args, leftover_args)
 
-    # Some start sequences are too long to pass via cmd (they are ~200K bp), so we use 
+    # Some start sequences are too long to pass via cmd (they are ~200K bp), so we use
     # local or remote files instead.
     known_args.start_sequence = argparse_lib.possibly_parse_start_sequence(known_args.start_sequence)
     known_args.positions_to_mutate = argparse_lib.possibly_parse_positions_to_mutate(known_args.positions_to_mutate)
@@ -239,8 +236,8 @@ def parse_all(argv: list) -> tuple[mc.ModelClass, oc.SequenceOptimizer, argparse
     # Initialize objects.
     model_fn = model_obj(**vars(model_init_args))
     opt = opt_obj(
-        model_fn=model_fn, 
-        start_sequence=known_args.start_sequence, 
+        model_fn=model_fn,
+        start_sequence=known_args.start_sequence,
         positions_to_mutate=known_args.positions_to_mutate,
         **vars(opt_init_args))
 
@@ -252,7 +249,7 @@ def parse_all(argv: list) -> tuple[mc.ModelClass, oc.SequenceOptimizer, argparse
 
 def main(dry_run: bool = False):
     model_fn, opt, all_args = parse_all(sys.argv[1:])
-    
+
     print(f'[main] main_args: {all_args.main_args}')
     print('[main] Running...')
 
