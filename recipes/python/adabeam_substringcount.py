@@ -6,8 +6,9 @@ python -m recipes.python.adabeam_substringcount
 ```
 """
 
-"""Initialize the task."""
-from nucleobench import models
+from nucleobench import models, optimizations
+
+# Initialize the task.
 
 # Design for a simple task: count the number of occurances of a particular substring.
 # See `nucleobench.models.__init__` for a registry of tasks, or add your own.
@@ -20,8 +21,7 @@ model_init_args = model_obj.debug_init_args()
 model_init_args['substring'] = 'ATGTC'
 model_fn = model_obj(**model_init_args)
 
-"""Initialize the designer."""
-from nucleobench import optimizations
+# Initialize the designer.
 
 # Pick a design algorithm that attemps to solve the task. In this case,
 # maximize the number of substrings.
@@ -34,7 +34,7 @@ opt_init_args['model_fn'] = model_fn
 opt_init_args['start_sequence'] = 'A' * 100
 designer = opt_obj(**opt_init_args)
 
-"""Run the designer and show the results."""
+# Run the designer and show the results.
 designer.run(n_steps=100)
 ret = designer.get_samples(1)
 ret_score = model_fn(ret)

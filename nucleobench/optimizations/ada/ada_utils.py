@@ -61,7 +61,7 @@ class ModelWrapper:
         except AttributeError:
             try:
                 self.model.model.eval()
-            except:
+            except Exception:
                 pass
 
         if self.tism_cost is not None:
@@ -94,7 +94,8 @@ class ModelWrapper:
         if self.use_cache:
             # SAFETY VALVE: Prevent infinite growth for long runs
             if len(self.cache) > self.cache_limit:
-                if self.debug: print("Cache limit reached. Flushing.")
+                if self.debug:
+                    print("Cache limit reached. Flushing.")
                 self.cache = {}
 
             # 1) Sift sequences into seen and unseen, keeping track of their location

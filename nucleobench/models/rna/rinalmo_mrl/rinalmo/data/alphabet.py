@@ -1,5 +1,5 @@
 
-from .constants import *
+from .constants import *  # noqa: F405
 
 
 class Alphabet:

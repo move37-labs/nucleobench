@@ -14,13 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-"""
-This code was adapted from the following source:
-https://github.com/samsinai/FLEXS/blob/master/flexs/baselines/explorers/adalead.py
-
-It has been modified to conform to the nucleobench optimization class interface, and to remove the
-dependence on pandas.
-"""
+# This code was adapted from the following source:
+# https://github.com/samsinai/FLEXS/blob/master/flexs/baselines/explorers/adalead.py
+#
+# It has been modified to conform to the nucleobench optimization class interface, and to remove the
+# dependence on pandas.
 
 import argparse
 import random

@@ -59,7 +59,7 @@ class Ledidi(torch.nn.Module):
         sharper, i.e., more closely match the argmax of each position.
         Default is 1.
 
-    l: float, positive, optional
+    lam: float, positive, optional
         The mixing weight parameter between the input loss and the output loss,
         applied to the input loss. The smaller this value is the more important
         it is that the output loss is minimized. Default is 0.01.
@@ -110,7 +110,7 @@ class Ledidi(torch.nn.Module):
         input_loss=None,
         output_loss=torch.nn.MSELoss(),
         tau=1,
-        l=0.1,
+        lam=0.1,
         batch_size=16,
         max_iter=1000,
         early_stopping_iter=100,
@@ -134,7 +134,7 @@ class Ledidi(torch.nn.Module):
         self.input_loss = input_loss
         self.output_loss = output_loss
         self.tau = tau
-        self.l = l
+        self.lam = lam
         self.batch_size = batch_size
         self.max_iter = max_iter
         self.early_stopping_iter = early_stopping_iter
@@ -265,7 +265,7 @@ class Ledidi(torch.nn.Module):
             else:
                 input_loss = self.input_loss(X_hat[:, :, inpainting_mask], X_[:, :, inpainting_mask]) / (X_hat.shape[0] * 2)
             output_loss = self.output_loss(y_hat)
-            total_loss = output_loss + self.l * input_loss
+            total_loss = output_loss + self.lam * input_loss
 
             optimizer.zero_grad()
             total_loss.backward()
