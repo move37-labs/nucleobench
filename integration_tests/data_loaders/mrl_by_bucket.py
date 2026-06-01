@@ -11,7 +11,7 @@ from .base import DataLoader
 
 class MRLByBucket(DataLoader):
     """Data loader for ribosomal loading test sequences by expression bucket.
-    
+
     Fetches sequences from NCBI and categorizes them by expression level:
     - HIGH: Housekeeping genes (ACTB, GAPDH, etc.)
     - MEDIUM: Regulated genes (TP53, MAPK1, etc.)
@@ -44,7 +44,7 @@ class MRLByBucket(DataLoader):
 
     def __init__(self, cache_dir: Path | None = None):
         """Initialize the MRL by bucket data loader.
-        
+
         Args:
             cache_dir: Optional directory for cache files. If None, uses default location
                       in integration_tests/data_loaders/cache/
@@ -54,7 +54,7 @@ class MRLByBucket(DataLoader):
 
     def _get_default_cache_path(self) -> Path:
         """Get the default cache file path.
-        
+
         Returns:
             Path to the default cache CSV file
         """
@@ -64,7 +64,7 @@ class MRLByBucket(DataLoader):
 
     def _download_and_process(self) -> pd.DataFrame:
         """Download sequences from NCBI and process them.
-        
+
         Returns:
             DataFrame with columns: gene, accession, bucket, sequence_length, sequence
         """

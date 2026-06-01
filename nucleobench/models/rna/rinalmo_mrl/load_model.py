@@ -61,9 +61,9 @@ def load_model(ft_wts_url: str = constants.FT_ZENODO_URL_,
 
 def modify_flash_attn_wts_for_cpu(wts: dict[str, torch.Tensor]) -> dict[str, torch.Tensor]:
     """Modify flash attention weights for use on CPU.
-    
+
     This means manually carving out regular attention from flash attention weights.
-    
+
     General rules:
     - Map ex `lm.transformer.blocks.0.mh_attn.Wqkv.weight` ->
         'lm.transformer.blocks.0.mh_attn.mh_attn.to_q.weight',

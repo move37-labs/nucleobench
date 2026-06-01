@@ -4,17 +4,17 @@ Google Batch job template generator.
 USAGE:
     This module generates Google Batch job definitions from hyperparameters.
     It's used internally by job_launcher.py to create job configurations.
-    
+
     # Direct usage (if needed)
     from runners.gcp.job_template import create_job_definition
-    
+
     job_config = create_job_definition({
         'job_name': 'test_job',
         'model': 'malinois',
         'start_sequence': 'ATCG...',
         'optimization': 'fastseqprop'
     })
-    
+
     # Create example TSV
     example_tsv = create_example_tsv()
     with open('example.tsv', 'w') as f:

@@ -84,7 +84,7 @@ def grad_tensor_to_dict(smooth_grad: torch.Tensor, vocab: list[str]) -> Smoothgr
 
 def grad_to_tism(sg: SmoothgradVocabType, base_seq: str) -> TISMOutputType:
     """Returns result according to Taylor in-silico mutagenesis.
-    
+
     Paper: https://www.cell.com/iscience/fulltext/S2589-0042(24)02032-7"""
     assert len(sg) == len(base_seq)
 
@@ -101,11 +101,11 @@ def grad_to_tism(sg: SmoothgradVocabType, base_seq: str) -> TISMOutputType:
 
 def grad_torch_to_tism_torch(sg_tensor: torch.Tensor, base_seq: torch.Tensor) -> torch.Tensor:
     """Returns result according to Taylor in-silico mutagenesis.
-    
+
     Paper: https://www.cell.com/iscience/fulltext/S2589-0042(24)02032-7
-    
+
     Identical to `smoothgrad_to_tism`, but for torch tensors. Avoids converting to strings.
-    
+
     Args:
         sg_tensor: (vocab_size, seq_len) tensor, smoothgrad values for each base at each position.
         base_seq_onehot: (seq_len,) tensor, integer encoding of the reference sequence.
@@ -135,7 +135,7 @@ def apply_gradient_mask_deprecated(
     x: torch.Tensor,
     idxs: TISMLocationsType) -> tuple[torch.Tensor, torch.Tensor]:
     """Applies a gradient mask to the input tensor.
-    
+
     NOTE: Do NOT just multiply by 0. This will run out of memory in large models.
 
     Returns:
@@ -164,7 +164,7 @@ def apply_gradient_mask_deprecated(
 
 def apply_gradient_mask(x: torch.Tensor, idxs: TISMLocationsType) -> tuple[torch.Tensor, torch.Tensor]:
     """Applies a gradient mask by creating a computational graph where only 'idxs' are inputs.
-    
+
     This effectively 'gathers' the values at idxs into a small tensor (x_grad),
     and 'scatters' them back into a static background to create the model input.
     """

@@ -20,15 +20,15 @@ LogitsType = np.ndarray
 @dataclasses.dataclass(frozen=True)
 class RolloutNode:
     """Class for tracking rollout node.
-    
+
     NOTE on terminology:
-    
+
     a -> b -> c
-    
+
     `a` is the root of `b` and `c`.
     `a` is the parent of `b`.
     `b` is the parent of `c`.
-    
+
     """
     seq: SequenceType
     fitness: np.float32
@@ -170,8 +170,8 @@ def generate_random_mutant(
     Generate a mutant of `sequence` where each residue mutates with probability `mu`.
 
     So the expected value of the total number of mutations is `len(positions_to_mutate) * mu`.
-    
-    NOTE: This is used in adalead_ref, with rejection sampling. For efficiency, we prefer 
+
+    NOTE: This is used in adalead_ref, with rejection sampling. For efficiency, we prefer
     `generate_random_mutant_v2` since it avoids the need for rejection sampling.
 
     Args:
@@ -206,34 +206,34 @@ def num_edits_likelihood_adalead_legacy(
     F_inverse: float | None = None,
     ) -> float:
     """The likelihood of `num_edits` edits in the reference Adalead implementation.
-    
+
     Note that the algorithm uses `generate_random_mutant` above, with rejection sampling
     if there are no edits.
-    
+
     See `adalead_utils_test.py` for a test that these are equivalent.
-    
+
     Form:
     mu := mutation rate
     mu' := 3/4 * mu
     l := sequence length
     n := number of edits
     Binom(n, l, mu) := binomial distribution
-    
+
     F := 1 / (1 - (1-mu')^l)
-    
+
     =>
     Pr[N locations edited] = 0, if N <= 0, N > l
     Pr[N locations edited] = Binom(n, l, mu') * F, otherwise
-    
+
     E[num locations edited] = F * mu' * l
-        
-        
+
+
     NOTE: For numerical accuracy, we note the following:
-    
+
     (1 - mu')^l = exp( log( 1 - epsilon)^l ) )
                 = exp( l * log( 1 + (-epsilon) ) ) )
                 = exp( l * np.log1p(-epsilon) )
-    
+
     """
     return num_edits_likelihood_adabeam(
         num_edits=num_edits,
@@ -247,29 +247,29 @@ def num_edits_likelihood_adabeam(
     mu: float,
     ) -> float:
     """The likelihood of `num_edits` edits in the reference AdaBeam implementation.
-    
+
     Thus,
-    
+
     E[num locations edited] = F * mu * l
-    
+
     Form:
     mu := mutation rate
     l := sequence length
     n := number of edits
     Binom(n, l, mu) := binomial distribution
-    
+
     with
     F := 1 / (1 - (1-mu)^l)
-    
+
     =>
     Pr[N locations edited] = 0, if N <= 0, N > l
     Pr[N locations edited] = Binom(n, l, mu) * F, otherwise
-    
+
     E[num locations edited] = F * mu * l
-        
-        
+
+
     NOTE: For numerical accuracy, we note the following:
-    
+
     (1 - mu')^l = exp( log( 1 - epsilon)^l ) )
                 = exp( l * log( 1 + (-epsilon) ) ) )
                 = exp( l * np.log1p(-epsilon) )

@@ -91,15 +91,15 @@ class RinalmoMRL(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
 
     def inference_on_tensor(self, x: torch.Tensor) -> torch.Tensor:
         """Run inference on a one-hot encoded tensor.
-        
+
         IMPORTANT: This method ONLY accepts one-hot encoded tensors to ensure
         compatibility with gradient-based optimizations (Ledidi, FastSeqProp).
         Token indices are no longer supported as input.
-        
+
         Args:
             x: One-hot encoded tensor of shape (batch_size, 4, seq_len)
                where dimension 1 corresponds to nucleotides [A, C, G, T/U]
-        
+
         Returns:
             Tensor of shape (batch_size,) with model predictions
         """

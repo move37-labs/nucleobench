@@ -1,7 +1,7 @@
 """Tests for model_def.py
 
 To test:
-```zsh  
+```zsh
 pytest nucleobench/models/rna/rinalmo_mrl/model_def_test.py
 ```
 
@@ -11,17 +11,17 @@ instead of pretrained weights. This is intentional and appropriate for unit test
 
 1. The tests use RibosomeLoadingPredictionWrapper which instantiates the full
    RiNALMo transformer architecture with all its layers and components.
-   
+
 2. However, the pretrained weights are NOT loaded from Zenodo. The model runs
    with randomly initialized weights.
-   
+
 3. This approach is ideal for unit testing because:
    - It tests the complete data flow through the real model architecture
    - It verifies tensor shapes, dtype conversions, and gradient flow
    - It's fast (no need to download ~1GB of pretrained weights)
    - It's deterministic if seeds are set
    - It doesn't depend on external resources (Zenodo)
-   
+
 4. Consequence: The actual prediction values are meaningless (random), so tests
    should focus on shapes, types, and computational flow rather than specific
    output values.
@@ -42,7 +42,7 @@ from .rinalmo.ribosome_loading import RibosomeLoadingPredictionWrapper
 
 def _override_model():
     """Override model for testing.
-    
+
     Returns the RiNALMo model architecture with RANDOM weights (not pretrained).
     This is intentional - see file docstring for explanation.
     """
@@ -131,7 +131,7 @@ def test_embedding_module():
 
 def test_inference_on_tensor_with_onehot():
     """Test that inference_on_tensor accepts one-hot encoded tensors.
-    
+
     NOTE: This test uses random weights, so we don't check for exact value matches
     between tokenized and one-hot inputs. With random weights, the soft embedding
     approach (weighted sum) can give different results than hard tokenization (argmax).
@@ -170,7 +170,7 @@ def test_inference_on_tensor_with_onehot():
 
 def test_inference_with_gradient_flow():
     """Test that gradients can flow through the one-hot conversion for Ledidi/FastSeqProp.
-    
+
     This test verifies that the soft embedding approach allows gradient-based
     optimizations like Ledidi and FastSeqProp to work. The model uses random weights
     (not pretrained), but this is sufficient to test that:
@@ -210,14 +210,14 @@ def test_inference_with_gradient_flow():
 
 def test_custom_onehot_embeddings_match_normal_tokenization():
     """Test that custom one-hot to embedding logic produces same embeddings as normal RiNALMo tokenization.
-    
+
     This test verifies that when we convert one-hot tensors to embeddings using our
     custom soft embedding approach, we get the exact same embeddings as the normal
     RiNALMo encoding (strings -> tokens -> embeddings).
-    
+
     This is important because it ensures our custom logic is equivalent to the
     standard RiNALMo encoding scheme, just with gradient flow enabled.
-    
+
     NOTE: This test uses random weights (not pretrained), but the equivalence should
     hold regardless of weights since we're testing the encoding logic itself.
     """
@@ -238,7 +238,7 @@ def test_custom_onehot_embeddings_match_normal_tokenization():
         batch_onehot = batch_onehot.cuda()
 
     batch_size = batch_onehot.shape[0]
-    seq_len = batch_onehot.shape[2]
+    batch_onehot.shape[2]
     device = batch_onehot.device
 
     # Replicate the custom embedding logic from inference_on_tensor

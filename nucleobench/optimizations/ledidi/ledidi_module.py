@@ -22,13 +22,13 @@ class Ledidi(torch.nn.Module):
     a small number of edits. It does so through the use of an oracle model,
     which is a differentiable model that accepts a categorical sequence as
     input and makes relevant predictions. For instance, the model might take
-    in one-hot encoded nucleotide sequence and predict the strength of binding 
-    for a particular transcription factor. 
+    in one-hot encoded nucleotide sequence and predict the strength of binding
+    for a particular transcription factor.
 
-    Given a sequence and a desired output, Ledidi uses gradient descent to 
+    Given a sequence and a desired output, Ledidi uses gradient descent to
     design edits that bring the predicted output from the model closer to the
     desired output. Because the sequences that predictions are being made for
-    must be categorical this involves using the Gumbel-softmax 
+    must be categorical this involves using the Gumbel-softmax
     reparameterization trick.
 
 
@@ -65,7 +65,7 @@ class Ledidi(torch.nn.Module):
         it is that the output loss is minimized. Default is 0.01.
 
     batch_size: int, optional
-        The number of sequences to generate at each step and average loss over. 
+        The number of sequences to generate at each step and average loss over.
         Default is 64.
 
     max_iter: int, optional
@@ -80,8 +80,8 @@ class Ledidi(torch.nn.Module):
         The learning rate of the procedure. Default is 0.1.
 
     input_mask: torch.Tensor or None, shape=(shape[-1],)
-        A mask where 1 indicates what positions cannot be edited. This will 
-        set the initial weights mask to -inf at those positions. If None, no 
+        A mask where 1 indicates what positions cannot be edited. This will
+        set the initial weights mask to -inf at those positions. If None, no
         positions are masked out. Default is None.
 
     initial_weights: torch.Tensor or None, shape=(1, shape[0, shape[1])
@@ -184,8 +184,8 @@ class Ledidi(torch.nn.Module):
         Parameters
         ----------
         X: torch.Tensor, shape=(1, n_channels, length)
-            A tensor containing a single one-hot encoded sequence to propose 
-            edits for. This sequence is then expanded out to the desired batch 
+            A tensor containing a single one-hot encoded sequence to propose
+            edits for. This sequence is then expanded out to the desired batch
             size to generate a batch of edits.
 
 
@@ -218,8 +218,8 @@ class Ledidi(torch.nn.Module):
         Parameters
         ----------
         X: torch.Tensor, shape=(1, n_channels, length)
-            A tensor containing a single one-hot encoded sequence to propose 
-            edits for. This sequence is then expanded out to the desired batch 
+            A tensor containing a single one-hot encoded sequence to propose
+            edits for. This sequence is then expanded out to the desired batch
             size to generate a batch of edits.
 
 

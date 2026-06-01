@@ -45,7 +45,7 @@ class Borzoi(grelu_md.GReluModel):
     @staticmethod
     def write_dummy_sequence_to_file(filepath: str, sequence_length: int = constants.BORZOI_TRAIN_LEN_) -> None:
         """Write a dummy sequence of specified length to a text file.
-        
+
         Args:
             filepath: Path to the output file
             sequence_length: Length of the sequence to generate (default: 524_288)
@@ -95,13 +95,13 @@ class Borzoi(grelu_md.GReluModel):
         middle_length: int = enformer_constants.ENFORMER_TRAIN_LEN_,
     ) -> str:
         """Read a sequence from a file and inject a middle sequence.
-        
+
         Args:
             filepath: Path to the input sequence file
             middle_sequence: Sequence to inject in the middle (should be middle_length long)
             total_length: Total length of the output sequence (default: 524_288)
             middle_length: Length of the middle sequence to inject (default: 196_608)
-            
+
         Returns:
             Modified sequence with middle_sequence injected in the middle
         """

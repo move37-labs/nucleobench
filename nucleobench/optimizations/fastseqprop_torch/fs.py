@@ -80,7 +80,7 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
 
     def run(self, n_steps: int) -> list[np.ndarray]:
         """Runs the optimization.
-        
+
         Default hparams come from https://www.nature.com/articles/s41586-024-08070-z.
         """
         assert len(list(self.opt_module.parameters())) == 1

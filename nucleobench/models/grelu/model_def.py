@@ -22,7 +22,7 @@ from nucleobench.optimizations import model_class as mc
 
 class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
     """General format for gRelu models.
-    
+
     Specific tasks should inherit from this.
     """
 

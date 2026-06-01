@@ -62,7 +62,7 @@ def test_params(start_str: str):
     assert len(all_params) == 1
     param = all_params[0]
     assert list(param.shape) == [1, 4, len(start_str)]
-    assert param.requires_grad == True
+    assert param.requires_grad
 
 
 def test_respects_pos_to_mutate():

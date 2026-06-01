@@ -40,7 +40,7 @@ class AdaBeam(oc.SequenceOptimizer):
             mutations_per_sequence: The expected number of mutations per sequence. Actual number of mutations
                 per round is sampled from a distribution.
             beam_size: Maximum number of candidates to carry from one round to the next.
-            n_rollouts_per_root: Number of explorations per root, per round. 
+            n_rollouts_per_root: Number of explorations per root, per round.
             eval_batch_size: Number of sequences to run inference on the model at once.
             rng_seed: Seed for the pseudo-random number generator.
             skip_repeat_sequences: If `True`, skip sequences that have already been evaluated. If `False`,

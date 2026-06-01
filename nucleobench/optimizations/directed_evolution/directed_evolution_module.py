@@ -176,7 +176,7 @@ def positions_from_tism(
     tism_args: TISMArgs,
     ) -> tuple[PositionType, TISMPosMaskType]:
     """Determine positions to mutate based on TISM.
-    
+
     Algo:
     1) Compute TISM
     2) Compute the expected change in energy.
@@ -222,7 +222,7 @@ def tism_guided_ism(
     tism_args: TISMArgs,
     ) -> list[str]:
     """Select positions to mutate based on TISM.
-    
+
     General flow:
     1) Compute TISM
     2) Pick the top N mutations accoring to TISM

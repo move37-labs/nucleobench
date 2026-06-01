@@ -8,7 +8,7 @@ import pandas as pd
 
 class DataLoader(ABC):
     """Abstract base class for data loaders.
-    
+
     Subclasses should implement:
     - `_get_default_cache_path()`: Return the default cache file path
     - `_download_and_process()`: Download and process data, return DataFrame
@@ -17,7 +17,7 @@ class DataLoader(ABC):
 
     def __init__(self, cache_dir: Path | None = None):
         """Initialize the data loader.
-        
+
         Args:
             cache_dir: Optional directory for cache files. If None, uses default location.
         """
@@ -25,7 +25,7 @@ class DataLoader(ABC):
 
     def _get_cache_path(self) -> Path:
         """Get the cache file path.
-        
+
         Returns:
             Path to the cache file (CSV or Parquet)
         """
@@ -36,7 +36,7 @@ class DataLoader(ABC):
     @abstractmethod
     def _get_default_cache_path(self) -> Path:
         """Get the default cache file path.
-        
+
         Returns:
             Path to the default cache file location
         """
@@ -45,7 +45,7 @@ class DataLoader(ABC):
     @abstractmethod
     def _download_and_process(self) -> pd.DataFrame:
         """Download and process data from source.
-        
+
         Returns:
             DataFrame with the processed data
         """
@@ -53,7 +53,7 @@ class DataLoader(ABC):
 
     def populate_cache(self) -> Path:
         """Download and process data, then save to cache.
-        
+
         Returns:
             Path to the cache file
         """
@@ -77,7 +77,7 @@ class DataLoader(ABC):
 
     def get_data(self) -> pd.DataFrame:
         """Get data, loading from cache if available, otherwise downloading.
-        
+
         Returns:
             DataFrame with the data
         """

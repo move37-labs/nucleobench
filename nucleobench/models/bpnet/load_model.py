@@ -1,9 +1,9 @@
 """Fetch and load BPNets trained for the Ledidi paper.
 
-This includes a set of BPNet models trained using bpnet-lite along with the 
-training parameter files used for evaluating Ledidi. The training parameter files 
-include the ENCODE accessions for the signal and peak files used for training. 
-The models were trained using PyTorch and can be loaded and used with the bpnet-lite 
+This includes a set of BPNet models trained using bpnet-lite along with the
+training parameter files used for evaluating Ledidi. The training parameter files
+include the ENCODE accessions for the signal and peak files used for training.
+The models were trained using PyTorch and can be loaded and used with the bpnet-lite
 repository, where they are instances of the `BPNet` object.
 
 https://zenodo.org/records/14604495
@@ -57,7 +57,7 @@ class CountWrapper(torch.nn.Module):
 
     Copied from https://github.com/jmschrei/bpnet-lite/blob/master/bpnetlite/bpnet.py,
     under the MIT license.
-    
+
 	This class takes in a trained model and returns only the second output.
 	For BPNet models, this means that it is only returning the count
 	predictions. This is for convenience when using captum to calculate
@@ -80,7 +80,7 @@ class CountWrapper(torch.nn.Module):
 # TODO(joelshor): Figure out how to import these directly from bpnet.
 class ControlWrapper(torch.nn.Module):
 	"""This wrapper automatically creates a control track of all zeroes.
- 
+
     Copied from https://github.com/jmschrei/bpnet-lite/blob/master/bpnetlite/bpnet.py,
     under the MIT license.
 
@@ -95,7 +95,7 @@ class ControlWrapper(torch.nn.Module):
 		self.model = model
 
 	def forward(self, X, X_ctl=None):
-		if X_ctl != None:
+		if X_ctl is not None:
 			return self.model(X, X_ctl)
 
 		if self.model.n_control_tracks == 0:

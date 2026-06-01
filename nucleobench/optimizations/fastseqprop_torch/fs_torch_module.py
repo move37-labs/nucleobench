@@ -80,9 +80,9 @@ class TorchFastSeqPropOptimizer(torch.nn.Module):
 
     def get_samples_onehot(self, n_samples) -> torch.Tensor:
         """Draw samples.
-        
+
         For now, assume that the patch dimension of the parameter is 1.
-        
+
         TODO(joelshor): Expand to multiple batches, if desired.
         TODO(joelshor): Switch to using logits instead of probs.
         """

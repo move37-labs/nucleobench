@@ -4,13 +4,13 @@ Google Batch job launcher for nucleobench.
 USAGE:
     # Basic usage - launch jobs from TSV file
     python -m runners.gcp.job_launcher runners/testdata/adabeam_test.tsv
-    
+
     # With options
     python -m runners.gcp.job_launcher \
         --dry-run \
         --verbose \
         runners/testdata/adabeam_test.tsv
-    
+
     # Check help
     python -m runners.gcp.job_launcher --help
 
@@ -23,7 +23,7 @@ REQUIREMENTS:
 EXAMPLES:
     # Test configuration without launching
     python -m runners.gcp.job_launcher --dry-run runners/gcp/testdata/ledidi-testrun.tsv
-    
+
     # Launch with limited concurrency
     python -m runners.gcp.job_launcher runners/gcp/testdata/ledidi-testrun.tsv
 """

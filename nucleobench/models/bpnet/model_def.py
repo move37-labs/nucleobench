@@ -1,8 +1,8 @@
 """BPNet models from the Ledidi paper (https://icml-compbio.github.io/icml-website-2020/2020/papers/WCBICML2020_paper_23.pdf).
 
-The authors have trained a BPNet model for each of eight proteins in K562 
-whose ChIP-seq data is on the ENCODE portal. Each model was trained on the union 
-of reads from two replicate BAM files mapped at basepair resolution and separated 
+The authors have trained a BPNet model for each of eight proteins in K562
+whose ChIP-seq data is on the ENCODE portal. Each model was trained on the union
+of reads from two replicate BAM files mapped at basepair resolution and separated
 out by strand. These models were trained using the bpnet-lite repository.
 
 Stored at https://zenodo.org/records/14604495.
@@ -25,10 +25,10 @@ from nucleobench.optimizations import model_class as mc
 
 
 class BPNet(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
-    """BPNet model trained on eight proteins in K562 whose ChIP-seq 
-    data is on the ENCODE portal. Each model was trained on the union 
-    of reads from two replicate BAM files mapped at basepair resolution 
-    and separated out by strand. These models were trained using the 
+    """BPNet model trained on eight proteins in K562 whose ChIP-seq
+    data is on the ENCODE portal. Each model was trained on the union
+    of reads from two replicate BAM files mapped at basepair resolution
+    and separated out by strand. These models were trained using the
     bpnet-lite repository."""
 
     @staticmethod

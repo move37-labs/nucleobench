@@ -33,7 +33,7 @@ class TISMModelClass(ModelClass):
 
     def tism(self, x: str, idxs: list[int] | None = None) -> tuple[torch.Tensor, list[dict[str, torch.Tensor]]]:
         """Runs Taylor in-silico mutagenesis on inputs.
-        
+
         Deprecated. Use `get_tism` instead.
         """
         try:
@@ -56,10 +56,10 @@ class TISMModelClass(ModelClass):
 
     def str2tensor(self, x: str) -> torch.Tensor:
         """Convert a string to a tensor.
-        
+
         It must be done in a predictable way, so that we can efficiently manipulate
         the Tensor, then consistently converted back.
-        
+
         Child classes can override this method if needed.
         """
         assert hasattr(self, 'vocab'), 'Vocab not set.'
@@ -68,10 +68,10 @@ class TISMModelClass(ModelClass):
 
     def tensor2int(self, x: torch.Tensor) -> str:
         """Convert a Tensor to an integer sequence.
-        
+
         It must be done in a predictable way, so that we can efficiently manipulate
         the Tensor, then consistently converted back.
-        
+
         Child classes can override this method if needed.
         """
         assert hasattr(self, 'vocab'), 'Vocab not set.'

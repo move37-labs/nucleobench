@@ -53,7 +53,7 @@ class Enformer(grelu_md.GReluModel):
         run_sanity_checks: bool = True,
     ):
         """Init.
-        
+
         Aggregation is complicated. We enumerate the options as strings, and use premade aggregation
         functions for well thought-out options, instead of asking the user to provide them, so the
         aggregation can be easily tracked and tested.

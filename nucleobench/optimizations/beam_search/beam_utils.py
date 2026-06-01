@@ -8,10 +8,10 @@ BeamValue = float
 # memory usage.
 class Beam:
     """Simple API for heap-based beam access.
-    
+
     Note: Optimizers try to MINIMIZE, so the value from networks are better if LOW.
     This means we should REMOVE LARGE VALUES from the beam as we go.
-    
+
     TODO(joelshor): Make this more efficient with a heap / heapq.
     """
     def __init__(self, max_items: int):

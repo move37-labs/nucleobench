@@ -149,7 +149,7 @@ def test_empty_positions_to_mutate(pos_to_mutate_type):
             '--positions_to_mutate', pos_to_mutate,
             ])
         if pos_to_mutate_type in ['empty', 'none']:
-            assert parsed_args.main_args.positions_to_mutate == None
+            assert parsed_args.main_args.positions_to_mutate is None
         elif pos_to_mutate_type == 'local':
             assert isinstance(parsed_args.main_args.positions_to_mutate, list)
             for p in parsed_args.main_args.positions_to_mutate:

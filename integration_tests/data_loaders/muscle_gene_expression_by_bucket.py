@@ -45,13 +45,13 @@ HG38_URL = "http://hgdownload.cse.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz"
 
 class MuscleGeneExpressionByBucket(DataLoader):
     """Data loader for muscle gene expression sequences by bucket.
-    
+
     Extracts sequences for CKM, ALB, and a gene desert region from hg38.
     The sequences are categorized by expression level:
     - CKM: High expression in muscle
-    - ALB: High expression in liver  
+    - ALB: High expression in liver
     - Gene Desert: Low/no expression region
-    
+
     Sequences are extracted at two different lengths:
     - 196,608 bp (for Enformer)
     - 524,288 bp (for Borzoi)
@@ -59,7 +59,7 @@ class MuscleGeneExpressionByBucket(DataLoader):
 
     def __init__(self, cache_dir: Path | None = None):
         """Initialize the muscle gene expression data loader.
-        
+
         Args:
             cache_dir: Optional directory for cache files. If None, uses default location
                       in integration_tests/data_loaders/cache/
@@ -68,7 +68,7 @@ class MuscleGeneExpressionByBucket(DataLoader):
 
     def _get_default_cache_path(self) -> Path:
         """Get the default cache file path.
-        
+
         Returns:
             Path to the default cache Parquet file
         """
@@ -78,7 +78,7 @@ class MuscleGeneExpressionByBucket(DataLoader):
 
     def _get_hg38_path(self) -> Path:
         """Get the path to the hg38.fa file.
-        
+
         Returns:
             Path to hg38.fa (will be in cache directory)
         """
@@ -87,7 +87,7 @@ class MuscleGeneExpressionByBucket(DataLoader):
 
     def _download_hg38(self, download_path: Path) -> None:
         """Downloads and decompresses hg38.fa.gz.
-        
+
         Args:
             download_path: Path where hg38.fa should be saved
         """
@@ -120,14 +120,14 @@ class MuscleGeneExpressionByBucket(DataLoader):
 
     def _extract_sequence(self, fasta_handle, chrom: str, center: int, length: int, style: str) -> str:
         """Extracts a sequence of a given length centered at a specific location.
-        
+
         Args:
             fasta_handle: Pyfaidx Fasta handle
             chrom: Chromosome name (e.g., 'chr19')
             center: Center position for extraction
             length: Desired sequence length
             style: Extraction style - 'enformer' or 'borzoi'
-            
+
         Returns:
             Extracted DNA sequence as string
         """
@@ -147,7 +147,7 @@ class MuscleGeneExpressionByBucket(DataLoader):
 
     def _download_and_process(self) -> pd.DataFrame:
         """Download hg38 if needed and extract sequences.
-        
+
         Returns:
             DataFrame with columns: gene, chromosome, center, sequence_length, style, sequence
         """

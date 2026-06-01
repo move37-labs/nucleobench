@@ -1,7 +1,7 @@
 """Tests for ribosome_loading.py
 
 To test:
-```zsh  
+```zsh
 pytest nucleobench/models/rna/rinalmo_mrl/rinalmo/ribosome_loading_test.py
 ```
 """

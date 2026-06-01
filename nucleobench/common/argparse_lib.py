@@ -24,7 +24,7 @@ class ParsedArgs:
 
 def possibly_parse_start_sequence(start_seq: str) -> str:
     """Possibly parse start sequence from a local or remote file.
-    
+
     Prefix strings that trigger special handling:
     - `local://`: Load from a local file.
     - `enformer://[0-9]+`: Load from fixed location for Enformer start sequences, as used
@@ -54,7 +54,7 @@ def fetch_zenodo_enformer_start_sequence_df() -> pd.DataFrame:
 
 def possibly_parse_positions_to_mutate(positions_to_mutate: str | list[int] | None) -> list[int] | None:
     """Possibly parse `positions_to_mutate` from a file, or leave it untouched, depending on the value.
-    
+
     Prefix strings that trigger special handling:
     - `local://`: Load from a local file.
     - `enformer://[0-9]+`: Load from fixed location for Enformer start sequences, as used

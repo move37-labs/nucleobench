@@ -30,7 +30,7 @@ STRIDE_DATA_URLS = {
 
 class RibosomalLoadingMTtransRepo(DataLoader):
     """Data loader for ribosomal loading data from MTtrans repository.
-    
+
     Downloads evaluation testset results from the MTtrans GitHub repository.
     Supports multiple datasets:
     - 3M: Main 3M dataset
@@ -41,7 +41,7 @@ class RibosomalLoadingMTtransRepo(DataLoader):
 
     def __init__(self, dataset_name: str, cache_dir: Path | None = None):
         """Initialize the MTtrans ribosomal loading data loader.
-        
+
         Args:
             dataset_name: Name of the dataset to load ('3M', '3M_H', '3M_U', '3M_V')
             cache_dir: Optional directory for cache files. If None, uses default location
@@ -55,7 +55,7 @@ class RibosomalLoadingMTtransRepo(DataLoader):
 
     def _get_default_cache_path(self) -> Path:
         """Get the default cache file path.
-        
+
         Returns:
             Path to the default cache CSV file (named by dataset)
         """
@@ -65,7 +65,7 @@ class RibosomalLoadingMTtransRepo(DataLoader):
 
     def _download_real_data(self, url: str, path: Path) -> None:
         """Download data from URL using curl.
-        
+
         Args:
             url: URL to download from
             path: Local path to save the file
@@ -75,7 +75,7 @@ class RibosomalLoadingMTtransRepo(DataLoader):
 
     def _download_and_process(self) -> pd.DataFrame:
         """Download data from MTtrans repository and process it.
-        
+
         Returns:
             DataFrame with the ribosomal loading data
         """

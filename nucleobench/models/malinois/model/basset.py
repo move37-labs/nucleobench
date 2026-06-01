@@ -139,16 +139,16 @@ class Basset(ptl.LightningModule):
     @staticmethod
     def process_args(grouped_args):
         """
-        Perform any required processessing of command line args required 
+        Perform any required processessing of command line args required
         before passing to the class constructor.
 
         Args:
-            grouped_args (Namespace): Namespace of known arguments with 
-            `'Model Module args'` key and conditionally added 
+            grouped_args (Namespace): Namespace of known arguments with
+            `'Model Module args'` key and conditionally added
             `'Criterion args'` key.
 
         Returns:
-            Namespace: A modified namespace that can be passed to the 
+            Namespace: A modified namespace that can be passed to the
             associated class constructor.
         """
         model_args   = grouped_args['Model Module args']
@@ -414,16 +414,16 @@ class BassetVL(ptl.LightningModule):
     @staticmethod
     def process_args(grouped_args):
         """
-        Perform any required processessing of command line args required 
+        Perform any required processessing of command line args required
         before passing to the class constructor.
 
         Args:
-            grouped_args (Namespace): Namespace of known arguments with 
-            `'Model Module args'` key and conditionally added 
+            grouped_args (Namespace): Namespace of known arguments with
+            `'Model Module args'` key and conditionally added
             `'Criterion args'` key.
 
         Returns:
-            Namespace: A modified namespace that can be passed to the 
+            Namespace: A modified namespace that can be passed to the
             associated class constructor.
         """
         model_args   = grouped_args['Model Module args']
@@ -623,7 +623,7 @@ class BassetVL(ptl.LightningModule):
 
 class BassetEntropyVL(ptl.LightningModule):
     """
-    Deprecated, redundant to updated BassetVL. 
+    Deprecated, redundant to updated BassetVL.
     A custom LightningModule implementing the Basset model with entropy-based loss and variation loss.
 
     Args:
@@ -672,10 +672,10 @@ class BassetEntropyVL(ptl.LightningModule):
     def add_model_specific_args(parent_parser):
         """
         Add model-specific arguments to the argument parser.
-    
+
         Args:
             parent_parser (argparse.ArgumentParser): Parent argument parser.
-    
+
         Returns:
             argparse.ArgumentParser: Argument parser with added model-specific arguments.
         """
@@ -709,11 +709,11 @@ class BassetEntropyVL(ptl.LightningModule):
     def add_conditional_args(parser, known_args):
         """
         Add conditional model-specific arguments based on known arguments.
-    
+
         Args:
             parser (argparse.ArgumentParser): Argument parser to which conditional arguments will be added.
             known_args (Namespace): Namespace containing known arguments.
-    
+
         Returns:
             argparse.ArgumentParser: Argument parser with added conditional arguments.
         """
@@ -723,10 +723,10 @@ class BassetEntropyVL(ptl.LightningModule):
     def process_args(grouped_args):
         """
         Process grouped arguments and extract model-specific arguments.
-    
+
         Args:
             grouped_args (dict): Dictionary of grouped arguments.
-    
+
         Returns:
             dict: Model-specific arguments extracted from grouped_args.
         """
@@ -1021,16 +1021,16 @@ class BassetBranched(ptl.LightningModule):
     @staticmethod
     def process_args(grouped_args):
         """
-        Perform any required processessing of command line args required 
+        Perform any required processessing of command line args required
         before passing to the class constructor.
 
         Args:
-            grouped_args (Namespace): Namespace of known arguments with 
-            `'Model Module args'` key and conditionally added 
+            grouped_args (Namespace): Namespace of known arguments with
+            `'Model Module args'` key and conditionally added
             `'Criterion args'` key.
 
         Returns:
-            Namespace: A modified namespace that can be passed to the 
+            Namespace: A modified namespace that can be passed to the
             associated class constructor.
         """
         model_args   = grouped_args['Model Module args']
@@ -1054,7 +1054,7 @@ class BassetBranched(ptl.LightningModule):
                  loss_criterion='L1KLmixed', loss_args={}):
         """
         Initialize the BassetBranched model.
-    
+
         Args:
             conv1_channels (int): Number of channels for the first convolutional layer.
             conv1_kernel_size (int): Kernel size for the first convolutional layer.

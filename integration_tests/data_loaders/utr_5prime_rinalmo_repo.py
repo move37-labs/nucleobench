@@ -18,7 +18,7 @@ HUMAN_5UTR_LIB_URL = "https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE114002&f
 
 class UTR5PrimeRinalmoRepo(DataLoader):
     """Data loader for synthetic Human 5'UTR library from RiNALMo repository.
-    
+
     Downloads data from NCBI GEO (GSE114002) and extracts the CSV file.
     The data contains 5' UTR sequences with varying lengths (25-100 nt)
     and their corresponding ribosome loading values.
@@ -28,7 +28,7 @@ class UTR5PrimeRinalmoRepo(DataLoader):
 
     def __init__(self, cache_dir: Path | None = None):
         """Initialize the 5' UTR RiNALMo repo data loader.
-        
+
         Args:
             cache_dir: Optional directory for cache files. If None, uses default location
                       in integration_tests/data_loaders/cache/
@@ -37,7 +37,7 @@ class UTR5PrimeRinalmoRepo(DataLoader):
 
     def _get_default_cache_path(self) -> Path:
         """Get the default cache file path.
-        
+
         Returns:
             Path to the default cache CSV file
         """
@@ -47,7 +47,7 @@ class UTR5PrimeRinalmoRepo(DataLoader):
 
     def _get_remote_data_url(self) -> str:
         """Get the remote data URL.
-        
+
         Returns:
             URL string for downloading the data
         """
@@ -60,11 +60,11 @@ class UTR5PrimeRinalmoRepo(DataLoader):
 
     def _download_archive(self, url: str, local_dir_path: Path) -> Path:
         """Download archive from URL.
-        
+
         Args:
             url: URL to download from
             local_dir_path: Directory to save the archive
-            
+
         Returns:
             Path to the downloaded archive
         """
@@ -83,7 +83,7 @@ class UTR5PrimeRinalmoRepo(DataLoader):
 
     def _download_and_process(self) -> pd.DataFrame:
         """Download data from RiNALMo repository and process it.
-        
+
         Returns:
             DataFrame with the 5' UTR data
         """

@@ -20,7 +20,6 @@ model_args = {
     'call_is_on_strings': False,
     'flip_sign': False,
     'extra_channels': 5313 - 1,
-    'add_unsqueeze_to_output': True,
     'train_seq_len': 196_608,
     }
 

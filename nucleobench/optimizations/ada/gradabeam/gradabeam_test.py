@@ -160,7 +160,7 @@ class TestGradientAlignment:
 
     def test_gradient_map_matches_territory(self):
         """
-        Verifies that when CountLetterModel says 'C is good', 
+        Verifies that when CountLetterModel says 'C is good',
         GradaBeam picks 'C' and fitness improves.
         """
         start_sequence = "AA"

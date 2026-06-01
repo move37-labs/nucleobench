@@ -20,12 +20,12 @@ from .base import DataLoader
 
 class Human7600MRLPreds(DataLoader):
     """Data loader for human7600 MRL predictions dataset.
-    
+
     Downloads the human7600_mrl_preds.csv file which contains:
     - sequence: The RNA sequence
     - mrl_predicted: Predicted MRL value
     - mrl_target: Target MRL value
-    
+
     The dataset contains 7600 sequences total.
     """
 
@@ -34,7 +34,7 @@ class Human7600MRLPreds(DataLoader):
 
     def __init__(self, cache_dir: Path | None = None):
         """Initialize the human7600 MRL predictions data loader.
-        
+
         Args:
             cache_dir: Optional directory for cache files. If None, uses default location
                       in integration_tests/data_loaders/cache/
@@ -43,7 +43,7 @@ class Human7600MRLPreds(DataLoader):
 
     def _get_default_cache_path(self) -> Path:
         """Get the default cache file path.
-        
+
         Returns:
             Path to the cache file (CSV format)
         """
@@ -51,7 +51,7 @@ class Human7600MRLPreds(DataLoader):
 
     def _download_and_process(self) -> pd.DataFrame:
         """Download and process the human7600 MRL predictions dataset.
-        
+
         Returns:
             DataFrame with columns: sequence, mrl_predicted, mrl_target
         """
