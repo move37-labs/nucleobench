@@ -28,6 +28,7 @@ https://github.com/joel-shor/boda2/blob/main/boda/common/utils.py.
 
 import argparse
 
+
 def str2bool(v):
     """
     Convert a string to a boolean value.
@@ -50,5 +51,5 @@ def str2bool(v):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
-    
+
 

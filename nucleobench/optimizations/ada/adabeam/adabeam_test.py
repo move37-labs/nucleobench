@@ -6,13 +6,15 @@ pytest nucleobench/optimizations/ada/adabeam/adabeam_test.py
 ```
 """
 
-import pytest
-import numpy as np
 import random
 
-from .adabeam import AdaBeam
+import numpy as np
+import pytest
+
 from nucleobench.common import testing_utils
-    
+
+from .adabeam import AdaBeam
+
 
 @pytest.mark.parametrize('skip_repeat_sequences', [True, False])
 def test_adabeam_sanity(skip_repeat_sequences):
@@ -80,8 +82,8 @@ def test_positions_to_mutate():
         for seq in out_seqs:
             for s in seq[20:]:
                 assert s == 'A', seq
-                
-                
+
+
 @pytest.mark.parametrize('eval_batch_size', [1, 2, 4])
 def test_eval_batch_size_sanity(eval_batch_size):
     """Test that `eval_batch_size` works."""
@@ -102,8 +104,8 @@ def test_eval_batch_size_sanity(eval_batch_size):
 
         # TODO(joelshor):
         # Add correctness checks.
-        
-        
+
+
 def test_eval_batch_size_consistency():
     """Test that `eval_batch_size` is consistent."""
     model_fn = testing_utils.CountLetterModel(flip_sign=True)
@@ -113,20 +115,20 @@ def test_eval_batch_size_consistency():
     kwargs = AdaBeam.debug_init_args()
     kwargs['model_fn'] = model_fn
     kwargs['start_sequence'] = 'A' * 100
-    
+
     kwargs['eval_batch_size'] = 1
     adabeam1 = AdaBeam(**kwargs)
-    
+
     kwargs['eval_batch_size'] = 2
     adabeam2 = AdaBeam(**kwargs)
-    
+
     kwargs['eval_batch_size'] = 4
     adabeam4 = AdaBeam(**kwargs)
-    
+
     scores1 = adabeam1.get_batched_fitness(seqs)
     scores2 = adabeam2.get_batched_fitness(seqs)
     scores4 = adabeam4.get_batched_fitness(seqs)
-    
+
     assert np.array_equal(scores1, scores2)
     assert np.array_equal(scores1, scores4)
     assert np.array_equal(scores2, scores4)

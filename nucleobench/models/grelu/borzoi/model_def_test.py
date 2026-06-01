@@ -10,14 +10,11 @@ import pytest
 import torch
 
 from nucleobench.common import testing_utils
-
-from nucleobench.models.grelu.borzoi import constants
-from nucleobench.models.grelu.borzoi import model_def
+from nucleobench.models.grelu.borzoi import constants, model_def
 from nucleobench.models.grelu.enformer import constants as enformer_constants
 
-
 model_args = {
-    'add_unsqueeze_to_output': True, 
+    'add_unsqueeze_to_output': True,
     'call_is_on_strings': False,
     'flip_sign': False,
     'extra_channels': 7610,
@@ -41,7 +38,7 @@ def test_model_def_sanity():
         **model_def.Borzoi.debug_init_args())
     ret = m.inference_on_strings(['A' * 524288, 'C' * 524288, 'T' * 524288])
     assert list(ret.shape) == [3]
-    
+
 
 def test_tism_correctness():
     """Check that TISM on an C-count network knows that Cs are important."""
@@ -63,7 +60,7 @@ def test_tism_correctness():
                 if nt == base_nt: continue
                 assert tism_dict[nt] == 0  # changing to a non-C should be no change.
             assert tism_dict['C'] < 0
-            
+
 
 @pytest.mark.skip
 def test_tism_consistency():
@@ -75,7 +72,7 @@ def test_tism_consistency():
     base_str = 'A' * 524288
     v1, tism1 = m.tism(base_str)
     single_bp_tisms = [m.tism(base_str, idx) for idx in range(len(base_str))]
-    
+
     for idx in range(len(single_bp_tisms)):
         v2, tism2 = single_bp_tisms[idx]
         assert v1 == v2
@@ -88,7 +85,7 @@ def test_inject_middle_sequence():
     """Tests that inject_middle_sequence correctly modifies the sequence."""
     borzoi_len = constants.BORZOI_TRAIN_LEN_
     enformer_len = enformer_constants.ENFORMER_TRAIN_LEN_
-    
+
     base_sequence = 'A' * borzoi_len
     middle_sequence = 'C' * enformer_len
 
@@ -109,7 +106,7 @@ def test_inject_middle_sequence():
         'flip_sign': True,
         'extra_channels': len(constants.BORZOI_TASKS_) - 1,
     }
-    
+
     # Check that the Borzoi model correctly counts the number of 'A's.
     borzoi_args = model_def.Borzoi.debug_init_args()
     borzoi_args['override_model'] = testing_utils.CountLetterModel(**model_args)
@@ -117,7 +114,7 @@ def test_inject_middle_sequence():
     m = model_def.Borzoi(**borzoi_args)
     result = m([modified_sequence])
     assert result.item() == expected_a_count
-    
+
     # Check that the counting just the Enformer bins perfectly aligns with the injection.
     borzoi_args['spatial_bins_to_aggregate'] = model_def.Borzoi.enformer_spatial_bins()
     m_middle = model_def.Borzoi(**borzoi_args)

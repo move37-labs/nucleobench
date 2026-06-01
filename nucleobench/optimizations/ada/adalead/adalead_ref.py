@@ -22,18 +22,15 @@ It has been modified to conform to the nucleobench optimization class interface,
 dependence on pandas.
 """
 
-from typing import Optional
-
-from nucleobench.common import testing_utils
-from nucleobench.common import constants
 import argparse
-import numpy as np
 import random
 
-from nucleobench.optimizations import optimization_class as oc
+import numpy as np
 
-from nucleobench.optimizations.typing import ModelType, SequenceType, SamplesType
+from nucleobench.common import constants, testing_utils
+from nucleobench.optimizations import optimization_class as oc
 from nucleobench.optimizations.ada import ada_utils
+from nucleobench.optimizations.typing import ModelType, SamplesType, SequenceType
 
 
 class AdaLeadRef(oc.SequenceOptimizer):
@@ -140,9 +137,9 @@ class AdaLeadRef(oc.SequenceOptimizer):
         rng_seed: int,
         mutation_rate: float,
         recombination_rate: float,
-        positions_to_mutate: Optional[list[int]] = None,
+        positions_to_mutate: list[int] | None = None,
         debug: bool = False,
-    ):  
+    ):
         self.model = ada_utils.ModelWrapper(model_fn)
         self.start_sequence = start_sequence
         self.sequences_batch_size = sequences_batch_size
@@ -164,10 +161,10 @@ class AdaLeadRef(oc.SequenceOptimizer):
         assert isinstance(start_sequence, str)
         self.seed_population = [
             ada_utils.generate_random_mutant(
-                sequence=start_sequence, 
-                positions_to_mutate=self.positions_to_mutate, 
-                mu=mutation_rate, 
-                alphabet=self.alphabet, 
+                sequence=start_sequence,
+                positions_to_mutate=self.positions_to_mutate,
+                mu=mutation_rate,
+                alphabet=self.alphabet,
                 rng=self.rng,
             )
             for _ in range(sequences_batch_size)
@@ -217,7 +214,7 @@ class AdaLeadRef(oc.SequenceOptimizer):
             # Generate recombinant mutants.
             for i in range(self.rho):
                 parents = ada_utils.recombine_population(
-                    gen=parents, rng=self.rng, recomb_rate=self.recomb_rate, 
+                    gen=parents, rng=self.rng, recomb_rate=self.recomb_rate,
                     positions_to_mutate=self.positions_to_mutate)
 
             for i in range(0, len(parents), self.eval_batch_size):
@@ -259,7 +256,7 @@ class AdaLeadRef(oc.SequenceOptimizer):
                             pass
                     if self.debug:
                         print(f'It took {round_num} tries to generate a child.')
-                    
+
                     # Stop the rollout once the child has worse predicted
                     # fitness than the root of the rollout tree.
                     # Otherwise, set node = child and add child to the list
@@ -272,7 +269,7 @@ class AdaLeadRef(oc.SequenceOptimizer):
                         if fitness >= root_fitnesses[idx]:
                             nodes.append((idx, child))
                     rollout_length += 1
-                
+
                 if self.debug:
                     print(f'Rollout length: {rollout_length}')
 

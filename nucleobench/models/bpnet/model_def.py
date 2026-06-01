@@ -14,14 +14,14 @@ python -m nucleobench.models.bpnet.model_def
 """
 
 import argparse
+
 import numpy as np
 import torch
 
 from nucleobench.common import string_utils
-
-from nucleobench.optimizations import model_class as mc
-from nucleobench.models.bpnet import load_model
 from nucleobench.models.bpnet import constants as bp_constants
+from nucleobench.models.bpnet import load_model
+from nucleobench.optimizations import model_class as mc
 
 
 class BPNet(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
@@ -45,11 +45,11 @@ class BPNet(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         """
         parser = argparse.ArgumentParser()
         group = parser.add_argument_group("BPNet init args")
-        group.add_argument("--protein", type=str, required=True, 
+        group.add_argument("--protein", type=str, required=True,
                            choices=bp_constants.AVAILABLE_MODELS_),
-        
+
         return parser
-    
+
     @staticmethod
     def debug_init_args():
         return {
@@ -73,12 +73,12 @@ class BPNet(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         self.vocab = vocab
         self.vocab_to_idx = {nt: i for i, nt in enumerate(vocab)}
         self.vocab_array = np.array(vocab)
-        
+
         self.has_cuda = torch.cuda.is_available()
 
 
     def inference_on_tensor(
-        self, 
+        self,
         x: torch.Tensor,
         return_debug_info: bool = False,
         ) -> torch.Tensor:
@@ -90,10 +90,10 @@ class BPNet(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         assert m_out.ndim == 2
         assert m_out.shape[1] == 1
         ret = torch.squeeze(m_out, dim=1)
-        
+
         # Always return something that should be minimized, so flip the sign.
         ret *= -1
-        
+
         return ret
 
     def inference_on_strings(self, x: list[str]) -> np.ndarray:

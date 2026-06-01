@@ -6,11 +6,10 @@ pytest nucleobench/optimizations/ada/adalead/adalead_ref_test.py
 ```
 """
 
-import pytest
 import numpy as np
 
-from nucleobench.optimizations.ada.adalead.adalead_ref import AdaLeadRef
 from nucleobench.common import testing_utils
+from nucleobench.optimizations.ada.adalead.adalead_ref import AdaLeadRef
 
 
 def test_adalead_ref():

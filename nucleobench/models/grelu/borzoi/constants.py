@@ -7,8 +7,9 @@ python -m nucleobench.models.grelu.borzoi.constants
 ```
 """
 
-import pandas as pd
 import os
+
+import pandas as pd
 
 BORZOI_REPO_ID = 'Genentech/borzoi-model'
 BORZOI_FILENAME = 'human_rep0.ckpt'
@@ -277,8 +278,8 @@ assert len(deactivate_muscle_tracks) == 25
 
 for track in activate_muscle_tracks + deactivate_liver_tracks + activate_liver_tracks + deactivate_muscle_tracks:
     assert track in BORZOI_TASKS_
-    
-    
+
+
 def activate_muscle_idx():
     return [BORZOI_TASKS_.index(t) for t in activate_muscle_tracks]
 

@@ -1,7 +1,9 @@
 """Utilities for managing memory."""
 
 import gc
+
 import torch
+
 
 def free_memory(debug: bool = False):
     collected = gc.collect()

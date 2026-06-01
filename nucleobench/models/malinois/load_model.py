@@ -18,30 +18,29 @@ python -m nucleobench.models.malinois.load_model
 """
 
 import os
-import torch
 import shutil
 import tarfile
 import tempfile
 
-from typing import Optional
-
+import torch
 from google.cloud import storage
 
 import nucleobench.models.malinois.model as _model
 
-def load_model(artifact_path: str, has_cuda: Optional[bool] = None):
-    
+
+def load_model(artifact_path: str, has_cuda: bool | None = None):
+
     if has_cuda is None:
         has_cuda = torch.cuda.device_count() >= 1
 
     with tempfile.TemporaryDirectory() as tmpdirname:
         unpack_artifact(artifact_path, download_path=tmpdirname)
         my_model = model_fn(os.path.join(tmpdirname, 'artifacts'))
-        
+
     my_model.eval()
     if has_cuda:
         my_model.cuda()
-    
+
     return my_model
 
 
@@ -63,9 +62,9 @@ def unpack_artifact(artifact_path, download_path='./'):
     else:
         assert os.path.isfile(artifact_path), "Could not find file at expected path."
         tar_model = artifact_path
-        
+
     assert tarfile.is_tarfile(tar_model), f"Expected a tarfile at {tar_model}. Not found."
-    
+
     shutil.unpack_archive(tar_model, download_path)
     print(f'archive unpacked in {download_path}',)
 

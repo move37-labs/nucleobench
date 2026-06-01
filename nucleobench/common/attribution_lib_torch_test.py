@@ -8,8 +8,8 @@ import numpy as np
 import torch
 from torch import nn
 
-from nucleobench.common import attribution_lib_torch
-from nucleobench.common import testing_utils
+from nucleobench.common import attribution_lib_torch, testing_utils
+
 
 class FakeNeuralNetwork(nn.Module):
     def __init__(self):
@@ -23,7 +23,7 @@ class FakeNeuralNetwork(nn.Module):
         x = self.flatten(x)
         logits = self.linear_relu_stack(x)
         return logits
-    
+
 
 class Nonlinear(nn.Module):
     def __init__(self):
@@ -58,11 +58,11 @@ def test_expected_gradient():
     grads = attribution_lib_torch.grad_torch(
         input_tensor=input_tensor,
         model=model)
-    
+
     assert grads.shape == (2,)
     # For linear models, grads should all be the linear layer.
     assert np.array_equal(grads, model.layer_array)
-        
+
 def test_callable():
     """Check that additional arguments are used."""
     input_tensor = torch.randn(2)
@@ -74,42 +74,42 @@ def test_callable():
         input_tensor=input_tensor,
         model=override_callable,
     )
-    
+
     assert grads.shape == (2,)
     assert np.array_equal(grads, [2.0, 4.0])
-    
-        
+
+
 # TODO(joelshor): Add a unit test for nucleotide-specific TISM.
 def test_grad_torch_idx_sanity():
     input_tensor = torch.randn(2, 4, 5)
-    
+
     grad = attribution_lib_torch.grad_torch(
         input_tensor=input_tensor,
         model=testing_utils.CountLetterModel().inference_on_tensor)
     assert isinstance(grad, torch.Tensor)
     grad = grad.cpu().numpy()
     assert grad.shape == (2, 4, 5)
-        
-        
+
+
 def test_apply_gradient_mask():
     """[idx] and idx should give the same result."""
     input_tensor = torch.randn(1, 10)
     model = FakeNeuralNetwork()
     output_tensor = model(input_tensor)
     output_tensor = output_tensor.reshape(1, 1, 3)
-    
+
     x1, x_grad = attribution_lib_torch.apply_gradient_mask(
         output_tensor, [0])
     assert x1.shape == (1, 1, 3)
     assert x_grad.shape == (1, 1, 1)
-    
+
     x2, x_grad = attribution_lib_torch.apply_gradient_mask(
         output_tensor, [0, 1])
     assert x2.shape == (1, 1, 3)
     assert x_grad.shape == (1, 1, 2)
-    
+
     assert (x1 == x2).all(), x1 == x2
-    
+
 
 def test_grad_to_tism_realistic():
     # Example 1: 3bp sequence, vocab ACGT, simple values
@@ -162,8 +162,8 @@ def test_grad_to_tism_realistic():
     assert tism2[1]["A"] == float(1.0 - (-0.5))
     assert tism2[1]["C"] == float(-1.0 - (-0.5))
     assert tism2[1]["G"] == float(0.5 - (-0.5))
-    
-    
+
+
 def test_grad_torch_to_tism_torch_correctness():
     # Example: vocab_size=4 (A,C,G,T), seq_len=3
     sg_tensor = torch.tensor([

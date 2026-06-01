@@ -1,20 +1,18 @@
 """Utils for testing."""
 
 import numpy as np
-
 import torch
 
-from nucleobench.common import string_utils
+from nucleobench.common import constants, string_utils
 from nucleobench.optimizations import model_class as mc
-from nucleobench.common import constants
 
 
 class CountLetterModel(torch.nn.Module, mc.TISMModelClass):
     """Count number of occurrences of first vocab letter."""
 
-    def __init__(self, 
-                 vocab_i: int = 1, 
-                 flip_sign: bool = False, 
+    def __init__(self,
+                 vocab_i: int = 1,
+                 flip_sign: bool = False,
                  extra_channels: int = 0,
                  call_is_on_strings: bool = True,
                  add_unsqueeze_to_output: bool = False,
@@ -52,7 +50,7 @@ class CountLetterModel(torch.nn.Module, mc.TISMModelClass):
 
     def inference_on_tensor(self, x: torch.Tensor) -> torch.Tensor:
         return self.forward(x)
-    
+
     def inference_on_strings(self, seqs: list[str]) -> list[float]:
         torch_seq = string_utils.dna2tensor_batch(seqs, vocab_list=self.vocab)
         result = self.inference_on_tensor(torch_seq)
@@ -63,7 +61,7 @@ class CountLetterModel(torch.nn.Module, mc.TISMModelClass):
             return self.inference_on_strings(x)
         else:
             return self.inference_on_tensor(x)
-    
+
     # Attributes needed for gRelu.
     @property
     def data_params(self):
@@ -71,7 +69,7 @@ class CountLetterModel(torch.nn.Module, mc.TISMModelClass):
             'tasks': {'name':[f'task{i}' for i in range(3)] + ['Neuron']},
             'train': {'seq_len': self.train_seq_len},
         }
-    
+
     # Method needed for gRelu.
     def get_task_idxs(self, *args, **kwargs):
         return [0, 1, 2]
@@ -84,7 +82,7 @@ def assert_proposal_respects_positions_to_mutate(
     ):
     if positions_to_mutate is None:
         return
-    
+
     incorrect_differences = []
     for i in range(len(start_sequence)):
         if i in positions_to_mutate:

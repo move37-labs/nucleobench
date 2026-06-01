@@ -6,15 +6,16 @@ pytest nucleobench/common/gcp_utils_test.py
 ```
 """
 import argparse
+import collections
+import io
 import os
 import pickle
 import tempfile
 import unittest
 from unittest import mock
-import io
-import pandas as pd
+
 import numpy as np
-import collections
+import pandas as pd
 
 from nucleobench.common import gcp_utils
 
@@ -43,7 +44,7 @@ class GcpUtilsTest(unittest.TestCase):
 
         # The function expects a list of dictionaries.
         write_dicts = [{'run_data': parsed_args_obj, 'exp_starttime_str': '20231102-110000'}]
-        
+
         # Args for the save_proposals function itself.
         save_args = argparse.Namespace(optimization='test_opt', model='test_model')
 
@@ -51,7 +52,7 @@ class GcpUtilsTest(unittest.TestCase):
             with self.subTest(format=format):
                 output_dir = os.path.join(self.test_dir.name, format)
                 gcp_utils.save_proposals(write_dicts, save_args, output_dir, format=format)
-                
+
                 # Find and read the output file
                 expected_subdir = os.path.join(output_dir, 'test_opt_test_model', '20231102-110000')
                 self.assertTrue(os.path.isdir(expected_subdir))
@@ -66,7 +67,7 @@ class GcpUtilsTest(unittest.TestCase):
 
                 elif format == 'parquet':
                     loaded_df = pd.read_parquet(file_path)
-                    
+
                     # Check column names for correct, deep flattening.
                     expected_cols = {
                         'exp_starttime_str',
@@ -78,12 +79,12 @@ class GcpUtilsTest(unittest.TestCase):
                         'run_data:opt_init_args'
                     }
                     self.assertSetEqual(set(loaded_df.columns), expected_cols)
-                    
+
                     # Check values.
                     self.assertEqual(loaded_df.loc[0, 'run_data:main_args:model'], 'malinois')
                     self.assertEqual(loaded_df.loc[0, 'run_data:main_args:max_number_of_rounds'], 1)
                     self.assertIsNone(loaded_df.loc[0, 'run_data:model_init_args'])
-    
+
     def test_save_proposals_with_various_types(self):
         """
         Tests that `save_proposals` can correctly save various object types
@@ -117,7 +118,7 @@ class GcpUtilsTest(unittest.TestCase):
             with self.subTest(format=format):
                 output_dir = os.path.join(self.test_dir.name, format)
                 gcp_utils.save_proposals(write_dicts, args, output_dir, format=format)
-                
+
                 # Find the created file.
                 expected_subdir = os.path.join(output_dir, 'test_opt_test_model', '20231101-100000')
                 self.assertTrue(os.path.isdir(expected_subdir))
@@ -128,7 +129,7 @@ class GcpUtilsTest(unittest.TestCase):
                 if format == 'pkl':
                     with open(file_path, 'rb') as f:
                         loaded_data = pickle.load(f)
-                    
+
                     self.assertEqual(len(loaded_data), 1)
                     record = loaded_data[0]
                     self.assertEqual(record['a_string'], 'hello_world')
@@ -140,19 +141,19 @@ class GcpUtilsTest(unittest.TestCase):
 
                 elif format == 'parquet':
                     loaded_df = pd.read_parquet(file_path)
-                    
+
                     self.assertEqual(len(loaded_df), 1)
                     record = loaded_df.iloc[0]
-                    
+
                     # Check column names for correct flattening.
                     expected_cols = {
-                        'exp_starttime_str', 'a_string', 'an_int', 'a_float', 
+                        'exp_starttime_str', 'a_string', 'an_int', 'a_float',
                         'a_numpy_array',
                         'a_namespace_obj:param_a', 'a_namespace_obj:param_b',
                         'nested_dict:nested_int', 'nested_dict:nested_array'
                     }
                     self.assertSetEqual(set(loaded_df.columns), expected_cols)
-                    
+
                     # Check values and types.
                     self.assertEqual(record['a_string'], 'hello_world')
                     self.assertEqual(record['nested_dict:nested_int'], 42)
@@ -186,9 +187,9 @@ class GcpUtilsTest(unittest.TestCase):
             {'a': 1, 'b:c': 5.0, 'b:d': pd.NA},
             {'a': 2, 'b:c': pd.NA, 'b:d': 6.0}
         ])
-        
+
         result4 = gcp_utils._flatten_dicts_to_dataframe(dicts4)
-        
+
         # Ensure the expected DataFrame has the same column order.
         # We disable the dtype check here because pandas' type inference with
         # missing values can be inconsistent. The values are still checked.
@@ -213,19 +214,19 @@ class GcpUtilsTest(unittest.TestCase):
             {'exp_starttime_str': '20230101-120000', 'data': 'test1', 'nested': {'value': 1}},
             {'exp_starttime_str': '20230101-120000', 'data': 'test2', 'nested': {'value': 2}},
         ]
-        
+
         # Test for both pkl and parquet formats
         for format in ['pkl', 'parquet']:
             with self.subTest(format=format):
                 # Use a unique subdirectory for each format to avoid conflicts
                 output_dir = os.path.join(self.test_dir.name, format)
-                
+
                 gcp_utils.save_proposals(write_dicts, args, output_dir, format=format)
 
                 # Check that the file was created in the expected subdirectory
                 expected_subdir = os.path.join(output_dir, 'test_opt_test_model', '20230101-120000')
                 self.assertTrue(os.path.isdir(expected_subdir))
-                
+
                 files = os.listdir(expected_subdir)
                 self.assertEqual(len(files), 1)
                 self.assertTrue(files[0].endswith(f'.{format}'))
@@ -247,13 +248,13 @@ class GcpUtilsTest(unittest.TestCase):
         # Test writing a simple text file locally.
         output_path = os.path.join(self.test_dir.name, 'test_output')
         content = "SUCCESS"
-        
+
         gcp_utils.write_txt_file(output_path, content)
-        
+
         expected_file = os.path.join(output_path, f'{content}.txt')
         self.assertTrue(os.path.exists(expected_file))
-        
-        with open(expected_file, 'r') as f:
+
+        with open(expected_file) as f:
             self.assertEqual(f.read(), content)
 
     @mock.patch('nucleobench.common.gcp_utils.get_role_client')
@@ -261,7 +262,7 @@ class GcpUtilsTest(unittest.TestCase):
         # Test the function that writes a string to GCS by mocking the client provider.
         mock_client = mock.MagicMock()
         mock_get_role_client.return_value = mock_client
-        
+
         mock_bucket = mock.MagicMock()
         mock_blob = mock.MagicMock()
         mock_file_context = io.StringIO()
@@ -272,9 +273,9 @@ class GcpUtilsTest(unittest.TestCase):
 
         gcs_path = 'gs://fake-bucket/fake/path/to/file.txt'
         content = 'hello world'
-        
+
         gcp_utils.write_str_to_gcp(gcs_path, content, binary=False)
-        
+
         mock_get_role_client.assert_called_once()
         mock_client.bucket.assert_called_once_with('fake-bucket')
         mock_bucket.blob.assert_called_once_with('fake/path/to/file.txt')
@@ -287,9 +288,9 @@ class GcpUtilsTest(unittest.TestCase):
         gcs_path = 'gs://fake-bucket/fake-dir/test.csv'
         expected_df = pd.DataFrame({'col1': [1, 2]})
         mock_read_csv.return_value = expected_df
-        
+
         result_df = gcp_utils.read_gcp_csv(gcs_path)
-        
+
         mock_read_csv.assert_called_once_with(gcs_path)
         pd.testing.assert_frame_equal(result_df, expected_df)
 

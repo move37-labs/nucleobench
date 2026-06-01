@@ -9,12 +9,11 @@ pytest nucleobench/optimizations/beam_search/beam_unordered_test.py
 import pytest
 
 from nucleobench.common import testing_utils
-from nucleobench.optimizations.beam_search import beam_utils
 from nucleobench.optimizations.beam_search import beam_unordered
 
 
 @pytest.mark.parametrize(
-    'edit_location_algo,edit_proposal_algo', 
+    'edit_location_algo,edit_proposal_algo',
     [('all', 'all'),
      ('all', 'random'),
      ('random', 'all'),
@@ -33,13 +32,13 @@ def test_beamsearch_init(edit_location_algo, edit_proposal_algo):
 
 
 @pytest.mark.parametrize(
-    'edit_location_algo,edit_proposal_algo', 
+    'edit_location_algo,edit_proposal_algo',
     [('all', 'all'),
      ('all', 'random'),
      ('random', 'all'),
     ])
 def test_beam_run_correctness(edit_location_algo, edit_proposal_algo):
-    
+
     beamsearch = beam_unordered.UnorderedBeamSearch(
         model_fn=testing_utils.CountLetterModel(
             vocab_i=1, flip_sign=True),  # Count 'C'
@@ -51,17 +50,17 @@ def test_beam_run_correctness(edit_location_algo, edit_proposal_algo):
         rng_seed=0,
     )
     assert list(beamsearch.beam.get_items()) == ['ACTG']
-    
+
     beamsearch.run(n_steps=4)
     samples = beamsearch.get_samples(5)
     if edit_location_algo == 'all' and edit_proposal_algo == 'all':
         assert samples[0].count('C') == 4
     for s in samples:
         assert s.count('C') >= 1
-        
+
 
 @pytest.mark.parametrize(
-    'edit_location_algo', 
+    'edit_location_algo',
     ['random', 'all'])
 def test_locations_to_mutate(edit_location_algo):
     beamsearch = beam_unordered.UnorderedBeamSearch(
@@ -74,13 +73,12 @@ def test_locations_to_mutate(edit_location_algo):
         edit_proposal_algo='all',
     )
     assert list(beamsearch.beam.get_items()) == ['AAAAAA']
-    
+
     for _ in range(10):
         beamsearch.run(n_steps=4)
         samples = beamsearch.get_samples(5)
         for sample in samples:
             for idx in [0, 3, 4]:
                 assert sample[idx] == 'A'  # unchanged.
-            
-    
-    
+
+

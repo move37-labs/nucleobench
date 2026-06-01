@@ -2,7 +2,6 @@
 
 import dataclasses
 import heapq
-import bisect
 
 
 @dataclasses.dataclass(order=True)
@@ -12,7 +11,7 @@ class SearchQItem:
     num_edits: int
 
 
-class OneSidedPriorityQueue(object):
+class OneSidedPriorityQueue:
     """Priority queue.
 
     Uses fitness instead of energy (keep high items, low is bad).
@@ -23,8 +22,8 @@ class OneSidedPriorityQueue(object):
         # have more elements in the queue than this.
         self.max_items = max_items
         self.q  = []
-        
-        
+
+
     def reset_queue(self, itms: list[SearchQItem]):
         del self.q
         heapq.heapify(itms)

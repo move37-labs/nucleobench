@@ -23,16 +23,16 @@ SOFTWARE.
 """
 import argparse
 
+import lightning.pytorch as ptl
 import torch
 import torch.nn as nn
 
-import lightning.pytorch as ptl
-
-from .custom_layers import Conv1dNorm, LinearNorm, GroupedLinear, BranchedLinear
-from .loss_functions import add_criterion_specific_args
 import nucleobench.models.malinois.model.utils as utils
 
 from ..model import loss_functions
+from .custom_layers import BranchedLinear, Conv1dNorm, GroupedLinear, LinearNorm
+from .loss_functions import add_criterion_specific_args
+
 
 def get_padding(kernel_size):
     """
@@ -51,7 +51,7 @@ def get_padding(kernel_size):
 ##################
 #     Models     #
 ##################
-        
+
 class Basset(ptl.LightningModule):
     """
     Basset model architecture.
@@ -81,11 +81,11 @@ class Basset(ptl.LightningModule):
         classify(x): Classify decoded tensor using the Basset model's classification layer.
         forward(x): Forward pass through the Basset model.
     """
-    
+
     #####################
     # CLI staticmethods #
     #####################
-    
+
     @staticmethod
     def add_model_specific_args(parent_parser):
         """
@@ -99,28 +99,28 @@ class Basset(ptl.LightningModule):
         """
         parser = argparse.ArgumentParser(parents=[parent_parser], add_help=False)
         group  = parser.add_argument_group('Model Module args')
-        
+
         group.add_argument('--conv1_channels', type=int, default=300)
         group.add_argument('--conv1_kernel_size', type=int, default=19)
-        
+
         group.add_argument('--conv2_channels', type=int, default=200)
         group.add_argument('--conv2_kernel_size', type=int, default=11)
-        
+
         group.add_argument('--conv3_channels', type=int, default=200)
         group.add_argument('--conv3_kernel_size', type=int, default=7)
-        
+
         group.add_argument('--linear1_channels', type=int, default=1000)
         group.add_argument('--linear2_channels', type=int, default=1000)
         group.add_argument('--n_outputs', type=int, default=280)
-        
+
         group.add_argument('--dropout_p', type=float, default=0.3)
         group.add_argument('--use_batch_norm', type=utils.str2bool, default=True)
         group.add_argument('--use_weight_norm',type=utils.str2bool, default=False)
-        
+
         group.add_argument('--loss_criterion',type=str, default='CrossEntropyLoss')
-        
+
         return parser
-    
+
     @staticmethod
     def add_conditional_args(parser, known_args):
         """
@@ -158,12 +158,12 @@ class Basset(ptl.LightningModule):
     ######################
     # Model construction #
     ######################
-    
-    def __init__(self, conv1_channels=300, conv1_kernel_size=19, 
-                 conv2_channels=200, conv2_kernel_size=11, 
-                 conv3_channels=200, conv3_kernel_size=7, 
-                 linear1_channels=1000, linear2_channels=1000, 
-                 n_outputs=280, activation='ReLU', 
+
+    def __init__(self, conv1_channels=300, conv1_kernel_size=19,
+                 conv2_channels=200, conv2_kernel_size=11,
+                 conv3_channels=200, conv3_kernel_size=7,
+                 linear1_channels=1000, linear2_channels=1000,
+                 n_outputs=280, activation='ReLU',
                  dropout_p=0.3, use_batch_norm=True, use_weight_norm=False,
                  loss_criterion='CrossEntropyLoss', loss_args={}):
         """
@@ -185,83 +185,83 @@ class Basset(ptl.LightningModule):
             use_weight_norm (bool): Whether to use weight normalization.
             loss_criterion (str): Loss criterion name.
             loss_args (dict): Dict of kwargs to construct loss with.
-        """                                         
-        super().__init__()        
-        
+        """
+        super().__init__()
+
         self.conv1_channels    = conv1_channels
         self.conv1_kernel_size = conv1_kernel_size
         self.conv1_pad = get_padding(conv1_kernel_size)
-        
+
         self.conv2_channels    = conv2_channels
         self.conv2_kernel_size = conv2_kernel_size
         self.conv2_pad = get_padding(conv2_kernel_size)
 
-        
+
         self.conv3_channels    = conv3_channels
         self.conv3_kernel_size = conv3_kernel_size
         self.conv3_pad = get_padding(conv3_kernel_size)
-        
+
         self.linear1_channels  = linear1_channels
         self.linear2_channels  = linear2_channels
         self.n_outputs         = n_outputs
-        
+
         self.activation        = activation
-        
+
         self.dropout_p         = dropout_p
         self.use_batch_norm    = use_batch_norm
         self.use_weight_norm   = use_weight_norm
-        
+
         self.loss_criterion    = loss_criterion
         self.loss_args         = loss_args
-        
+
         self.pad1  = nn.ConstantPad1d(self.conv1_pad, 0.)
-        self.conv1 = Conv1dNorm(4, 
-                                self.conv1_channels, self.conv1_kernel_size, 
-                                stride=1, padding=0, dilation=1, groups=1, 
-                                bias=True, 
-                                batch_norm=self.use_batch_norm, 
+        self.conv1 = Conv1dNorm(4,
+                                self.conv1_channels, self.conv1_kernel_size,
+                                stride=1, padding=0, dilation=1, groups=1,
+                                bias=True,
+                                batch_norm=self.use_batch_norm,
                                 weight_norm=self.use_weight_norm)
         self.pad2  = nn.ConstantPad1d(self.conv2_pad, 0.)
-        self.conv2 = Conv1dNorm(self.conv1_channels, 
-                                self.conv2_channels, self.conv2_kernel_size, 
-                                stride=1, padding=0, dilation=1, groups=1, 
-                                bias=True, 
-                                batch_norm=self.use_batch_norm, 
+        self.conv2 = Conv1dNorm(self.conv1_channels,
+                                self.conv2_channels, self.conv2_kernel_size,
+                                stride=1, padding=0, dilation=1, groups=1,
+                                bias=True,
+                                batch_norm=self.use_batch_norm,
                                 weight_norm=self.use_weight_norm)
         self.pad3  = nn.ConstantPad1d(self.conv3_pad, 0.)
-        self.conv3 = Conv1dNorm(self.conv2_channels, 
-                                self.conv3_channels, self.conv3_kernel_size, 
-                                stride=1, padding=0, dilation=1, groups=1, 
-                                bias=True, 
-                                batch_norm=self.use_batch_norm, 
+        self.conv3 = Conv1dNorm(self.conv2_channels,
+                                self.conv3_channels, self.conv3_kernel_size,
+                                stride=1, padding=0, dilation=1, groups=1,
+                                bias=True,
+                                batch_norm=self.use_batch_norm,
                                 weight_norm=self.use_weight_norm)
-        
+
         self.pad4 = nn.ConstantPad1d((1,1), 0.)
 
         self.maxpool_3 = nn.MaxPool1d(3, padding=0)
         self.maxpool_4 = nn.MaxPool1d(4, padding=0)
-        
-        self.linear1 = LinearNorm(self.conv3_channels*13, self.linear1_channels, 
-                                  bias=True, 
-                                  batch_norm=self.use_batch_norm, 
+
+        self.linear1 = LinearNorm(self.conv3_channels*13, self.linear1_channels,
+                                  bias=True,
+                                  batch_norm=self.use_batch_norm,
                                   weight_norm=self.use_weight_norm)
-        self.linear2 = LinearNorm(self.linear1_channels, self.linear2_channels, 
-                                  bias=True, 
-                                  batch_norm=self.use_batch_norm, 
+        self.linear2 = LinearNorm(self.linear1_channels, self.linear2_channels,
+                                  bias=True,
+                                  batch_norm=self.use_batch_norm,
                                   weight_norm=self.use_weight_norm)
         self.output  = nn.Linear(self.linear2_channels, self.n_outputs)
-        
-        self.nonlin  = getattr(nn, self.activation)()                               
-        
+
+        self.nonlin  = getattr(nn, self.activation)()
+
         self.dropout = nn.Dropout(p=self.dropout_p)
-        
+
         self.criterion = getattr(loss_functions,self.loss_criterion) \
                          (**self.loss_args)
-        
+
     ######################
     # Model computations #
     ######################
-    
+
     def encode(self, x):
         """
         Encode input through the Basset model's encoding layers.
@@ -277,10 +277,10 @@ class Basset(ptl.LightningModule):
         hook = self.nonlin( self.conv2( self.pad2( hook ) ) )
         hook = self.maxpool_4( hook )
         hook = self.nonlin( self.conv3( self.pad3( hook ) ) )
-        hook = self.maxpool_4( self.pad4( hook ) )        
+        hook = self.maxpool_4( self.pad4( hook ) )
         hook = torch.flatten( hook, start_dim=1 )
         return hook
-    
+
     def decode(self, x):
         """
         Decode encoded tensor through the Basset model's decoding layers.
@@ -294,7 +294,7 @@ class Basset(ptl.LightningModule):
         hook = self.dropout( self.nonlin( self.linear1( x ) ) )
         hook = self.dropout( self.nonlin( self.linear2( hook ) ) )
         return hook
-    
+
     def classify(self, x):
         """
         Classify decoded tensor using the Basset model's classification layer.
@@ -307,7 +307,7 @@ class Basset(ptl.LightningModule):
         """
         output = self.output( x )
         return output
-        
+
     def forward(self, x):
         """
         Forward pass through the Basset model.
@@ -352,11 +352,11 @@ class BassetVL(ptl.LightningModule):
         classify(x): Classify decoded tensor using the BassetVL model's classification layer.
         forward(x): Forward pass through the BassetVL model.
     """
-    
+
     #####################
     # CLI staticmethods #
     #####################
-    
+
     @staticmethod
     def add_model_specific_args(parent_parser):
         """
@@ -370,18 +370,18 @@ class BassetVL(ptl.LightningModule):
         """
         parser = argparse.ArgumentParser(parents=[parent_parser], add_help=False)
         group  = parser.add_argument_group('Model Module args')
-        
+
         group.add_argument('--input_len', type=int, default=600)
 
         group.add_argument('--conv1_channels', type=int, default=300)
         group.add_argument('--conv1_kernel_size', type=int, default=19)
-        
+
         group.add_argument('--conv2_channels', type=int, default=200)
         group.add_argument('--conv2_kernel_size', type=int, default=11)
-        
+
         group.add_argument('--conv3_channels', type=int, default=200)
         group.add_argument('--conv3_kernel_size', type=int, default=7)
-        
+
         group.add_argument('--n_linear_layers', type=int, default=2)
         group.add_argument('--linear_channels', type=int, default=1000)
         group.add_argument('--linear_activation',type=str, default='ReLU')
@@ -391,11 +391,11 @@ class BassetVL(ptl.LightningModule):
 
         group.add_argument('--use_batch_norm', type=utils.str2bool, default=True)
         group.add_argument('--use_weight_norm',type=utils.str2bool, default=False)
-        
+
         group.add_argument('--loss_criterion',type=str, default='CrossEntropyLoss')
-        
+
         return parser
-    
+
     @staticmethod
     def add_conditional_args(parser, known_args):
         """
@@ -433,16 +433,16 @@ class BassetVL(ptl.LightningModule):
     ######################
     # Model construction #
     ######################
-    
+
     def __init__(self, input_len=600,
-                 conv1_channels=300, conv1_kernel_size=19, 
-                 conv2_channels=200, conv2_kernel_size=11, 
-                 conv3_channels=200, conv3_kernel_size=7, 
-                 n_linear_layers=2, linear_channels=1000, 
-                 linear_activation='ReLU', linear_dropout_p=0.3, 
-                 n_outputs=280, 
+                 conv1_channels=300, conv1_kernel_size=19,
+                 conv2_channels=200, conv2_kernel_size=11,
+                 conv3_channels=200, conv3_kernel_size=7,
+                 n_linear_layers=2, linear_channels=1000,
+                 linear_activation='ReLU', linear_dropout_p=0.3,
+                 n_outputs=280,
                  use_batch_norm=True, use_weight_norm=False,
-                 loss_criterion='MSELoss', loss_args={}):   
+                 loss_criterion='MSELoss', loss_args={}):
         """
         Initialize BassetVL model.
 
@@ -461,100 +461,100 @@ class BassetVL(ptl.LightningModule):
             use_batch_norm (bool): Whether to use batch normalization.
             use_weight_norm (bool): Whether to use weight normalization.
             loss_criterion (str): Loss criterion name.
-        """                                             
-        super().__init__()        
-        
+        """
+        super().__init__()
+
         self.input_len         = input_len
-        
+
         self.conv1_channels    = conv1_channels
         self.conv1_kernel_size = conv1_kernel_size
         self.conv1_pad = get_padding(conv1_kernel_size)
-        
+
         self.conv2_channels    = conv2_channels
         self.conv2_kernel_size = conv2_kernel_size
         self.conv2_pad = get_padding(conv2_kernel_size)
 
-        
+
         self.conv3_channels    = conv3_channels
         self.conv3_kernel_size = conv3_kernel_size
         self.conv3_pad = get_padding(conv3_kernel_size)
-        
+
         self.n_linear_layers   = n_linear_layers
         self.linear_channels   = linear_channels
         self.n_outputs         = n_outputs
-        
-        self.linear_activation = linear_activation        
+
+        self.linear_activation = linear_activation
         self.linear_dropout_p  = linear_dropout_p
-        
+
         self.use_batch_norm    = use_batch_norm
         self.use_weight_norm   = use_weight_norm
-        
+
         self.loss_criterion    = loss_criterion
         self.loss_args         = loss_args
-        
+
         self.pad1  = nn.ConstantPad1d(self.conv1_pad, 0.)
-        self.conv1 = Conv1dNorm(4, 
-                                self.conv1_channels, self.conv1_kernel_size, 
-                                stride=1, padding=0, dilation=1, groups=1, 
-                                bias=True, 
-                                batch_norm=self.use_batch_norm, 
+        self.conv1 = Conv1dNorm(4,
+                                self.conv1_channels, self.conv1_kernel_size,
+                                stride=1, padding=0, dilation=1, groups=1,
+                                bias=True,
+                                batch_norm=self.use_batch_norm,
                                 weight_norm=self.use_weight_norm)
         self.pad2  = nn.ConstantPad1d(self.conv2_pad, 0.)
-        self.conv2 = Conv1dNorm(self.conv1_channels, 
-                                self.conv2_channels, self.conv2_kernel_size, 
-                                stride=1, padding=0, dilation=1, groups=1, 
-                                bias=True, 
-                                batch_norm=self.use_batch_norm, 
+        self.conv2 = Conv1dNorm(self.conv1_channels,
+                                self.conv2_channels, self.conv2_kernel_size,
+                                stride=1, padding=0, dilation=1, groups=1,
+                                bias=True,
+                                batch_norm=self.use_batch_norm,
                                 weight_norm=self.use_weight_norm)
         self.pad3  = nn.ConstantPad1d(self.conv3_pad, 0.)
-        self.conv3 = Conv1dNorm(self.conv2_channels, 
-                                self.conv3_channels, self.conv3_kernel_size, 
-                                stride=1, padding=0, dilation=1, groups=1, 
-                                bias=True, 
-                                batch_norm=self.use_batch_norm, 
+        self.conv3 = Conv1dNorm(self.conv2_channels,
+                                self.conv3_channels, self.conv3_kernel_size,
+                                stride=1, padding=0, dilation=1, groups=1,
+                                bias=True,
+                                batch_norm=self.use_batch_norm,
                                 weight_norm=self.use_weight_norm)
-        
+
         self.pad4 = nn.ConstantPad1d((1,1), 0.)
 
         self.maxpool_3 = nn.MaxPool1d(3, padding=0)
         self.maxpool_4 = nn.MaxPool1d(4, padding=0)
-        
+
         next_in_channels = self.conv3_channels * self.get_flatten_factor(self.input_len)
-        
+
         for i in range(self.n_linear_layers):
-            
-            setattr(self, f'linear{i+1}', 
-                    LinearNorm(next_in_channels, self.linear_channels, 
-                               bias=True, 
-                               batch_norm=self.use_batch_norm, 
+
+            setattr(self, f'linear{i+1}',
+                    LinearNorm(next_in_channels, self.linear_channels,
+                               bias=True,
+                               batch_norm=self.use_batch_norm,
                                weight_norm=self.use_weight_norm)
                    )
             next_in_channels = self.linear_channels
 
         self.output  = nn.Linear(next_in_channels, self.n_outputs)
-        
-        self.nonlin  = getattr(nn, self.linear_activation)()                               
-        
+
+        self.nonlin  = getattr(nn, self.linear_activation)()
+
         self.dropout = nn.Dropout(p=self.linear_dropout_p)
-        
+
         self.criterion = getattr(loss_functions,self.loss_criterion) \
                          (**self.loss_args)
-        
+
     def get_flatten_factor(self, input_len):
-        
+
         hook = input_len
         assert hook % 3 == 0
         hook = hook // 3
         assert hook % 4 == 0
         hook = hook // 4
         assert (hook + 2) % 4 == 0
-        
+
         return (hook + 2) // 4
 
     ######################
     # Model computations #
     ######################
-    
+
     def encode(self, x):
         """
         Encode input through the BassetVL model's encoding layers.
@@ -570,10 +570,10 @@ class BassetVL(ptl.LightningModule):
         hook = self.nonlin( self.conv2( self.pad2( hook ) ) )
         hook = self.maxpool_4( hook )
         hook = self.nonlin( self.conv3( self.pad3( hook ) ) )
-        hook = self.maxpool_4( self.pad4( hook ) )        
+        hook = self.maxpool_4( self.pad4( hook ) )
         hook = torch.flatten( hook, start_dim=1 )
         return hook
-    
+
     def decode(self, x):
         """
         Decode encoded tensor through the BassetVL model's decoding layers.
@@ -586,13 +586,13 @@ class BassetVL(ptl.LightningModule):
         """
         hook = x
         for i in range(self.n_linear_layers):
-            hook = self.dropout( 
-                self.nonlin( 
+            hook = self.dropout(
+                self.nonlin(
                     getattr(self,f'linear{i+1}')(hook)
                 )
             )
         return hook
-    
+
     def classify(self, x):
         """
         Classify decoded tensor using the BassetVL model's classification layer.
@@ -605,7 +605,7 @@ class BassetVL(ptl.LightningModule):
         """
         output = self.output( x )
         return output
-        
+
     def forward(self, x):
         """
         Forward pass through the BassetVL model.
@@ -663,11 +663,11 @@ class BassetEntropyVL(ptl.LightningModule):
                                 criterion_reduction='mean', mse_scale=1.0, kl_scale=1.0)
         output = model(input_tensor)
     """
-    
+
     #####################
     # CLI staticmethods #
     #####################
-    
+
     @staticmethod
     def add_model_specific_args(parent_parser):
         """
@@ -681,30 +681,30 @@ class BassetEntropyVL(ptl.LightningModule):
         """
         parser = argparse.ArgumentParser(parents=[parent_parser], add_help=False)
         group  = parser.add_argument_group('Model Module args')
-        
+
         group.add_argument('--conv1_channels', type=int, default=300)
         group.add_argument('--conv1_kernel_size', type=int, default=19)
-        
+
         group.add_argument('--conv2_channels', type=int, default=200)
         group.add_argument('--conv2_kernel_size', type=int, default=11)
-        
+
         group.add_argument('--conv3_channels', type=int, default=200)
         group.add_argument('--conv3_kernel_size', type=int, default=7)
-        
+
         group.add_argument('--n_linear_layers', type=int, default=2)
         group.add_argument('--linear_channels', type=int, default=1000)
         group.add_argument('--n_outputs', type=int, default=280)
-        
+
         group.add_argument('--dropout_p', type=float, default=0.3)
         group.add_argument('--use_batch_norm', type=utils.str2bool, default=True)
         group.add_argument('--use_weight_norm',type=utils.str2bool, default=False)
-        
+
         group.add_argument('--criterion_reduction', type=str, default='mean')
         group.add_argument('--mse_scale', type=float, default=1.0)
         group.add_argument('--kl_scale', type=float, default=1.0)
-                
+
         return parser
-    
+
     @staticmethod
     def add_conditional_args(parser, known_args):
         """
@@ -736,12 +736,12 @@ class BassetEntropyVL(ptl.LightningModule):
     ######################
     # Model construction #
     ######################
-    
-    def __init__(self, conv1_channels=300, conv1_kernel_size=19, 
-                 conv2_channels=200, conv2_kernel_size=11, 
-                 conv3_channels=200, conv3_kernel_size=7, 
-                 n_linear_layers=2, linear_channels=1000, 
-                 n_outputs=280, activation='ReLU', 
+
+    def __init__(self, conv1_channels=300, conv1_kernel_size=19,
+                 conv2_channels=200, conv2_kernel_size=11,
+                 conv3_channels=200, conv3_kernel_size=7,
+                 n_linear_layers=2, linear_channels=1000,
+                 n_outputs=280, activation='ReLU',
                  dropout_p=0.3, use_batch_norm=True, use_weight_norm=False,
                  criterion_reduction='mean', mse_scale=1.0, kl_scale=1.0):
         """
@@ -767,89 +767,89 @@ class BassetEntropyVL(ptl.LightningModule):
 
         Returns:
             None
-        """                                            
-        super().__init__()        
-        
+        """
+        super().__init__()
+
         self.conv1_channels    = conv1_channels
         self.conv1_kernel_size = conv1_kernel_size
         self.conv1_pad = get_padding(conv1_kernel_size)
-        
+
         self.conv2_channels    = conv2_channels
         self.conv2_kernel_size = conv2_kernel_size
         self.conv2_pad = get_padding(conv2_kernel_size)
 
-        
+
         self.conv3_channels    = conv3_channels
         self.conv3_kernel_size = conv3_kernel_size
         self.conv3_pad = get_padding(conv3_kernel_size)
-        
+
         self.n_linear_layers   = n_linear_layers
         self.linear_channels   = linear_channels
         self.n_outputs         = n_outputs
-        
+
         self.activation        = activation
-        
+
         self.dropout_p         = dropout_p
         self.use_batch_norm    = use_batch_norm
         self.use_weight_norm   = use_weight_norm
-        
+
         self.criterion_reduction=criterion_reduction
         self.mse_scale         = mse_scale
         self.kl_scale          = kl_scale
-        
+
         self.pad1  = nn.ConstantPad1d(self.conv1_pad, 0.)
-        self.conv1 = Conv1dNorm(4, 
-                                self.conv1_channels, self.conv1_kernel_size, 
-                                stride=1, padding=0, dilation=1, groups=1, 
-                                bias=True, 
-                                batch_norm=self.use_batch_norm, 
+        self.conv1 = Conv1dNorm(4,
+                                self.conv1_channels, self.conv1_kernel_size,
+                                stride=1, padding=0, dilation=1, groups=1,
+                                bias=True,
+                                batch_norm=self.use_batch_norm,
                                 weight_norm=self.use_weight_norm)
         self.pad2  = nn.ConstantPad1d(self.conv2_pad, 0.)
-        self.conv2 = Conv1dNorm(self.conv1_channels, 
-                                self.conv2_channels, self.conv2_kernel_size, 
-                                stride=1, padding=0, dilation=1, groups=1, 
-                                bias=True, 
-                                batch_norm=self.use_batch_norm, 
+        self.conv2 = Conv1dNorm(self.conv1_channels,
+                                self.conv2_channels, self.conv2_kernel_size,
+                                stride=1, padding=0, dilation=1, groups=1,
+                                bias=True,
+                                batch_norm=self.use_batch_norm,
                                 weight_norm=self.use_weight_norm)
         self.pad3  = nn.ConstantPad1d(self.conv3_pad, 0.)
-        self.conv3 = Conv1dNorm(self.conv2_channels, 
-                                self.conv3_channels, self.conv3_kernel_size, 
-                                stride=1, padding=0, dilation=1, groups=1, 
-                                bias=True, 
-                                batch_norm=self.use_batch_norm, 
+        self.conv3 = Conv1dNorm(self.conv2_channels,
+                                self.conv3_channels, self.conv3_kernel_size,
+                                stride=1, padding=0, dilation=1, groups=1,
+                                bias=True,
+                                batch_norm=self.use_batch_norm,
                                 weight_norm=self.use_weight_norm)
-        
+
         self.pad4 = nn.ConstantPad1d((1,1), 0.)
 
         self.maxpool_3 = nn.MaxPool1d(3, padding=0)
         self.maxpool_4 = nn.MaxPool1d(4, padding=0)
-        
+
         next_in_channels = self.conv3_channels*13
-        
+
         for i in range(self.n_linear_layers):
-            
-            setattr(self, f'linear{i+1}', 
-                    LinearNorm(next_in_channels, self.linear_channels, 
-                               bias=True, 
-                               batch_norm=self.use_batch_norm, 
+
+            setattr(self, f'linear{i+1}',
+                    LinearNorm(next_in_channels, self.linear_channels,
+                               bias=True,
+                               batch_norm=self.use_batch_norm,
                                weight_norm=self.use_weight_norm)
                    )
             next_in_channels = self.linear_channels
 
         self.output  = nn.Linear(next_in_channels, self.n_outputs)
-        
-        self.nonlin  = getattr(nn, self.activation)()                               
-        
+
+        self.nonlin  = getattr(nn, self.activation)()
+
         self.dropout = nn.Dropout(p=self.dropout_p)
-        
+
         self.criterion = MSEKLmixed(reduction=self.criterion_reduction,
                                     mse_scale=self.mse_scale,
                                     kl_scale =self.kl_scale)
-        
+
     ######################
     # Model computations #
     ######################
-    
+
     def encode(self, x):
         """
         Encode input data through the convolutional layers.
@@ -865,10 +865,10 @@ class BassetEntropyVL(ptl.LightningModule):
         hook = self.nonlin( self.conv2( self.pad2( hook ) ) )
         hook = self.maxpool_4( hook )
         hook = self.nonlin( self.conv3( self.pad3( hook ) ) )
-        hook = self.maxpool_4( self.pad4( hook ) )        
+        hook = self.maxpool_4( self.pad4( hook ) )
         hook = torch.flatten( hook, start_dim=1 )
         return hook
-    
+
     def decode(self, x):
         """
         Decode encoded data through the linear layers.
@@ -881,13 +881,13 @@ class BassetEntropyVL(ptl.LightningModule):
         """
         hook = x
         for i in range(self.n_linear_layers):
-            hook = self.dropout( 
-                self.nonlin( 
+            hook = self.dropout(
+                self.nonlin(
                     getattr(self,f'linear{i+1}')(hook)
                 )
             )
         return hook
-    
+
     def classify(self, x):
         """
         Generate model predictions from decoded data.
@@ -900,7 +900,7 @@ class BassetEntropyVL(ptl.LightningModule):
         """
         output = self.output( x )
         return output
-        
+
     def forward(self, x):
         """
         Perform forward pass through the BassetEntropyVL model.
@@ -954,11 +954,11 @@ class BassetBranched(ptl.LightningModule):
         forward(x): Forward pass through the entire model.
 
     """
-    
+
     #####################
     # CLI staticmethods #
     #####################
-    
+
     @staticmethod
     def add_model_specific_args(parent_parser):
         """
@@ -972,18 +972,18 @@ class BassetBranched(ptl.LightningModule):
         """
         parser = argparse.ArgumentParser(parents=[parent_parser], add_help=False)
         group  = parser.add_argument_group('Model Module args')
-        
+
         group.add_argument('--input_len', type=int, default=600)
-        
+
         group.add_argument('--conv1_channels', type=int, default=300)
         group.add_argument('--conv1_kernel_size', type=int, default=19)
-        
+
         group.add_argument('--conv2_channels', type=int, default=200)
         group.add_argument('--conv2_kernel_size', type=int, default=11)
-        
+
         group.add_argument('--conv3_channels', type=int, default=200)
         group.add_argument('--conv3_kernel_size', type=int, default=7)
-        
+
         group.add_argument('--n_linear_layers', type=int, default=2)
         group.add_argument('--linear_channels', type=int, default=1000)
         group.add_argument('--linear_activation',type=str, default='ReLU')
@@ -995,14 +995,14 @@ class BassetBranched(ptl.LightningModule):
         group.add_argument('--branched_dropout_p', type=float, default=0.3)
 
         group.add_argument('--n_outputs', type=int, default=280)
-        
+
         group.add_argument('--use_batch_norm', type=utils.str2bool, default=True)
         group.add_argument('--use_weight_norm',type=utils.str2bool, default=False)
-        
+
         group.add_argument('--loss_criterion', type=str, default='L1KLmixed')
-                
+
         return parser
-    
+
     @staticmethod
     def add_conditional_args(parser, known_args):
         """
@@ -1040,17 +1040,17 @@ class BassetBranched(ptl.LightningModule):
     ######################
     # Model construction #
     ######################
-    
+
     def __init__(self, input_len=600,
-                 conv1_channels=300, conv1_kernel_size=19, 
-                 conv2_channels=200, conv2_kernel_size=11, 
-                 conv3_channels=200, conv3_kernel_size=7, 
-                 n_linear_layers=2, linear_channels=1000, 
-                 linear_activation='ReLU', linear_dropout_p=0.3, 
-                 n_branched_layers=1, branched_channels=250, 
-                 branched_activation='ReLU6', branched_dropout_p=0., 
+                 conv1_channels=300, conv1_kernel_size=19,
+                 conv2_channels=200, conv2_kernel_size=11,
+                 conv3_channels=200, conv3_kernel_size=7,
+                 n_linear_layers=2, linear_channels=1000,
+                 linear_activation='ReLU', linear_dropout_p=0.3,
+                 n_branched_layers=1, branched_channels=250,
+                 branched_activation='ReLU6', branched_dropout_p=0.,
                  n_outputs=280,
-                 use_batch_norm=True, use_weight_norm=False, 
+                 use_batch_norm=True, use_weight_norm=False,
                  loss_criterion='L1KLmixed', loss_args={}):
         """
         Initialize the BassetBranched model.
@@ -1075,112 +1075,112 @@ class BassetBranched(ptl.LightningModule):
             loss_args (dict): Args to construct loss_criterion.
             use_batch_norm (bool): Use batch normalization (default: True).
             use_weight_norm (bool): Use weight normalization (default: False).
-        """                                               
-        super().__init__()        
-        
+        """
+        super().__init__()
+
         self.input_len         = input_len
-        
+
         self.conv1_channels    = conv1_channels
         self.conv1_kernel_size = conv1_kernel_size
         self.conv1_pad = get_padding(conv1_kernel_size)
-        
+
         self.conv2_channels    = conv2_channels
         self.conv2_kernel_size = conv2_kernel_size
         self.conv2_pad = get_padding(conv2_kernel_size)
 
-        
+
         self.conv3_channels    = conv3_channels
         self.conv3_kernel_size = conv3_kernel_size
         self.conv3_pad = get_padding(conv3_kernel_size)
-        
+
         self.n_linear_layers   = n_linear_layers
         self.linear_channels   = linear_channels
         self.linear_activation = linear_activation
         self.linear_dropout_p  = linear_dropout_p
-        
+
         self.n_branched_layers = n_branched_layers
         self.branched_channels = branched_channels
         self.branched_activation = branched_activation
         self.branched_dropout_p= branched_dropout_p
-        
+
         self.n_outputs         = n_outputs
-        
+
         self.loss_criterion    = loss_criterion
         self.loss_args         = loss_args
-        
+
         self.use_batch_norm    = use_batch_norm
         self.use_weight_norm   = use_weight_norm
-        
+
         self.pad1  = nn.ConstantPad1d(self.conv1_pad, 0.)
-        self.conv1 = Conv1dNorm(4, 
-                                self.conv1_channels, self.conv1_kernel_size, 
-                                stride=1, padding=0, dilation=1, groups=1, 
-                                bias=True, 
-                                batch_norm=self.use_batch_norm, 
+        self.conv1 = Conv1dNorm(4,
+                                self.conv1_channels, self.conv1_kernel_size,
+                                stride=1, padding=0, dilation=1, groups=1,
+                                bias=True,
+                                batch_norm=self.use_batch_norm,
                                 weight_norm=self.use_weight_norm)
         self.pad2  = nn.ConstantPad1d(self.conv2_pad, 0.)
-        self.conv2 = Conv1dNorm(self.conv1_channels, 
-                                self.conv2_channels, self.conv2_kernel_size, 
-                                stride=1, padding=0, dilation=1, groups=1, 
-                                bias=True, 
-                                batch_norm=self.use_batch_norm, 
+        self.conv2 = Conv1dNorm(self.conv1_channels,
+                                self.conv2_channels, self.conv2_kernel_size,
+                                stride=1, padding=0, dilation=1, groups=1,
+                                bias=True,
+                                batch_norm=self.use_batch_norm,
                                 weight_norm=self.use_weight_norm)
         self.pad3  = nn.ConstantPad1d(self.conv3_pad, 0.)
-        self.conv3 = Conv1dNorm(self.conv2_channels, 
-                                self.conv3_channels, self.conv3_kernel_size, 
-                                stride=1, padding=0, dilation=1, groups=1, 
-                                bias=True, 
-                                batch_norm=self.use_batch_norm, 
+        self.conv3 = Conv1dNorm(self.conv2_channels,
+                                self.conv3_channels, self.conv3_kernel_size,
+                                stride=1, padding=0, dilation=1, groups=1,
+                                bias=True,
+                                batch_norm=self.use_batch_norm,
                                 weight_norm=self.use_weight_norm)
-        
+
         self.pad4 = nn.ConstantPad1d((1,1), 0.)
 
         self.maxpool_3 = nn.MaxPool1d(3, padding=0)
         self.maxpool_4 = nn.MaxPool1d(4, padding=0)
-        
+
         next_in_channels = self.conv3_channels * self.get_flatten_factor(self.input_len)
-        
+
         for i in range(self.n_linear_layers):
-            
-            setattr(self, f'linear{i+1}', 
-                    LinearNorm(next_in_channels, self.linear_channels, 
-                               bias=True, 
-                               batch_norm=self.use_batch_norm, 
+
+            setattr(self, f'linear{i+1}',
+                    LinearNorm(next_in_channels, self.linear_channels,
+                               bias=True,
+                               batch_norm=self.use_batch_norm,
                                weight_norm=self.use_weight_norm)
                    )
             next_in_channels = self.linear_channels
 
-        self.branched = BranchedLinear(next_in_channels, self.branched_channels, 
-                                       self.branched_channels, 
-                                       self.n_outputs, self.n_branched_layers, 
+        self.branched = BranchedLinear(next_in_channels, self.branched_channels,
+                                       self.branched_channels,
+                                       self.n_outputs, self.n_branched_layers,
                                        self.branched_activation, self.branched_dropout_p)
-            
+
         self.output  = GroupedLinear(self.branched_channels, 1, self.n_outputs)
-        
-        self.nonlin  = getattr(nn, self.linear_activation)()                               
-        
+
+        self.nonlin  = getattr(nn, self.linear_activation)()
+
         self.dropout = nn.Dropout(p=self.linear_dropout_p)
-        
+
         self.criterion = getattr(loss_functions,self.loss_criterion) \
                          (**self.loss_args)
-    
+
     def get_flatten_factor(self, input_len):
-        
-        
-        
+
+
+
         hook = input_len
         assert hook % 3 == 0
         hook = hook // 3
         assert hook % 4 == 0
         hook = hook // 4
         assert (hook + 2) % 4 == 0
-        
+
         return (hook + 2) // 4
-    
+
     ######################
     # Model computations #
     ######################
-    
+
     def encode(self, x):
         """
         Encode input data through the model's encoder layers.
@@ -1196,10 +1196,10 @@ class BassetBranched(ptl.LightningModule):
         hook = self.nonlin( self.conv2( self.pad2( hook ) ) )
         hook = self.maxpool_4( hook )
         hook = self.nonlin( self.conv3( self.pad3( hook ) ) )
-        hook = self.maxpool_4( self.pad4( hook ) )        
+        hook = self.maxpool_4( self.pad4( hook ) )
         hook = torch.flatten( hook, start_dim=1 )
         return hook
-    
+
     def decode(self, x):
         """
         Decode encoded data through the model's linear and branched layers.
@@ -1212,15 +1212,15 @@ class BassetBranched(ptl.LightningModule):
         """
         hook = x
         for i in range(self.n_linear_layers):
-            hook = self.dropout( 
-                self.nonlin( 
+            hook = self.dropout(
+                self.nonlin(
                     getattr(self,f'linear{i+1}')(hook)
                 )
             )
         hook = self.branched(hook)
 
         return hook
-    
+
     def classify(self, x):
         """
         Classify data using the output layer.
@@ -1233,7 +1233,7 @@ class BassetBranched(ptl.LightningModule):
         """
         output = self.output( x )
         return output
-        
+
     def forward(self, x):
         """
         Forward pass through the entire model.

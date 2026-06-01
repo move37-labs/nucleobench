@@ -1,11 +1,11 @@
 import torch
+import torch.utils.checkpoint as checkpoint
 from torch import nn
 from torch.nn import functional as F
 
+from .attention import FlashMultiHeadSelfAttention, MultiHeadSelfAttention
 from .constants import DISABLE_CHECKPOINTING
-from .attention import MultiHeadSelfAttention, FlashMultiHeadSelfAttention
 
-import torch.utils.checkpoint as checkpoint
 
 class TokenDropout(nn.Module):
     def __init__(
@@ -60,7 +60,7 @@ class Transformer(nn.Module):
                 x, attn = block(x, key_padding_mask=key_padding_mask, need_attn_weights=need_attn_weights)
             else:
                 x, attn = checkpoint.checkpoint(
-                    block, 
+                    block,
                     x,
                     key_padding_mask=key_padding_mask,
                     need_attn_weights=need_attn_weights,
@@ -93,7 +93,7 @@ class SwiGLU(nn.Module):
         super().__init__()
         self.linear = nn.Linear(size_in, size_out, bias=bias)
         self.linear_gate = nn.Linear(size_in, size_out, bias=bias)
-        self.beta = nn.Parameter(torch.ones(1), requires_grad=beta_is_learnable)  
+        self.beta = nn.Parameter(torch.ones(1), requires_grad=beta_is_learnable)
 
     def forward(self, x):
         linear_out = self.linear(x)
@@ -103,14 +103,14 @@ class SwiGLU(nn.Module):
 class TransformerBlock(nn.Module):
     def __init__(self, embed_dim, num_heads, use_rot_emb=True, attn_qkv_bias=False, transition_dropout=0.0, attention_dropout=0.0, residual_dropout=0.0, transition_factor=4, use_flash_attn=False):
         super().__init__()
-        
+
         self.use_flash_attn = use_flash_attn
 
         if use_flash_attn:
             self.mh_attn = FlashMultiHeadSelfAttention(embed_dim, num_heads, attention_dropout, causal=False, use_rot_emb=use_rot_emb, bias=attn_qkv_bias)
         else:
             self.mh_attn = MultiHeadSelfAttention(embed_dim, num_heads, attention_dropout, use_rot_emb, attn_qkv_bias)
-        
+
         self.attn_layer_norm = nn.LayerNorm(embed_dim)
 
         self.transition = nn.Sequential(

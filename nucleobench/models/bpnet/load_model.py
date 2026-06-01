@@ -14,7 +14,7 @@ python -m nucleobench.models.bpnet.load_model
 ```
 """
 
-import os 
+import os
 import subprocess
 import tempfile
 
@@ -35,16 +35,16 @@ def download(model_name: str):
         model_path = os.path.join(tmpdirname, f'{model_name}.torch')
         subprocess.run(['curl', url, '--output', model_path])
         model = torch.load(model_path, weights_only=False, map_location=torch.device('cpu'))
-    
+
     # Text copied from `https://github.com/jmschrei/ledidi/blob/master/tutorials/Tutorial%201%20-%20Design%20of%20Protein%20Binding%20Sites.ipynb`:
-    # There are two technical details of the BPNet models we need to account for before they 
-    # can be used. First, they take a control track in addition to genome sequence to adjust 
-    # for biases in the mapping step. Because Ledidi assumes only a single input to the model, 
-    # we need to use ControlWrapper, which just automatically creates and passes in an all-zeroes 
-    # control of the same batch size as the data, removing our need to account for it. Second, the 
-    # model makes predictions for both profile and counts, so we need to use CountWrapper to remove 
-    # the profile output. After using these two wrappers, we have an object that only takes in sequence 
-    # and outputs a single number per example. Most model complexities can be removed through the use 
+    # There are two technical details of the BPNet models we need to account for before they
+    # can be used. First, they take a control track in addition to genome sequence to adjust
+    # for biases in the mapping step. Because Ledidi assumes only a single input to the model,
+    # we need to use ControlWrapper, which just automatically creates and passes in an all-zeroes
+    # control of the same batch size as the data, removing our need to account for it. Second, the
+    # model makes predictions for both profile and counts, so we need to use CountWrapper to remove
+    # the profile output. After using these two wrappers, we have an object that only takes in sequence
+    # and outputs a single number per example. Most model complexities can be removed through the use
     # of a wrapper like this.
     model = CountWrapper(ControlWrapper(model))
 
@@ -70,7 +70,7 @@ class CountWrapper(torch.nn.Module):
 	"""
 
 	def __init__(self, model):
-		super(CountWrapper, self).__init__()
+		super().__init__()
 		self.model = model
 
 	def forward(self, X, X_ctl=None, **kwargs):
@@ -91,7 +91,7 @@ class ControlWrapper(torch.nn.Module):
 	"""
 
 	def __init__(self, model):
-		super(ControlWrapper, self).__init__()
+		super().__init__()
 		self.model = model
 
 	def forward(self, X, X_ctl=None):
@@ -104,7 +104,7 @@ class ControlWrapper(torch.nn.Module):
 		X_ctl = torch.zeros(X.shape[0], self.model.n_control_tracks,
 			X.shape[-1], dtype=X.dtype, device=X.device)
 		return self.model(X, X_ctl)
-    
+
 
 if __name__ == '__main__':
     download('GATA2')

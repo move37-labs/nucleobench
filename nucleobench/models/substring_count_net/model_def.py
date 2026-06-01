@@ -1,16 +1,14 @@
 """Model for counting substrings."""
 
 import argparse
+
+import numpy as np
 import torch
 import torch.nn.functional as F
-import numpy as np
 
-from nucleobench.common import argparse_lib
-from nucleobench.common import constants
-from nucleobench.common import attribution_lib_torch as att_lib
-from nucleobench.common import string_utils
-
+from nucleobench.common import argparse_lib, constants, string_utils
 from nucleobench.optimizations import model_class as mc
+
 
 class CountSubstringModel(torch.nn.Module, mc.PyTorchDifferentiableModel, mc.TISMModelClass):
     """Count number of substrings, using convs."""

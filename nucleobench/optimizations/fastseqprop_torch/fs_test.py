@@ -9,7 +9,6 @@ pytest nucleobench/optimizations/fastseqprop_torch/fs_test.py
 import numpy as np
 import torch
 
-from nucleobench.common import string_utils
 from nucleobench.common import testing_utils
 
 from . import fs
@@ -59,9 +58,9 @@ def test_correctness():
 def test_respects_pos_to_mutate():
     start_sequence = "A" * 20
     positions_to_mutate = [2, 5, 10]
-    
+
     model_fn = testing_utils.CountLetterModel()
-    
+
     opt = fs.FastSeqProp(
         model_fn=model_fn,
         start_sequence=start_sequence,

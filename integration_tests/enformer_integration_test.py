@@ -11,6 +11,7 @@ import time
 import pytest
 
 from nucleobench.models.grelu.enformer import model_def
+
 from .data_loaders import MuscleGeneExpressionByBucket
 
 

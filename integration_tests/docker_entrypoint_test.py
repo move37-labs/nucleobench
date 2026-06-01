@@ -8,18 +8,16 @@ pytest -n auto integration_tests/docker_entrypoint_test.py --durations=0
 
 import argparse
 import itertools
-import numpy as np
 import os
-import pytest
 import tempfile
 
-from nucleobench import models
-from nucleobench import optimizations
-from nucleobench.optimizations import model_class as mc
-from nucleobench.common import argparse_lib
-from nucleobench.common import testing_utils
+import numpy as np
+import pytest
 
 import docker_entrypoint as de
+from nucleobench import models, optimizations
+from nucleobench.common import argparse_lib, testing_utils
+from nucleobench.optimizations import model_class as mc
 
 _valid_models = list(models.MODELS_.keys())
 _valid_opts = optimizations.OPTIMIZATIONS_.keys()
@@ -32,11 +30,11 @@ def test_model_required_fns(model):
         pytest.skip("Test requires external access.")
     else:
         seqs = ["A" * 200, "T" * 200]
-    
+
     model_class = models.get_model(model)
     _ = model_class.init_parser()
     model_obj = model_class(**model_class.debug_init_args())
-    
+
     model_obj(seqs)
 
 
@@ -60,13 +58,13 @@ def test_run_loop_with_all_combos(model, optimization):
 
     model_class = models.get_model(model)
     opt_class = optimizations.get_optimization(optimization)
-    
+
     if optimization in optimizations.OPTIMIZATIONS_REQUIRING_PYTORCH_DIFF_ and not issubclass(
         model_class, mc.PyTorchDifferentiableModel):
         return
     if optimization in optimizations.OPTIMIZATIONS_REQUIRING_TISM_ and not issubclass(model_class, mc.TISMModelClass):
         return
-    
+
     model_obj = model_class(**model_class.debug_init_args())
 
     opt_init_args = opt_class.debug_init_args()
@@ -83,7 +81,7 @@ def test_run_loop_with_all_combos(model, optimization):
         opt_init_args["start_sequence"] = "A" * 82_000
     else:
         opt_init_args["start_sequence"] = "AT" * 100
-    
+
     opt_obj = opt_class(**opt_init_args)
 
     with tempfile.TemporaryDirectory() as tmpdirname:
@@ -164,7 +162,7 @@ def test_no_intermediate_records():
 
     model_class = models.get_model(model)
     opt_class = optimizations.get_optimization(optimization)
-    
+
     model_obj = model_class(**model_class.debug_init_args())
 
     opt_init_args = opt_class.debug_init_args()
@@ -206,7 +204,7 @@ def test_optimization_pos_to_mutate(optimization):
     np.random.seed(0)
     pos_to_mutate = sorted(
         [int(x) for x in np.random.choice(range(seq_len), size=256, replace=False)])
-    
+
     opt_class = optimizations.get_optimization(optimization)
     _ = opt_class.init_parser()
     init_args = opt_class.debug_init_args()
@@ -217,7 +215,7 @@ def test_optimization_pos_to_mutate(optimization):
     # Check that obj has required run functions.
     for _ in range(5):
         opt_obj.run(n_steps=2)
-    
+
         # Check that all algorithms obey the `positions_to_mutate` argument.
         proposal = opt_obj.get_samples(1)[0]
         testing_utils.assert_proposal_respects_positions_to_mutate(

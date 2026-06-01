@@ -6,16 +6,17 @@ python -m nucleobench.common.gcp_utils
 ```
 """
 
-from typing import Any, Generator
-
-import numpy as np
 import argparse
-import pandas as pd
-import pyarrow
 import os
 import pickle
-import torch
 import time
+from collections.abc import Generator
+from typing import Any
+
+import numpy as np
+import pandas as pd
+import pyarrow
+import torch
 from google.cloud import storage
 
 from nucleobench.common import constants
@@ -74,7 +75,7 @@ def _flatten_dicts_to_dataframe(write_dicts: list[dict]) -> pd.DataFrame:
         else:
             # It's a primitive value, so append it.
             items.append((parent_key, obj))
-        
+
         return dict(items)
 
     flattened_records = [_flatten_recursive(d) for d in write_dicts]
@@ -100,7 +101,7 @@ def save_proposals(
         raise ValueError(f"Unsupported format: '{format}'. Must be 'parquet' or 'pkl'.")
 
     save_dicts = _write_dicts_to_save_dicts(write_dicts)
-    
+
     base_filename = get_filepath(
         base_dir=output_path,
         opt_method=args.optimization,
@@ -109,7 +110,7 @@ def save_proposals(
         timestamp=time.strftime("%Y%m%d_%H%M%S"),
     )
     filename = f'{base_filename}.{format}'
-    
+
     is_gcs = filename.startswith('gs://')
 
     if format in ['parquet', 'csv']:
@@ -138,7 +139,7 @@ def save_proposals(
                 pickle.dump(save_dicts, f)
     else:
         raise ValueError(f"Unsupported format: '{format}'. Must be 'parquet' or 'pkl'.")
-    
+
     print(f'Proposals deposited at:\n\t{filename}')
 
 
@@ -180,7 +181,7 @@ def list_files_recursively(local_dir: str) -> Generator[str, None, None]:
     for root, dirs, files in os.walk(local_dir):
         for file in files:
             yield os.path.join(root, file)
-            
+
 
 def write_txt_file(output_path: str, content: str):
     """Write a ex. 'SUCCESS.txt' file."""
@@ -195,8 +196,8 @@ def write_txt_file(output_path: str, content: str):
         os.makedirs(output_path, exist_ok=True)
         with open(os.path.join(output_path, f'{content}.txt'), 'w') as f:
             f.write(content)
-            
-            
+
+
 def read_gcp_csv(gcs_path: str) -> pd.DataFrame:
     """Read a CSV file from a GCS path."""
     return pd.read_csv(gcs_path)

@@ -1,9 +1,8 @@
-import numpy as np
 
+from nucleobench.common import testing_utils
 from nucleobench.optimizations.simulated_annealing.simulated_annealing import (
     SimulatedAnnealing,
 )
-from nucleobench.common import testing_utils
 
 
 def test_simulated_annealing():

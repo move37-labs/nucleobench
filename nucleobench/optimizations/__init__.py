@@ -1,16 +1,13 @@
 from nucleobench.optimizations import optimization_class as oc
-
-from nucleobench.optimizations.ada.adalead import adalead_ref
 from nucleobench.optimizations.ada.adabeam import adabeam
+from nucleobench.optimizations.ada.adalead import adalead_ref
 from nucleobench.optimizations.ada.gradabeam import gradabeam
 from nucleobench.optimizations.beam_search import beam_ordered, beam_unordered
+from nucleobench.optimizations.directed_evolution import directed_evolution
 from nucleobench.optimizations.dummy import random_perturbation
 from nucleobench.optimizations.fastseqprop_torch import fs
 from nucleobench.optimizations.ledidi import ledidi
-from nucleobench.optimizations.directed_evolution import directed_evolution
-from nucleobench.optimizations.ada.adalead import adalead_ref
 from nucleobench.optimizations.simulated_annealing import simulated_annealing
-
 
 OPTIMIZATIONS_REQUIRING_TISM_ = {
     "beam_search": beam_ordered.OrderedBeamSearch,

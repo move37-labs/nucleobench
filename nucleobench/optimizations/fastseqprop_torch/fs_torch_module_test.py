@@ -10,8 +10,7 @@ import numpy as np
 import pytest
 import torch
 
-from nucleobench.common import string_utils
-from nucleobench.common import testing_utils
+from nucleobench.common import string_utils, testing_utils
 
 from . import fs_torch_module as fst
 
@@ -23,19 +22,19 @@ def test_shape_sanity():
         positions_to_mutate = [0, 2, 3],
         vocab_len=4,
     )
-    
+
     probs = fs_opt.get_probs()
     assert probs.ndim == 3
     assert list(probs.shape) == [1, 4, 5]
-    
+
     samples_onehot = fs_opt.get_samples_onehot(3)
     assert list(samples_onehot.shape) == [3, 4, 5]
-    
+
 
 def test_prob_correctness():
     seed = 'ACTGC'
     vocab = ['A', 'C', 'G', 'T']
-    
+
     fs_opt = fst.TorchFastSeqPropOptimizer(
         string_utils.dna2tensor_batch([seed], vocab_list=vocab),
         positions_to_mutate = [0, 2, 3],
@@ -46,7 +45,7 @@ def test_prob_correctness():
     for prob_v, expected_char in zip(np.transpose(probs), seed):
         mll_char = vocab[np.argmax(prob_v)]
         assert mll_char == expected_char
-    
+
 @pytest.mark.parametrize("start_str", [
     'ACTGC',
     'ACTG',
@@ -72,7 +71,7 @@ def test_respects_pos_to_mutate():
     positions_to_mutate = [2, 5, 10]
     start_probs = string_utils.dna2tensor(start_sequence)
     start_probs = torch.unsqueeze(start_probs, 0)
-    
+
     module = fst.TorchFastSeqPropOptimizer(
         start_probs=start_probs,
         positions_to_mutate=positions_to_mutate
@@ -87,7 +86,7 @@ def test_respects_pos_to_mutate():
         for proposal in proposals:
             testing_utils.assert_proposal_respects_positions_to_mutate(
                 start_sequence, proposal, positions_to_mutate)
-        
+
         # Create a dummy loss
         optimizer.zero_grad()
         loss = samples.sum()

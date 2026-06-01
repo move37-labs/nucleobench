@@ -7,9 +7,9 @@ pytest nucleobench/common/testing_utils_test.py
 """
 import random
 
-from nucleobench.common import string_utils
-from nucleobench.common import testing_utils
 import pytest
+
+from nucleobench.common import string_utils, testing_utils
 
 
 def test_dummy_inference_correctness():
@@ -107,4 +107,4 @@ def test_count_letter_model_args(vocab_i, flip_sign, extra_channels, add_unsquee
                 expected_pos_val = 1 if char == letter_to_count else 0
                 if flip_sign:
                     expected_pos_val *= -1
-                assert val_to_check[j] == expected_pos_val 
+                assert val_to_check[j] == expected_pos_val

@@ -1,4 +1,4 @@
-from .basset import Basset, BassetVL, BassetEntropyVL, BassetBranched
+from .basset import Basset, BassetBranched, BassetEntropyVL, BassetVL
 
 __all__ = [
     'Basset', 'BassetVL', 'BassetEntropyVL', 'BassetBranched',

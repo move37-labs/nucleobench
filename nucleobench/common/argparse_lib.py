@@ -6,20 +6,21 @@ python -m nucleobench.common.argparse_lib
 ```
 """
 
-from typing import Iterable, Optional, Union
-
 import argparse
 import dataclasses
+from collections.abc import Iterable
+
 import pandas as pd
 
 from nucleobench.common import constants
+
 
 @dataclasses.dataclass
 class ParsedArgs:
     main_args: argparse.Namespace
     model_init_args: argparse.Namespace
     opt_init_args: argparse.Namespace
-    
+
 
 def possibly_parse_start_sequence(start_seq: str) -> str:
     """Possibly parse start sequence from a local or remote file.
@@ -31,7 +32,7 @@ def possibly_parse_start_sequence(start_seq: str) -> str:
     """
     if start_seq.startswith('local://'):
         local_fileloc = start_seq[len('local://'):]
-        with open(local_fileloc, 'r') as f:
+        with open(local_fileloc) as f:
             start_seq = f.read()
     elif start_seq.startswith('enformer://'):
         # The structure of a GCP enformer string is:
@@ -51,7 +52,7 @@ def fetch_zenodo_enformer_start_sequence_df() -> pd.DataFrame:
     return pd.read_parquet(constants.ZENODO_ENFORMER_URL_)
 
 
-def possibly_parse_positions_to_mutate(positions_to_mutate: Optional[Union[str, list[int]]]) -> Optional[list[int]]:
+def possibly_parse_positions_to_mutate(positions_to_mutate: str | list[int] | None) -> list[int] | None:
     """Possibly parse `positions_to_mutate` from a file, or leave it untouched, depending on the value.
     
     Prefix strings that trigger special handling:
@@ -60,7 +61,7 @@ def possibly_parse_positions_to_mutate(positions_to_mutate: Optional[Union[str, 
     """
     if isinstance(positions_to_mutate, str) and positions_to_mutate.startswith('local://'):
         local_fileloc = positions_to_mutate[len('local://'):]
-        with open(local_fileloc, 'r') as f:
+        with open(local_fileloc) as f:
             loc_str = f.read()
         positions_to_mutate = [int(x) for x in loc_str.split('\n')]
     elif isinstance(positions_to_mutate, str) and positions_to_mutate.startswith('enformer://'):
@@ -94,12 +95,12 @@ def handle_leftover_args(known_args: argparse.Namespace, leftover_args: Iterable
                     if arg_val not in [None, '']:
                         raise ValueError(f'Unused arg, not empty: {leftover_args}')
                 continue
-            else: 
+            else:
                 if i not in [None, '']:
                     raise ValueError(f'Unused arg, not empty: {leftover_args}')
     else:
         raise ValueError(f'Unused args: {leftover_args}')
-    
+
 
 def str_to_bool(s):
     if s.lower() in ('yes', 'true', 't', '1'):
@@ -108,14 +109,14 @@ def str_to_bool(s):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
-    
-    
+
+
 if __name__ == "__main__":
     random_seq = possibly_parse_start_sequence('enformer://12')
     assert isinstance(random_seq, str), (type(random_seq), random_seq)
     assert len(random_seq) == 196608, f"Expected 196608bp sequence, got {len(random_seq)}"
     print(random_seq)
-    
+
     random_pos_to_mutate = possibly_parse_positions_to_mutate('enformer://12')
     assert isinstance(random_pos_to_mutate, list)
     assert len(random_pos_to_mutate) == 256

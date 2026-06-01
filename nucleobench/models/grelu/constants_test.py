@@ -6,13 +6,14 @@ pytest nucleobench/models/grelu/constants_test.py
 ```
 """
 
-import numpy as np
 import random
 
 import grelu.sequence.format
+import numpy as np
 
-from nucleobench.models.grelu import constants
 from nucleobench.common import string_utils
+from nucleobench.models.grelu import constants
+
 
 def test_vocab_consistency():
     """Check that gRelu and NucleoBench use the same vocab."""
@@ -22,5 +23,5 @@ def test_vocab_consistency():
         print(random_string)
         grelu_ints = grelu.sequence.format.strings_to_one_hot(random_string)
         nucleobench_ints = string_utils.dna2tensor(random_string, vocab_list=valid_vocab).numpy()
-        
+
         assert np.array_equal(grelu_ints, nucleobench_ints), (random_string, valid_vocab, grelu_ints, nucleobench_ints)

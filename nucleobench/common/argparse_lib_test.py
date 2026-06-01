@@ -10,10 +10,11 @@ import tempfile
 import unittest
 from unittest import mock
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 from nucleobench.common import argparse_lib
+
 
 class ArgparseLibTest(unittest.TestCase):
 
@@ -37,7 +38,7 @@ class ArgparseLibTest(unittest.TestCase):
         tmp_file = os.path.join(self.test_dir.name, 'seq.txt')
         with open(tmp_file, 'w') as f:
             f.write(seq)
-        
+
         path = f'local://{tmp_file}'
         self.assertEqual(argparse_lib.possibly_parse_start_sequence(path), seq)
 
@@ -61,7 +62,7 @@ class ArgparseLibTest(unittest.TestCase):
         positions_str = "1,5,10"
         expected = [1, 5, 10]
         self.assertEqual(
-            argparse_lib.possibly_parse_positions_to_mutate(positions_str), 
+            argparse_lib.possibly_parse_positions_to_mutate(positions_str),
             expected
         )
 
@@ -71,7 +72,7 @@ class ArgparseLibTest(unittest.TestCase):
         tmp_file = os.path.join(self.test_dir.name, 'pos.txt')
         with open(tmp_file, 'w') as f:
             f.write('\n'.join(map(str, positions)))
-            
+
         path = f'local://{tmp_file}'
         self.assertEqual(argparse_lib.possibly_parse_positions_to_mutate(path), positions)
 

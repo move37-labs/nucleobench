@@ -9,6 +9,7 @@ import numpy as np
 
 from nucleobench.optimizations import utils
 
+
 def test_get_locations_to_edit():
     locs = utils.get_locations_to_edit(
         positions_to_mutate=[0, 1],

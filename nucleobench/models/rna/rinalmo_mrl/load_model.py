@@ -9,22 +9,22 @@ python -m nucleobench.models.rna.rinalmo_mrl.load_model
 
 import os
 import subprocess
-import torch
 import tempfile
 
+import torch
 from google.cloud import storage
 
 from . import constants
 from .rinalmo.ribosome_loading import RibosomeLoadingPredictionWrapper
 
 
-def load_model(ft_wts_url: str = constants.FT_ZENODO_URL_, 
+def load_model(ft_wts_url: str = constants.FT_ZENODO_URL_,
                has_cuda: bool | None = None,
                force_download: bool = False,
                ) -> RibosomeLoadingPredictionWrapper:
     if has_cuda is None:
         has_cuda = torch.cuda.device_count() >= 1
-        
+
     my_model = RibosomeLoadingPredictionWrapper(force_cpu=not has_cuda)
     with tempfile.TemporaryDirectory() as tmpdirname:
         # Download finetuned weights.
@@ -38,7 +38,7 @@ def load_model(ft_wts_url: str = constants.FT_ZENODO_URL_,
             # Download weights.
             ft_wts_path = os.path.join(tmpdirname, 'rinalmo_giga_mrl_ft.pt')
             download_artifact(ft_wts_url, ft_wts_path)
-        
+
         # Load weights into relevant parts of model.
         wts = torch.load(ft_wts_path, weights_only=True)
         if not has_cuda:
@@ -51,11 +51,11 @@ def load_model(ft_wts_url: str = constants.FT_ZENODO_URL_,
             raise ValueError(f"Unexpected missing keys: {non_inv_freq_missing}")
         if unexpected:
             raise ValueError(f"Unexpected keys in checkpoint: {unexpected}")
-        
+
     my_model.eval()
     if has_cuda:
         my_model.cuda()
-    
+
     return my_model
 
 
@@ -78,24 +78,24 @@ def modify_flash_attn_wts_for_cpu(wts: dict[str, torch.Tensor]) -> dict[str, tor
             # Carve out 3 weights, and delete the flash attention weight.
             assert wts[k].ndim == 2
             assert wts[k].shape[0] % 3 == 0, wts[k].shape
-            
+
             q_wts_name = k.replace('mh_attn.Wqkv.weight', 'mh_attn.mh_attn.to_q.weight')
             k_wts_name = k.replace('mh_attn.Wqkv.weight', 'mh_attn.mh_attn.to_k.weight')
             v_wts_name = k.replace('mh_attn.Wqkv.weight', 'mh_attn.mh_attn.to_v.weight')
-            
+
             wts[q_wts_name], wts[k_wts_name], wts[v_wts_name]  = wts[k].chunk(3, dim=0)
-            
+
             del wts[k]
         elif 'mh_attn.out_proj.weight' in k:
             # Map to the regular attention output projection weight.
             out_proj_wts_name = k.replace('mh_attn.out_proj.weight', 'mh_attn.mh_attn.out_proj.weight')
             wts[out_proj_wts_name] = wts[k]
             del wts[k]
-            
-    return wts
-            
 
-        
+    return wts
+
+
+
 def download_artifact(url: str, output_path='./'):
     """Download an artifact from Zenodo or GCS."""
     print(f"Downloading artifact from {url} to {output_path}")

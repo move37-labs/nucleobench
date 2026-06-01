@@ -7,12 +7,12 @@
 # Authors: Jacob Schreiber <jmschreiber91@gmail.com>
 #          adapted from code written by Yang Lu
 
-from typing import Optional
-
 import time
+
 import torch
 
 from nucleobench.optimizations.typing import PositionsToMutateType
+
 
 class Ledidi(torch.nn.Module):
     """Ledidi is a method for editing categorical sequences.
@@ -104,29 +104,29 @@ class Ledidi(torch.nn.Module):
     """
 
     def __init__(
-        self, 
-        model, 
-        seed_tensor_onehot: torch.Tensor, 
-        input_loss=None, 
-        output_loss=torch.nn.MSELoss(), 
-        tau=1, 
-        l=0.1, 
-        batch_size=16, 
-        max_iter=1000, 
-        early_stopping_iter=100, 
-        report_iter=100, 
-        lr=1.0, 
-        positions_to_mutate: Optional[PositionsToMutateType] = None, 
-        initial_weights=None, 
-        eps=1e-4, 
-        return_history=False, 
+        self,
+        model,
+        seed_tensor_onehot: torch.Tensor,
+        input_loss=None,
+        output_loss=torch.nn.MSELoss(),
+        tau=1,
+        l=0.1,
+        batch_size=16,
+        max_iter=1000,
+        early_stopping_iter=100,
+        report_iter=100,
+        lr=1.0,
+        positions_to_mutate: PositionsToMutateType | None = None,
+        initial_weights=None,
+        eps=1e-4,
+        return_history=False,
         verbose=True):
         super().__init__()
-        
+
         if isinstance(model, torch.nn.Module):
             for param in model.parameters():
                 param.requires_grad = False
-        
+
         if isinstance(model, torch.nn.Module):
             self.model = model.eval()
         else:
@@ -147,7 +147,7 @@ class Ledidi(torch.nn.Module):
         tensor_shape = seed_tensor_onehot.shape
         if initial_weights is None:
             initial_weights = torch.zeros(1, *tensor_shape, dtype=torch.float32)
-            
+
         # Create input mask.
         if positions_to_mutate is None:
             input_mask = None
@@ -155,23 +155,23 @@ class Ledidi(torch.nn.Module):
             # Create an input mask to control gradients.
             input_mask = torch.Tensor([True] * tensor_shape[1]).type(torch.bool)
             input_mask[positions_to_mutate] = False
-        
-            # Modify the initial weights to make the likelihood of picking the original 
+
+            # Modify the initial weights to make the likelihood of picking the original
             # sequence element so high, that it effectively remains unchanged.
             inverse_pos_to_mask = torch.ones(seed_tensor_onehot.shape[1], dtype=torch.bool)
             inverse_pos_to_mask[positions_to_mutate] = False
-            
+
             initial_weights[:, :, inverse_pos_to_mask] = torch.where(
                 seed_tensor_onehot[:, inverse_pos_to_mask] == 1, # Condition
                 float(10**9),
                 float(-10**9),
             )
-            
+
         initial_weights.requires_grad = True
-        
+
         self.input_mask = input_mask
         self.weights = torch.nn.Parameter(initial_weights)
-        
+
 
     def forward(self, X):
         """Generate a set of edits given a sequence.
@@ -201,9 +201,9 @@ class Ledidi(torch.nn.Module):
         assert X.shape[0] == 1
         logits = torch.log(X + self.eps) + self.weights
         logits = logits.expand(self.batch_size, *(-1 for _ in range(X.ndim-1)))
-        return torch.nn.functional.gumbel_softmax(logits, tau=self.tau, 
+        return torch.nn.functional.gumbel_softmax(logits, tau=self.tau,
             hard=True, dim=1)
-        
+
 
     def fit_transform(self, X):
         """Apply the Ledidi procedure to design edits for a sequence.
@@ -232,12 +232,12 @@ class Ledidi(torch.nn.Module):
         """
 
         optimizer = torch.optim.AdamW((self.weights,), lr=self.lr)
-        history = {'edits': [], 'input_loss': [], 'output_loss': [], 
+        history = {'edits': [], 'input_loss': [], 'output_loss': [],
             'total_loss': [], 'batch_size': self.batch_size}
-        
+
         inpainting_mask = X[0].sum(dim=0) == 1
         y_hat = self.model.inference_on_tensor(X)
-        
+
         n_iter_wo_improvement = 0
         output_loss = self.output_loss(y_hat).item()
 
@@ -246,20 +246,20 @@ class Ledidi(torch.nn.Module):
         best_total_loss = output_loss
         best_sequence = X
         best_weights = torch.clone(self.weights)
-        
+
         X_ = X.expand(self.batch_size, *X.shape[1:])
-        
+
         tic = time.time()
         initial_tic = time.time()
         if self.verbose:
             print(("iter=I\tinput_loss=0.0\toutput_loss={:4.4}\t" +
-                "total_loss={:4.4}\ttime=0.0").format(output_loss, 
+                "total_loss={:4.4}\ttime=0.0").format(output_loss,
                     best_total_loss))
 
         for i in range(1, self.max_iter+1):
             X_hat = self(X)
             y_hat = self.model.inference_on_tensor(X_hat)
-            
+
             if self.input_loss is None:
                 input_loss = torch.tensor(0.0)
             else:
@@ -276,13 +276,13 @@ class Ledidi(torch.nn.Module):
             input_loss = input_loss.item()
             output_loss = output_loss.item()
             total_loss = total_loss.item()
-            
+
             if self.verbose and i % self.report_iter == 0:
                 print(("iter={}\tinput_loss={:4.4}\toutput_loss={:4.4}\t" +
-                    "total_loss={:4.4}\ttime={:4.4}").format(i, input_loss, 
+                    "total_loss={:4.4}\ttime={:4.4}").format(i, input_loss,
                         output_loss, total_loss, time.time() - tic))
-            
-                tic = time.time()               
+
+                tic = time.time()
 
             if self.return_history:
                 history['edits'].append(torch.where(X_hat != X_))
@@ -310,8 +310,8 @@ class Ledidi(torch.nn.Module):
 
         if self.verbose:
             print(("iter=F\tinput_loss={:4.4}\toutput_loss={:4.4}\t" +
-                "total_loss={:4.4}\ttime={:4.4}").format(best_input_loss, 
-                    best_output_loss, best_total_loss, 
+                "total_loss={:4.4}\ttime={:4.4}").format(best_input_loss,
+                    best_output_loss, best_total_loss,
                     time.time() - initial_tic))
 
         if self.return_history:

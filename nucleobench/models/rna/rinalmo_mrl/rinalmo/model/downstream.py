@@ -3,6 +3,7 @@ from torch import nn
 
 from .modules import Transformer
 
+
 def _outer_concat(t1: torch.Tensor, t2: torch.Tensor):
     # t1, t2: shape = B x L x E
     assert t1.shape == t2.shape, f"Shapes of input tensors must match! ({t1.shape} != {t2.shape})"
@@ -61,7 +62,7 @@ class SecStructPredictionHead(nn.Module):
         self.linear_in = nn.Linear(embed_dim * 2, conv_dim)
         self.resnet = ResNet2D(conv_dim, num_blocks, kernel_size)
         self.conv_out = nn.Conv2d(conv_dim, 1, kernel_size=kernel_size, padding="same")
-        
+
     def forward(self, x):
         x = _outer_concat(x, x) # B x L x F => B x L x L x 2F
 

@@ -1,6 +1,6 @@
 """Typing for NucleoBench"""
 
-from typing import Union, Optional
+from typing import Optional, Union
 
 from nucleobench.optimizations import model_class
 

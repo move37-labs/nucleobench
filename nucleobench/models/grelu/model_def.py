@@ -9,17 +9,15 @@ python -m nucleobench.models.grelu.model_def
 ```
 """
 
-from typing import Iterable
-
-import numpy as np
-import torch
-
-import pandas as pd
+from collections.abc import Iterable
 
 import grelu.resources
+import numpy as np
+import pandas as pd
+import torch
 
-from nucleobench.optimizations import model_class as mc
 from nucleobench.models.grelu import constants
+from nucleobench.optimizations import model_class as mc
 
 
 class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
@@ -27,7 +25,7 @@ class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
     
     Specific tasks should inherit from this.
     """
-    
+
     # List of possible tasks.
     # Set in child models.
     POSSIBLE_TASKS_ = None
@@ -35,11 +33,11 @@ class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
     @staticmethod
     def init_parser():
         raise ValueError('Need to be implemented')
-    
+
     @staticmethod
     def debug_init_args():
         raise ValueError('Need to be implemented')
-    
+
 
     def __init__(
         self,
@@ -60,7 +58,7 @@ class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
             self.model = override_model
         else:
             self.model = grelu.resources.load_model(
-                repo_id=self.repo_id, 
+                repo_id=self.repo_id,
                 filename=self.filename,
                 device=self.device)
             print(f'GRelumodel loaded {self.repo_id}.', flush=True)
@@ -71,21 +69,21 @@ class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         self.vocab = vocab
         self.vocab_to_idx = {nt: i for i, nt in enumerate(vocab)}
         self.vocab_array = np.array(vocab)
-        
+
         self.has_cuda = torch.cuda.is_available()
-        
+
         # Check length.
         if 'train_seq_len' in self.model.data_params:
             assert self.model.data_params['train_seq_len'] == expected_sequence_length
         else:
             assert 'train' in self.model.data_params, self.model.data_params.keys()
             assert self.model.data_params['train']['seq_len'] == expected_sequence_length
-        
+
         self.sequence_length = expected_sequence_length
 
 
     def inference_on_tensor(
-        self, 
+        self,
         x: torch.Tensor,
         return_debug_info: bool = False,
         ) -> torch.Tensor:
@@ -105,7 +103,7 @@ class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         for s in x:
             if not isinstance(s, str):
                 raise ValueError(f'Input needs to be an iterable of strings, instead found: {type(s)}, {s}')
-            
+
         tensor = self.string_to_onehot(x)
         ret = self.inference_on_tensor(tensor, return_debug_info=return_debug_info)
         if return_debug_info:
@@ -117,4 +115,3 @@ class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
 
     def __call__(self, x: Iterable[str], return_debug_info: bool = False) -> np.ndarray:
         return self.inference_on_strings(x, return_debug_info=return_debug_info)
-        

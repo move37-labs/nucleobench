@@ -12,7 +12,6 @@ df = loader.get_data()  # Returns DataFrame with columns: sequence, mrl_predicte
 """
 
 from pathlib import Path
-from typing import Optional
 
 import pandas as pd
 
@@ -29,11 +28,11 @@ class Human7600MRLPreds(DataLoader):
     
     The dataset contains 7600 sequences total.
     """
-    
+
     # URL for the dataset
     DATA_URL = 'https://github.com/user-attachments/files/23168017/human7600_mrl_preds.csv'
-    
-    def __init__(self, cache_dir: Optional[Path] = None):
+
+    def __init__(self, cache_dir: Path | None = None):
         """Initialize the human7600 MRL predictions data loader.
         
         Args:
@@ -41,7 +40,7 @@ class Human7600MRLPreds(DataLoader):
                       in integration_tests/data_loaders/cache/
         """
         super().__init__(cache_dir)
-    
+
     def _get_default_cache_path(self) -> Path:
         """Get the default cache file path.
         
@@ -49,7 +48,7 @@ class Human7600MRLPreds(DataLoader):
             Path to the cache file (CSV format)
         """
         return Path(__file__).parent / "cache" / "human7600_mrl_preds.csv"
-    
+
     def _download_and_process(self) -> pd.DataFrame:
         """Download and process the human7600 MRL predictions dataset.
         
@@ -57,10 +56,10 @@ class Human7600MRLPreds(DataLoader):
             DataFrame with columns: sequence, mrl_predicted, mrl_target
         """
         print(f"Downloading human7600 MRL predictions from {self.DATA_URL}...")
-        
+
         # Download directly using pandas (it can handle URLs)
         df = pd.read_csv(self.DATA_URL)
-        
+
         print(f"Success! Loaded {len(df)} rows")
         return df
 

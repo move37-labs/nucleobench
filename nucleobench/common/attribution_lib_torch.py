@@ -11,11 +11,10 @@ python -m nucleobench.common.attribution_lib
 ```
 """
 
-from typing import Callable
-
 import gc
-import torch
+from collections.abc import Callable
 
+import torch
 
 TISMOutputType = list[dict[str, float]]
 SmoothgradVocabType = list[dict[str, torch.Tensor]]
@@ -23,8 +22,8 @@ TISMLocationsType = list[int]
 
 
 def grad_torch(
-    input_tensor: torch.Tensor, 
-    model: Callable[[torch.Tensor], torch.Tensor], 
+    input_tensor: torch.Tensor,
+    model: Callable[[torch.Tensor], torch.Tensor],
     idxs: TISMLocationsType | None = None,
     force_mem_clear: bool = False,
     ) -> torch.Tensor:
@@ -47,7 +46,7 @@ def grad_torch(
     """
     # Detach input to ensure we don't backprop into previous history.
     input_tensor = input_tensor.detach()
-    
+
     # Run inference to get grads.
     if idxs is None:
         # In-place requires_grad is slightly faster/cleaner
@@ -55,12 +54,12 @@ def grad_torch(
         x_grad = input_tensor
     else:
         input_tensor, x_grad = apply_gradient_mask(input_tensor, idxs)
-        
+
     y = model(input_tensor)
     y.sum().backward(retain_graph=False)
-    
+
     grads = x_grad.grad.detach().cpu()
-    
+
     # Optional cleanup.
     del y
     del x_grad.grad
@@ -117,7 +116,7 @@ def grad_torch_to_tism_torch(sg_tensor: torch.Tensor, base_seq: torch.Tensor) ->
     assert sg_tensor.ndim == 2
     assert base_seq.ndim == 1
     assert sg_tensor.shape[1] == base_seq.shape[0]
-    
+
     vocab_size, seq_len = sg_tensor.shape
     # Gather the smoothgrad value for the reference base at each position: (seq_len,)
     ref_vals = sg_tensor[base_seq, torch.arange(seq_len)]  # (seq_len,)
@@ -128,12 +127,12 @@ def grad_torch_to_tism_torch(sg_tensor: torch.Tensor, base_seq: torch.Tensor) ->
     # Set the reference base positions to zero.
     # Not strictly necessary, but possibly relevant for numerical stability.
     tism_tensor[base_seq, torch.arange(seq_len)] = 0.0
-    
+
     return tism_tensor
 
 
 def apply_gradient_mask_deprecated(
-    x: torch.Tensor, 
+    x: torch.Tensor,
     idxs: TISMLocationsType) -> tuple[torch.Tensor, torch.Tensor]:
     """Applies a gradient mask to the input tensor.
     
@@ -145,21 +144,21 @@ def apply_gradient_mask_deprecated(
     assert min(idxs) >= 0
     assert max(idxs) < x.shape[2]
     assert x.ndim == 3, x.shape
-    
+
     no_gradient = x.clone().detach()
     no_gradient.requires_grad = False
-    
+
     x_grad = x[:, :, idxs].clone().detach()
     x_grad.requires_grad = True
     x_grad_i = {idx: i for i, idx in enumerate(idxs)}
-    
+
     # Instead of using `torch.where`, we use this method to make our gradient tensor
     # as small as possible, to preserve memory.
     tensor_slices = [x_grad[:, :, x_grad_i[i]:x_grad_i[i]+1] if i in idxs
                      else no_gradient[:, :, i:i+1]
                      for i in range(no_gradient.shape[2])]
     x = torch.concat(tensor_slices, dim=2)
-    
+
     return x, x_grad
 
 
@@ -180,16 +179,16 @@ def apply_gradient_mask(x: torch.Tensor, idxs: TISMLocationsType) -> tuple[torch
     # x_grad shape: (..., len(idxs))
     x_grad = x[..., idxs].detach().clone()
     x_grad.requires_grad_(True)
-    
+
     # BACKGROUND: Create the full-sized static tensor.
     # This holds the values for positions we DON'T want to optimize.
     # It does not require gradients.
     model_input = x.detach().clone()
-    
+
     # SCATTER: Insert the leaf tensor into the background.
     # This connects x_grad to the computation graph of 'model_input'.
     # In-place assignment [..., idxs] is differentiable and efficient in PyTorch.
     model_input[..., idxs] = x_grad
-    
+
     # Return (Full Input for Model, Small Tensor for Gradients)
     return model_input, x_grad

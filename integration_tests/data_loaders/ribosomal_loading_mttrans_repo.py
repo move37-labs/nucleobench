@@ -14,12 +14,10 @@ df = loader.get_data()  # Returns DataFrame with the data
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Optional
 
 import pandas as pd
 
 from .base import DataLoader
-
 
 # URLs for different MTtrans datasets
 STRIDE_DATA_URLS = {
@@ -40,8 +38,8 @@ class RibosomalLoadingMTtransRepo(DataLoader):
     - 3M_U: 3M dataset with U subset
     - 3M_V: 3M dataset with V subset
     """
-    
-    def __init__(self, dataset_name: str, cache_dir: Optional[Path] = None):
+
+    def __init__(self, dataset_name: str, cache_dir: Path | None = None):
         """Initialize the MTtrans ribosomal loading data loader.
         
         Args:
@@ -51,10 +49,10 @@ class RibosomalLoadingMTtransRepo(DataLoader):
         """
         if dataset_name not in STRIDE_DATA_URLS:
             raise ValueError(f"Unknown dataset_name: {dataset_name}. Must be one of {list(STRIDE_DATA_URLS.keys())}")
-        
+
         self.dataset_name = dataset_name
         super().__init__(cache_dir)
-    
+
     def _get_default_cache_path(self) -> Path:
         """Get the default cache file path.
         
@@ -64,7 +62,7 @@ class RibosomalLoadingMTtransRepo(DataLoader):
         # Default cache location in the data_loaders directory
         default_dir = Path(__file__).parent / "cache"
         return default_dir / f"ribosomal_loading_mttrans_{self.dataset_name}.csv"
-    
+
     def _download_real_data(self, url: str, path: Path) -> None:
         """Download data from URL using curl.
         
@@ -74,7 +72,7 @@ class RibosomalLoadingMTtransRepo(DataLoader):
         """
         path.parent.mkdir(parents=True, exist_ok=True)
         subprocess.run(['curl', '-L', url, '--output', str(path)], check=True)
-    
+
     def _download_and_process(self) -> pd.DataFrame:
         """Download data from MTtrans repository and process it.
         
@@ -83,17 +81,17 @@ class RibosomalLoadingMTtransRepo(DataLoader):
         """
         url = STRIDE_DATA_URLS[self.dataset_name]
         print(f"Downloading MTtrans dataset '{self.dataset_name}' from {url}...")
-        
+
         # Use temporary directory for download
         with tempfile.TemporaryDirectory() as tmpdirname:
             tmp_path = Path(tmpdirname) / f'{self.dataset_name}.csv'
             self._download_real_data(url, tmp_path)
-            
+
             # Load the CSV
             data_df = pd.read_csv(tmp_path)
-            
+
             assert len(data_df) > 0, f"Loaded DataFrame for {self.dataset_name} is empty"
             print(f"Success! Loaded {len(data_df)} rows for dataset '{self.dataset_name}'")
-            
+
             return data_df
 

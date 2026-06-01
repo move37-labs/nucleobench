@@ -1,12 +1,12 @@
-from typing import List
 
 from .constants import *
+
 
 class Alphabet:
     def __init__(
         self,
-        standard_tkns: List[str] = RNA_TOKENS,
-        special_tkns: List[str] = [CLS_TKN, PAD_TKN, EOS_TKN, UNK_TKN, MASK_TKN],
+        standard_tkns: list[str] = RNA_TOKENS,
+        special_tkns: list[str] = [CLS_TKN, PAD_TKN, EOS_TKN, UNK_TKN, MASK_TKN],
     ):
         super().__init__()
 
@@ -43,8 +43,8 @@ class Alphabet:
             encoded_seq = encoded_seq + (pad_to_len - len(encoded_seq)) * [self.pad_idx]
 
         return encoded_seq
-    
-    def batch_tokenize(self, seqs: List[str]):
+
+    def batch_tokenize(self, seqs: list[str]):
         max_len = max(len(seq) for seq in seqs)
         max_len += 2 # CLS and EOS
 

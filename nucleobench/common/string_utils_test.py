@@ -4,8 +4,8 @@ To test:
 pytest nucleobench/common/string_utils_test.py
 """
 
-import numpy as np
 from nucleobench.common import string_utils as utils
+
 
 def test_dna2tensor2dna():
     """Test roundtrip conversion between DNA and tensor."""

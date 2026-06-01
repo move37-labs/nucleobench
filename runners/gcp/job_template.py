@@ -26,6 +26,7 @@ FUNCTIONS:
 """
 
 from google.cloud import batch_v1
+
 from runners.gcp import config
 
 
@@ -36,11 +37,11 @@ def create_job_definition(hyperparams: dict[str, str]) -> batch_v1.Job:
         assert isinstance(k, str)
         assert isinstance(v, str)
         assert len(v) > 0
-    
+
     # Extract key parameters with defaults
     job_name = hyperparams['job_name']
     job_type = 'enformer' if 'enformer' in job_name else 'default'
-    
+
     if job_type == 'enformer':
         machine_type = config.ENFORMER_MACHINE_TYPE
         cpu_count = int(config.ENFORMER_CPU_COUNT)
@@ -49,7 +50,7 @@ def create_job_definition(hyperparams: dict[str, str]) -> batch_v1.Job:
         machine_type = config.DEFAULT_MACHINE_TYPE
         cpu_count = int(config.DEFAULT_CPU_COUNT)
         memory_gb = int(config.DEFAULT_MEMORY_GB)
-    
+
     # Build docker command from hyperparameters
     docker_cmd = build_docker_command(hyperparams)
 
@@ -64,7 +65,7 @@ def create_job_definition(hyperparams: dict[str, str]) -> batch_v1.Job:
     # Define the task spec
     if 'max_seconds' not in hyperparams or not hyperparams['max_seconds']:
         raise ValueError("The 'max_seconds' column is required in the TSV file and cannot be empty.")
-    
+
     # Double the timeout to allow for a natural job completion.
     # Also add time to allow for the job to start.
     timeout_seconds = int(hyperparams['max_seconds']) * 2 + 600
@@ -116,7 +117,7 @@ def create_job_definition(hyperparams: dict[str, str]) -> batch_v1.Job:
             destination=batch_v1.LogsPolicy.Destination.CLOUD_LOGGING
         ),
     )
-    
+
     return job
 
 

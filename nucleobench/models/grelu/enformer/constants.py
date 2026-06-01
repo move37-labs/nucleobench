@@ -5334,23 +5334,23 @@ assert len(ENFORMER_TASKS_) == 5313, len(ENFORMER_TASKS_)
 
 
 def _muscle():
-    return [t for t in ENFORMER_TASKS_ 
-            if ('muscle' in t or 'myocyte' in t) and 
+    return [t for t in ENFORMER_TASKS_
+            if ('muscle' in t or 'myocyte' in t) and
             not ('smooth' in t or 'cardiac' in t or 'Smooth' in t)]
-    
-    
+
+
 def _liver():
     return [t for t in ENFORMER_TASKS_  if 'liver' in t or 'hepatocyte' in t]
-    
-    
+
+
 def _activate():
-    return [t for t in ENFORMER_TASKS_  if 
-            ('CAGE' in t or 'H3K27ac' in t or 'DNASE' in t or 'DHS' in t or 'ATAC' in t) and 
+    return [t for t in ENFORMER_TASKS_  if
+            ('CAGE' in t or 'H3K27ac' in t or 'DNASE' in t or 'DHS' in t or 'ATAC' in t) and
             not ('H3K9me' in t or 'H3K27me' in t)]
-    
-    
+
+
 def _deactivate():
-    return [t for t in ENFORMER_TASKS_  if 
+    return [t for t in ENFORMER_TASKS_  if
             ('H3K9me' in t or 'H3K27me' in t) and
             not ('CAGE' in t or 'H3K27ac' in t or 'DNASE' in t or 'DHS' in t or 'ATAC' in t)]
 

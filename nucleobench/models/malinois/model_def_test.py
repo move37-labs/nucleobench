@@ -4,16 +4,12 @@ To test:
 pytest nucleobench/models/malinois/model_def_test.py
 """
 
-import pytest
-
 import numpy as np
+import pytest
 import torch
 
-from nucleobench.common import string_utils
-from nucleobench.common import testing_utils
-
+from nucleobench.common import string_utils, testing_utils
 from nucleobench.models.malinois import model_def
-
 
 model_args = {'extra_channels': 2, 'call_is_on_strings': False}
 
@@ -123,19 +119,19 @@ def test_tism_consistency():
      base_str = 'ATCCA'
      v1, tism1 = m.tism(base_str)
      single_bp_tisms = [m.tism(base_str, [idx]) for idx in range(len(base_str))]
-     
+
      for idx in range(len(single_bp_tisms)):
          v2, tism2 = single_bp_tisms[idx]
          assert v1 == v2
          assert len(tism2) == 1
          for k, v in tism2[0].items():
                assert v == tism1[idx][k]
-               
+
 @pytest.mark.parametrize("flank_length", [0, 100, 200])
 def test_flank_length(flank_length: int):
      """Check that inference works with various flank sizes."""
      seq_len = 600 - 2 * flank_length
-     
+
      m = model_def.Malinois(
           model_artifact=None,
           flank_length=flank_length,
@@ -177,7 +173,7 @@ def test_tism_torch_consistency_with_tism():
     seq = 'AAC'
     _, sg_dicts = model.tism(seq)
     tism_tensor = model.tism_torch(seq)
-    
+
     for i, sg_dict in enumerate(sg_dicts):
         for j, nt in enumerate(vocab):
             val_torch = float(tism_tensor[j, i])
