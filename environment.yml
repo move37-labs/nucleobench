@@ -28,6 +28,8 @@ dependencies:
     - gcsfs  # For reading from GCS through pandas
 
     - twine  # For uploading to PyPI.
+    - mypy  # For static type checking.
+    - ruff  # For linting and formatting.
 
     - bioconda::pybigwig  # Needed for pip libraries below.
 
