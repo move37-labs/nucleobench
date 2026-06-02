@@ -37,6 +37,7 @@ dependencies = [
     "ml-collections",
     "tqdm",
     "einops",
+    "gradabeam==0.1.0",
 ]
 
 [project.optional-dependencies]
