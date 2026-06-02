@@ -38,5 +38,5 @@ dependencies:
     - pip:
         - gReLU==1.1.0  # For the gReLU models.
         - bpnet-lite==0.8.1  # For a BPNet model.
-        - build  # For building wheels.
         - gradabeam==0.1.0
+        - build  # For building wheels.
