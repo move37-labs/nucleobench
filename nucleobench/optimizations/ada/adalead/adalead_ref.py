@@ -27,7 +27,7 @@ import numpy as np
 
 from nucleobench.common import constants, testing_utils
 from nucleobench.optimizations import optimization_class as oc
-from nucleobench.optimizations.ada import ada_utils
+from nucleobench.optimizations.ada.adalead import adalead_utils as ada_utils
 from nucleobench.optimizations.typing import ModelType, SamplesType, SequenceType
 
 

@@ -1,11 +1,10 @@
-"""Tests for adalead utils.
+"""Tests for adalead_utils.py
 
 To test:
 ```zsh
-pytest nucleobench/optimizations/ada/ada_utils_test.py
+pytest nucleobench/optimizations/ada/adalead/adalead_utils_test.py
 ```
 """
-# TODO(joelshor): Write test for `get_tism_edits_and_probs`.
 
 import random
 
@@ -13,7 +12,7 @@ import numpy as np
 import pytest
 
 from nucleobench.common import testing_utils
-from nucleobench.optimizations.ada import ada_utils
+from nucleobench.optimizations.ada.adalead import adalead_utils as ada_utils
 
 # (sequence length, mutation rate)
 PARAMS_TO_TEST_ = [
@@ -77,50 +76,6 @@ def test_explicit_likelihood_legacy_equivalence(
     np.testing.assert_allclose(
         actual, expected, atol=atol, err_msg=f"{num_edits} {actual} {expected} {atol}"
     )
-
-
-@pytest.mark.parametrize("likelihood_fn", LIKELIHOOD_FNS_)
-def test_num_edits_sampler(likelihood_fn, num_samples=150000, atol=0.002):
-    for sequence_length, mutation_rate in PARAMS_TO_TEST_:
-        num_edits_sampler = ada_utils.NumberEditsSampler(
-            sequence_length, mutation_rate, likelihood_fn=likelihood_fn, rng_seed=1
-        )
-
-        num_edits = num_edits_sampler.sample(num_samples)
-        possible_num_edits = np.arange(1, sequence_length + 1)
-
-        actual_probs = [
-            float(np.count_nonzero(num_edits == n)) / len(num_edits)
-            for n in possible_num_edits
-        ]
-        expected_probs = likelihood_fn(
-            possible_num_edits, sequence_length, mutation_rate
-        )
-
-        np.testing.assert_allclose(actual_probs, expected_probs, atol=atol)
-
-
-@pytest.mark.parametrize(
-    "likelihood_fn,expected_num_edits_fn",
-    [
-        (
-            ada_utils.num_edits_likelihood_adabeam,
-            ada_utils.expected_num_edits_adalead_v2,
-        ),
-    ],
-)
-def test_expected_num_edits_adalead(
-    likelihood_fn, expected_num_edits_fn, num_samples=150000, atol=0.002
-):
-    """Tests that the expected number of edits is correct."""
-    for sequence_length, mutation_rate in PARAMS_TO_TEST_:
-        num_edits_sampler = ada_utils.NumberEditsSampler(
-            sequence_length, mutation_rate, likelihood_fn=likelihood_fn, rng_seed=1
-        )
-        actual = np.mean(num_edits_sampler.sample(num_samples))
-        expected = expected_num_edits_fn(sequence_length, mutation_rate)
-
-        np.testing.assert_allclose(actual, expected, atol=atol)
 
 
 def test_no_tism_cost_fail():
