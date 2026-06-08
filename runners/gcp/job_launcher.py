@@ -197,14 +197,10 @@ def main():
         sys.exit(1)
 
     # Validate config.
-    if config.PROJECT_ID is None:
-        logging.error("config.PROJECT_ID is not set. Please set it in config.py.")
-        sys.exit(1)
-    if config.BUCKET_NAME is None:
-        logging.error("config.BUCKET_NAME is not set. Please set it in config.py.")
-        sys.exit(1)
-    if config.DOCKER_IMAGE is None:
-        logging.error("config.DOCKER_IMAGE is not set. Please set it in config.py.")
+    try:
+        config.validate()
+    except ValueError as e:
+        logging.error(str(e))
         sys.exit(1)
 
     # Launch jobs

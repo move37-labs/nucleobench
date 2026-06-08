@@ -31,3 +31,20 @@ DEFAULT_MEMORY_GB = 1
 ENFORMER_MACHINE_TYPE = "e2-custom-4-30720"
 ENFORMER_CPU_COUNT = 4
 ENFORMER_MEMORY_GB = 30
+
+_REQUIRED_FIELDS = ["PROJECT_ID", "REGION", "BUCKET_NAME", "DOCKER_IMAGE"]
+
+
+def validate() -> None:
+    """Raise ValueError listing every required config field that is still empty."""
+    import sys
+
+    current_module = sys.modules[__name__]
+    missing = [f for f in _REQUIRED_FIELDS if not getattr(current_module, f, None)]
+    if missing:
+        fields_str = "\n".join(f"  - {f}" for f in missing)
+        raise ValueError(
+            f"The following required values are not set in runners/gcp/config.py:\n"
+            f"{fields_str}\n"
+            f"Please edit runners/gcp/config.py and fill in these values before running."
+        )
