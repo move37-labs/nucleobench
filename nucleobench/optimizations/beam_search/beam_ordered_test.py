@@ -40,7 +40,7 @@ def test_get_potential_moves():
 
 
 @pytest.mark.parametrize(
-    "init_order_method,", ["sequential", "tism_fixed", "tism_reverse"]
+    "init_order_method", ["sequential", "tism_fixed", "tism_reverse"]
 )
 def test_beam_run_sanity(init_order_method):
     beamsearch = beam.OrderedBeamSearch(
