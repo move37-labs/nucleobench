@@ -3,6 +3,7 @@ channels:
   - conda-forge
   - nodefaults
 dependencies:
+    - python=3.11
     - h5py
     - pip
     - pytest  # Python unit testing framework.

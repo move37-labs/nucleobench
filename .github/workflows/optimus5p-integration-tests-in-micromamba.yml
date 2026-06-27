@@ -1,0 +1,34 @@
+name: Optimus5P Integration Tests (Micromamba)
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Setup Micromamba
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-file: environment.yml
+          create-args: >-
+            python=${{ matrix.python-version }}
+          cache-environment: true
+          post-cleanup: 'all'
+
+      - name: Run Optimus5P integration tests
+        shell: micromamba-shell {0}
+        run: |
+          pytest -v -m optimus5p integration_tests/optimus5p_integration_test.py

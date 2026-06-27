@@ -58,6 +58,9 @@ dev = [
 where = ["."]
 include = ["nucleobench", "nucleobench.*"]
 
+[tool.setuptools.package-data]
+"*" = ["*.csv"]
+
 [tool.black]
 line-length = 88
 target-version = ["py310", "py311"]
@@ -69,3 +72,7 @@ line_length = 88
 [tool.pytest.ini_options]
 testpaths = ["nucleobench"]
 python_files = "*_test.py"
+markers = [
+    "optimus5p: Optimus 5-Prime integration tests",
+    "saluki: Saluki integration tests",
+]
