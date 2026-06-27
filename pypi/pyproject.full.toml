@@ -69,3 +69,7 @@ line_length = 88
 [tool.pytest.ini_options]
 testpaths = ["nucleobench"]
 python_files = "*_test.py"
+markers = [
+    "optimus5p: Optimus 5-Prime integration tests",
+    "saluki: Saluki integration tests",
+]
