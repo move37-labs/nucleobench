@@ -29,6 +29,8 @@ def test_model_required_fns(model):
     """Check that models have required run functions."""
     if model in ["enformer", "borzoi"]:
         pytest.skip("Test requires external access.")
+    elif model == "saluki":
+        pytest.skip("Saluki requires tensorflow, which is not in the Docker runtime environment.")
     else:
         seqs = ["A" * 200, "T" * 200]
 
@@ -56,6 +58,8 @@ def test_run_loop_with_all_combos(model, optimization):
     if model in ["enformer", "rinalmo_mrl"]:
         # Skip this test unconditionally for now as it takes too long.
         pytest.skip(f"'{model}' test is too long to run in standard CI.")
+    elif model == "saluki":
+        pytest.skip("Saluki requires tensorflow, which is not in the Docker runtime environment.")
 
     model_class = models.get_model(model)
     opt_class = optimizations.get_optimization(optimization)
