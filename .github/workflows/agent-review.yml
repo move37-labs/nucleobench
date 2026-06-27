@@ -18,7 +18,7 @@ jobs:
       (github.event_name == 'issue_comment' &&
        github.event.issue.pull_request != null &&
        contains(fromJSON('["OWNER", "COLLABORATOR", "MEMBER"]'), github.event.comment.author_association) &&
-       contains(github.event.comment.body, '@gemini'))
+       contains(github.event.comment.body, '@gemini-cli /review'))
     permissions:
       contents: read
       pull-requests: write
@@ -82,6 +82,7 @@ jobs:
         run: echo "${{ github.token }}" | gh auth login --with-token
 
       - uses: google-github-actions/run-gemini-cli@v0
+        if: ${{ secrets.GEMINI_API_KEY != '' }}
         env:
           GEMINI_CLI_TRUST_WORKSPACE: "true"
         with:
