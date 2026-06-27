@@ -58,6 +58,9 @@ dev = [
 where = ["."]
 include = ["nucleobench", "nucleobench.*"]
 
+[tool.setuptools.package-data]
+"*" = ["*.csv"]
+
 [tool.black]
 line-length = 88
 target-version = ["py310", "py311"]
