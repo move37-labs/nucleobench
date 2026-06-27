@@ -1,9 +1,6 @@
-import random
 import pytest
-import numpy as np
-import torch
 
-from nucleobench.common import testing_utils, string_utils
+from nucleobench.common import string_utils, testing_utils
 from nucleobench.models.rna.optimus5p import model_def
 
 model_args = {
@@ -12,13 +9,13 @@ model_args = {
     "flip_sign": False,
 }
 
+
 def test_optimus5p_sanity():
     """Basic sanity test with override model."""
-    m = model_def.Optimus5P(
-        override_model=testing_utils.CountLetterModel(**model_args)
-    )
+    m = model_def.Optimus5P(override_model=testing_utils.CountLetterModel(**model_args))
     ret = m.inference_on_strings(["AAA", "CCC", "TTT", "GGG", "ACT"])
     assert list(ret.shape) == [5]
+
 
 def test_optimus5p_tism_correctness():
     """Check that TISM on a C-count network knows that Cs are important."""
@@ -33,7 +30,9 @@ def test_optimus5p_tism_correctness():
         if base_nt == "C":
             # Everything should be the same.
             assert tism_dict["A"] == tism_dict["T"] == tism_dict["G"]
-            assert tism_dict["A"] > 0  # decrease the count, increase the energy (due to -1 multiplier).
+            assert (
+                tism_dict["A"] > 0
+            )  # decrease the count, increase the energy (due to -1 multiplier).
         else:
             # TISM should show that the greatest change comes from adding a 'C'.
             for nt in ["A", "T", "G"]:
@@ -42,12 +41,11 @@ def test_optimus5p_tism_correctness():
                 assert tism_dict[nt] == 0  # changing to a non-C should be no change.
             assert tism_dict["C"] < 0
 
+
 def test_optimus5p_gradient_flow():
     """Test that gradients can flow through the model for gradient-based optimization."""
-    m = model_def.Optimus5P(
-        override_model=testing_utils.CountLetterModel(**model_args)
-    )
-    
+    m = model_def.Optimus5P(override_model=testing_utils.CountLetterModel(**model_args))
+
     # Create a simple test sequence
     test_seq = "ACGT"
     onehot = string_utils.dna2tensor(test_seq, vocab_list=m.vocab)
@@ -65,14 +63,15 @@ def test_optimus5p_gradient_flow():
     except Exception as e:
         pytest.fail(f"Backward pass failed: {e}")
 
+
 def test_optimus5p_sliding_window():
     """Test that sliding window logic works correctly for longer sequences."""
     m = model_def.Optimus5P(
         window_size=50,
         stride=5,
-        override_model=testing_utils.CountLetterModel(**model_args)
+        override_model=testing_utils.CountLetterModel(**model_args),
     )
-    
+
     # Sequence of length 100
     seq = "A" * 100
     ret = m([seq])

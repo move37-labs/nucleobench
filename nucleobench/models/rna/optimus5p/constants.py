@@ -1,6 +1,8 @@
 import os
 
-ZENODO_HDF5_URL_ = "https://zenodo.org/record/1481198/files/retrained_main_MRL_model.hdf5?download=1"
+ZENODO_HDF5_URL_ = (
+    "https://zenodo.org/record/1481198/files/retrained_main_MRL_model.hdf5?download=1"
+)
 SEQ_LEN_ = 50
 
 cur_file_dir = os.path.dirname(os.path.abspath(__file__))

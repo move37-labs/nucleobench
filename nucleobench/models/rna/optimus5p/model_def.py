@@ -1,11 +1,13 @@
 import argparse
+
 import numpy as np
 import torch
 
 from nucleobench.common import string_utils
 from nucleobench.optimizations import model_class as mc
+
 from . import load_model
-from . import constants
+
 
 class Optimus5P(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
     """Optimus 5-Prime model for mean ribosome load prediction."""
@@ -69,9 +71,9 @@ class Optimus5P(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         assert x.ndim == 3 and x.shape[1] == 4, (
             f"Expected one-hot tensor with shape (batch, 4, seq_len), got {x.shape}"
         )
-        
+
         batch_size, _, seq_len = x.shape
-        
+
         if seq_len == self.window_size:
             ret = self.model(x).squeeze(1)
         elif seq_len < self.window_size:
@@ -85,22 +87,28 @@ class Optimus5P(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
             max_start_index = seq_len - self.window_size
             for i in range(0, max_start_index + 1, self.stride):
                 windows.append(x[:, :, i : i + self.window_size])
-                
-            last_window = x[:, :, -self.window_size:]
+
+            last_window = x[:, :, -self.window_size :]
             if max_start_index % self.stride != 0:
                 windows.append(last_window)
             elif not windows:
                 windows.append(last_window)
-                
-            stacked_windows = torch.stack(windows, dim=0) # (num_windows, batch_size, 4, window_size)
+
+            stacked_windows = torch.stack(
+                windows, dim=0
+            )  # (num_windows, batch_size, 4, window_size)
             num_windows = stacked_windows.shape[0]
-            
-            flat_windows = stacked_windows.view(num_windows * batch_size, 4, self.window_size)
-            flat_scores = self.model(flat_windows).squeeze(1) # (num_windows * batch_size,)
-            
+
+            flat_windows = stacked_windows.view(
+                num_windows * batch_size, 4, self.window_size
+            )
+            flat_scores = self.model(flat_windows).squeeze(
+                1
+            )  # (num_windows * batch_size,)
+
             scores_per_window = flat_scores.view(num_windows, batch_size)
-            ret = scores_per_window.mean(dim=0) # (batch_size,)
-            
+            ret = scores_per_window.mean(dim=0)  # (batch_size,)
+
         # Multiply by -1 so "better" sequences are lower, according to convention.
         return -1 * ret
 

@@ -1,5 +1,5 @@
-from .model.saluki import Saluki
 from . import constants
+from .model.saluki import Saluki
 
 # Weights are committed at nucleobench/models/rna/saluki/model/model0_best.h5
 # They originate from Zenodo DOI 10.5281/zenodo.6326409 (CC BY 4.0, Agarwal & Kelley 2022).
@@ -18,6 +18,7 @@ from . import constants
 #
 # TODO(joelshor): switch load_model() to fetch live from Zenodo (using the fsspec
 # approach above) and remove the committed model0_best.h5 binary.
+
 
 def load_model(weights_path: str | None = None) -> Saluki:
     if weights_path is None:

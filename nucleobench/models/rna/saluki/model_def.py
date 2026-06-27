@@ -1,8 +1,11 @@
 import argparse
+
 import numpy as np
 
 from nucleobench.optimizations import model_class as mc
+
 from . import load_model
+
 
 class SalukiModel(mc.ModelClass):
     """Saluki model for mRNA half-life prediction."""
@@ -29,7 +32,7 @@ class SalukiModel(mc.ModelClass):
     def __init__(
         self,
         override_weights_local_path: str | None = None,
-        override_model = None,
+        override_model=None,
     ):
         self.vocab = ["A", "C", "G", "T"]
         self.vocab_to_idx = {nt: i for i, nt in enumerate(self.vocab)}
@@ -47,17 +50,17 @@ class SalukiModel(mc.ModelClass):
         """
         # Replace U with T for DNA processing
         seqs_dna = [seq.replace("U", "T") for seq in x]
-        
+
         # If override_model is a mock callable, we can call it directly
         if hasattr(self.model, "predict_5utr"):
             preds = self.model.predict_5utr(seqs_dna)
         else:
             # If it's a mock/callable, call it
             preds = self.model(seqs_dna)
-            
+
         # Ensure it returns a 1D numpy array
         preds = np.array(preds).flatten()
-        
+
         # Multiply by -1 so "better" sequences (longer half-life, i.e. more stable)
         # are lower (minimized), according to convention.
         return -1 * preds
