@@ -88,7 +88,9 @@ def test_optimus5p_accuracy_vs_kipoi_golden_set():
 
 
 @pytest.mark.optimus5p
-@pytest.mark.skipif(os.environ.get("GITHUB_ACTIONS") == "true", reason="OOM on standard GitHub runners")
+@pytest.mark.skipif(
+    os.environ.get("GITHUB_ACTIONS") == "true", reason="OOM on standard GitHub runners"
+)
 def test_optimus5p_rinalmo_correlation_random_data():
     """Generates random DNA sequences and checks correlation between RiNALMo and Optimus."""
     count = 100
