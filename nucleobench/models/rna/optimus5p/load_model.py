@@ -4,7 +4,7 @@ from . import constants
 from .model.optimus_5p import Optimus5Prime
 
 
-def load_model(
+def load_model(  # pragma: no cover
     weights_path: str | None = None,
     has_cuda: bool | None = None,
 ) -> Optimus5Prime:

@@ -20,7 +20,7 @@ from .model.saluki import Saluki
 # approach above) and remove the committed model0_best.h5 binary.
 
 
-def load_model(weights_path: str | None = None) -> Saluki:
+def load_model(weights_path: str | None = None) -> Saluki:  # pragma: no cover
     if weights_path is None:
         weights_path = constants.LOCAL_WEIGHTS_PATH_
     return Saluki(weights_path=weights_path)

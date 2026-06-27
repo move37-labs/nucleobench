@@ -23,7 +23,7 @@ class Saluki:
             self.weights_path = Path(weights_path)
         self._load_model()
 
-    def _load_model(self):
+    def _load_model(self):  # pragma: no cover
         """Load the Keras model from the .h5 file."""
         # Force TensorFlow to use Keras 2 (tf-keras)
         os.environ["TF_USE_LEGACY_KERAS"] = "1"

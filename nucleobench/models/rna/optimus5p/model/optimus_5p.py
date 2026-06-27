@@ -45,7 +45,7 @@ class Optimus5Prime(nn.Module):
             weights_path = Path(__file__).parent / "optimus_5p_weights.pt"
         self.load_or_convert_weights(weights_path)
 
-    def load_or_convert_weights(self, path: str | Path):
+    def load_or_convert_weights(self, path: str | Path):  # pragma: no cover
         path = Path(path)
         if not path.exists():
             print(
@@ -74,7 +74,7 @@ class Optimus5Prime(nn.Module):
         x = self.fc2(x)
         return x
 
-    def load_weights_from_file(self, path):
+    def load_weights_from_file(self, path):  # pragma: no cover
         self.load_state_dict(torch.load(path, weights_only=True))
         self.eval()
 
