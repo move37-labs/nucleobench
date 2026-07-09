@@ -98,7 +98,7 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
 
             energies.append(energy.detach().cpu().numpy())
             energy = energy.mean()
-            energy.backward(inputs=[only_param])
+            energy.backward()
             optimizer.step()
             scheduler.step()
         return energies
@@ -106,12 +106,17 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
     def get_samples_tensor(self, n_samples: int) -> torch.Tensor:
         return self.opt_module.get_samples_onehot(n_samples)
 
-    def get_samples(self, n_samples: int) -> SamplesType:
-        """Get samples."""
-        samples_onehot = self.get_samples_tensor(n_samples)
-        assert samples_onehot.ndim == 3
-        assert list(samples_onehot.shape[0:2]) == [n_samples, len(self.vocab)]
+    def _decode_onehot(self, samples_onehot: torch.Tensor) -> SamplesType:
+        """Decode a batch of one-hot tensors to a list of strings.
 
+        Args:
+            samples_onehot: shape (n, vocab_len, seq_len) with true one-hot entries.
+
+        Returns:
+            List of n decoded sequences.
+        """
+        assert samples_onehot.ndim == 3
+        assert samples_onehot.shape[1] == len(self.vocab)
         all_ret = []
         for cur_tensor in samples_onehot:
             cur_str = ""
@@ -123,6 +128,29 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
                 cur_str += self.vocab[idx]
             all_ret.append(cur_str)
         return all_ret
+
+    def get_best_sequence(self) -> SequenceType:
+        """Return the single deterministic best sequence (argmax of the PWM).
+
+        Takes the highest-probability nucleotide at every position. Matches the
+        reference implementation's evaluation mode (`st_hardmax_softmax`) and
+        removes stochasticity from final sequence extraction.
+        """
+        best_onehot = self.opt_module.get_best_onehot()  # (1, vocab_len, seq_len)
+        return self._decode_onehot(best_onehot)[0]
+
+    def get_samples(self, n_samples: int) -> SamplesType:
+        """Get n_samples sequences from the current PWM.
+
+        The first entry is always the deterministic argmax sequence (matching the
+        reference implementation's eval mode). The remaining n_samples-1 entries
+        are stochastic draws via the straight-through categorical sampler.
+        """
+        best = [self.get_best_sequence()]
+        if n_samples == 1:
+            return best
+        stochastic = self._decode_onehot(self.get_samples_tensor(n_samples - 1))
+        return best + stochastic
 
     def is_finished(self) -> bool:
         return False

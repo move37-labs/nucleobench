@@ -120,6 +120,21 @@ class TorchFastSeqPropOptimizer(torch.nn.Module):
         assert list(samples_onehot.shape) == [n_samples, self.vocab_len, seq_len]
         return samples_onehot
 
+    def get_best_onehot(self) -> torch.Tensor:
+        """Return the single most-likely (argmax) sequence as a one-hot tensor.
+
+        Matches the reference implementation's eval mode (`st_hardmax_softmax`),
+        which takes the argmax of the PWM rather than sampling.
+
+        Returns:
+            Tensor of shape (1, vocab_len, seq_len) with a true one-hot at each
+            position corresponding to the highest-probability nucleotide.
+        """
+        probs = self.get_probs()  # (1, vocab_len, seq_len)
+        indices = probs.argmax(dim=1)  # (1, seq_len)
+        onehot = torch.nn.functional.one_hot(indices, num_classes=self.vocab_len)
+        return onehot.permute(0, 2, 1).float()  # (1, vocab_len, seq_len)
+
     def mask_gradients(self, x: torch.Tensor) -> torch.Tensor:
         assert self.gradient_mask is not None
 
