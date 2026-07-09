@@ -56,6 +56,35 @@ def test_correctness():
     assert final_energy < start_energy
 
 
+def test_get_samples_first_entry_is_argmax():
+    """get_samples should always return the deterministic argmax as samples[0]."""
+    torch.manual_seed(0)
+    init_args = fs.FastSeqProp.debug_init_args()
+    init_args["start_sequence"] = "ACGT"
+    fs_opt = fs.FastSeqProp(**init_args)
+
+    # Run a few steps so the PWM has moved away from the initial state.
+    fs_opt.run(n_steps=5)
+
+    best = fs_opt.get_best_sequence()
+
+    # Check for n_samples=1: only the argmax is returned.
+    samples_1 = fs_opt.get_samples(n_samples=1)
+    assert len(samples_1) == 1
+    assert samples_1[0] == best
+
+    # Check for n_samples=N: first entry is argmax, total length is correct.
+    for n in [2, 5]:
+        samples = fs_opt.get_samples(n_samples=n)
+        assert len(samples) == n
+        assert samples[0] == best, (
+            f"samples[0]={samples[0]!r} != best={best!r} for n_samples={n}"
+        )
+
+    # Check that get_best_sequence is deterministic across calls.
+    assert fs_opt.get_best_sequence() == best
+
+
 def test_respects_pos_to_mutate():
     start_sequence = "A" * 20
     positions_to_mutate = [2, 5, 10]
