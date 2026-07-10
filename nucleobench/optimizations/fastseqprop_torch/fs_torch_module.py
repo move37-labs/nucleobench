@@ -1,5 +1,7 @@
 """Sets up a torch NN for optimization of the input."""
 
+from typing import Any
+
 import numpy as np
 import torch
 
@@ -59,6 +61,7 @@ class TorchFastSeqPropOptimizer(torch.nn.Module):
         self.register_parameter(
             "params", torch.nn.Parameter(start_logits.detach().clone())
         )
+        self.params: Any = self.params
 
         if self.use_norm:
             self.normalization = torch.nn.InstanceNorm1d(

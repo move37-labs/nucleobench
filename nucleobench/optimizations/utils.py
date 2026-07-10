@@ -10,7 +10,7 @@ def get_locations_to_edit(
     random_n_loc: int,
     rng: np.random.Generator,
     method: str,
-) -> list[int]:
+) -> list[int] | np.ndarray:
     """Selects locations to edit."""
     assert random_n_loc > 0
     assert random_n_loc <= len(positions_to_mutate)
@@ -25,7 +25,7 @@ def get_locations_to_edit(
 
 def generate_single_edit_mutants(
     base_str: str,
-    loc_to_edit: int,
+    loc_to_edit: list[int] | np.ndarray,
     alphabet: list[str],
     rng: np.random.Generator,
     method: str,

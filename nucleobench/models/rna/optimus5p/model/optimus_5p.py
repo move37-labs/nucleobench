@@ -6,7 +6,7 @@ import torch.nn as nn
 
 
 class Optimus5Prime(nn.Module):
-    def __init__(self, weights_path: str | None = None):
+    def __init__(self, weights_path: str | Path | None = None):
         super().__init__()
         # Architecture defined in Sample et al. 2019
         # Input is (Batch, 4, 50)

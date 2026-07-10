@@ -34,5 +34,5 @@ OPTIMIZATIONS_.update(OPTIMIZATIONS_REQUIRING_PYTORCH_DIFF_)
 OPTIMIZATIONS_.update(GENERAL_OPTIMIZATIONS_)
 
 
-def get_optimization(opt_name: str) -> oc.SequenceOptimizer:
+def get_optimization(opt_name: str) -> type[oc.SequenceOptimizer]:
     return OPTIMIZATIONS_[opt_name]

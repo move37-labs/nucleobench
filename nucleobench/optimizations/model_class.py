@@ -1,5 +1,6 @@
 """Parent class for models."""
 
+from collections.abc import Callable
 from typing import Any
 
 import numpy as np
@@ -20,16 +21,21 @@ class ModelClass:
     def debug_init_args() -> dict[str, Any]:
         raise ValueError("Not implemented.")
 
-    def __init__(self, model_fn: callable, start_sequence: SequenceType):
+    def __init__(self, model_fn: Callable, start_sequence: SequenceType):
         raise NotImplementedError("Not implemented.")
 
-    def __call__(self, x: SequenceType, return_debug_info: bool) -> np.ndarray:
-        """Takes in a string or list of strings, returns a scalar value per string."""
+    def __call__(self, x: list[str]) -> np.ndarray:
+        """Takes in a list of strings, returns a scalar value per string."""
         raise NotImplementedError("Not implemented.")
 
 
 class TISMModelClass(ModelClass):
     """Model that supports TISM."""
+
+    vocab: list[str]
+
+    def inference_on_tensor(self, x: torch.Tensor) -> torch.Tensor:
+        raise NotImplementedError("Not implemented.")
 
     def tism(
         self, x: str, idxs: list[int] | None = None
@@ -52,8 +58,8 @@ class TISMModelClass(ModelClass):
         sg = att_lib.grad_tensor_to_dict(
             torch.squeeze(sg_tensor, dim=0), vocab=cur_vocab
         )
-        x_effective = x if idxs is None else [x[idx] for idx in idxs]
-        sg = att_lib.grad_to_tism(sg, x_effective)
+        x_effective = x if idxs is None else "".join([x[idx] for idx in idxs])
+        sg = att_lib.grad_to_tism(sg, x_effective)  # type: ignore[assignment]
         y = self.inference_on_tensor(torch.unsqueeze(input_tensor, dim=0))
         return y, sg
 
@@ -68,8 +74,8 @@ class TISMModelClass(ModelClass):
         assert hasattr(self, "vocab"), "Vocab not set."
         return string_utils.dna2tensor(x, vocab_list=self.vocab)
 
-    def tensor2int(self, x: torch.Tensor) -> str:
-        """Convert a Tensor to an integer sequence.
+    def tensor2int(self, x: str) -> torch.Tensor:
+        """Convert a string sequence to an integer-encoded tensor.
 
         It must be done in a predictable way, so that we can efficiently manipulate
         the Tensor, then consistently converted back.
@@ -99,7 +105,7 @@ class TISMModelClass(ModelClass):
 
     def get_tism(
         self, sequence: str, idxs: list[int] | None = None
-    ) -> tuple[torch.Tensor, list[dict[str, torch.Tensor]]]:
+    ) -> tuple[list[tuple[Any, Any]], np.ndarray]:
         assert hasattr(self, "vocab_to_idx"), (
             f'{self.__class__.__name__}: missing "vocab_to_idx".'
         )

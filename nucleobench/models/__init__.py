@@ -22,5 +22,5 @@ MODELS_ = {
 }
 
 
-def get_model(model_name: str) -> mc.ModelClass:
+def get_model(model_name: str) -> type[mc.ModelClass]:
     return MODELS_[model_name]

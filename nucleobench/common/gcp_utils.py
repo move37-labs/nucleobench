@@ -64,7 +64,7 @@ def _flatten_dicts_to_dataframe(write_dicts: list[dict]) -> pd.DataFrame:
 
     def _flatten_recursive(obj: Any, parent_key: str = "", sep: str = ":") -> dict:
         """Recursively flattens a dictionary-like object."""
-        items = []
+        items: list[Any] = []
 
         # Convert the object to a dictionary if possible
         if hasattr(obj, "_asdict"):  # Handle namedtuples

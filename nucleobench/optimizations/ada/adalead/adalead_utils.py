@@ -2,6 +2,7 @@
 
 import dataclasses
 import random
+from typing import Any, cast
 
 import numpy as np
 import torch
@@ -37,11 +38,11 @@ class ModelWrapper:
             assert hasattr(model, "tism_torch"), (
                 "Model must have tism_torch method. This is required for optimized get_tisms."
             )
-        self.model = model
-        self.cost = 0
+        self.model: Any = cast(Any, model)
+        self.cost: float = 0
         self.use_cache = use_cache
         self.cache_limit = cache_limit
-        self.cache = {}
+        self.cache: dict[Any, Any] = {}
         self.debug = debug
         self.tism_cost = tism_cost
 
@@ -66,7 +67,7 @@ class ModelWrapper:
 
         del start_sequence  # Unused.
         if "Rinalmo" in type(self.model).__name__:
-            self.torch_opt_fn = torch.no_grad
+            self.torch_opt_fn: Any = torch.no_grad
         else:
             self.torch_opt_fn = torch.inference_mode
 
@@ -99,7 +100,7 @@ class ModelWrapper:
                     print(f"Cache hit: {len(seen_fitness)}")
 
         if len(m_input) == 0:
-            results = []
+            results: list[Any] = []
         else:
             with self.torch_opt_fn():
                 results = self.model(m_input)

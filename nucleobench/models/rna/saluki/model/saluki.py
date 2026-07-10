@@ -85,7 +85,7 @@ class Saluki:
         sequences = []
         cds_starts = []
         cds_ends = []
-        exon_ends_list = []
+        exon_ends_list: list = []
 
         for utr in five_prime_utrs:
             # Construct full mRNA: 5'UTR + EGFP + 3'UTR

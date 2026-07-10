@@ -29,7 +29,7 @@ class DirectedGreedyEvolution(oc.SequenceOptimizer):
         batch_size: int = 1,
         use_tism: bool = False,
         location_only: bool = False,
-        budget: int = None,
+        budget: int | None = None,
         fraction_tism: float = 0.5,
         rnd_seed: int = 0,
         vocab: list[str] = constants.VOCAB,
@@ -48,7 +48,9 @@ class DirectedGreedyEvolution(oc.SequenceOptimizer):
         self.positions_to_mutate = positions_to_mutate
 
         # TISM args.
+        self.tism_args: de_mod.TISMArgs | None
         if use_tism:
+            assert budget is not None, "budget must be set when use_tism=True"
             self.tism_args = de_mod.TISMArgs(
                 location_only=location_only,
                 budget=budget,
@@ -61,11 +63,11 @@ class DirectedGreedyEvolution(oc.SequenceOptimizer):
     def run(
         self,
         n_steps: int,
-    ) -> list[np.ndarray]:
+    ) -> np.ndarray:
         """Runs the optimization."""
 
         best_seqs, best_score, energies = de_mod.evolve(
-            model=self.model_fn,
+            model=self.model_fn,  # type: ignore[arg-type]
             seqs=self.current_sequence,
             max_iter=n_steps,
             batch_size=self.batch_size,

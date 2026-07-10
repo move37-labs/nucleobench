@@ -167,7 +167,7 @@ activate_muscle_tracks = """
 
 'CAGE:skeletal muscle - soleus muscle,'
 """
-activate_muscle_tracks = [
+activate_muscle_tracks = [  # type: ignore[assignment]
     x.strip("'") for x in activate_muscle_tracks.split("\n") if len(x) > 0
 ]
 # print(activate_muscle_tracks)
@@ -198,7 +198,7 @@ deactivate_liver_tracks = """
 'CHIP:H3K9me3:liver female adult (25 years)'
 
 'CHIP:H3K27me3:liver female adult (25 years)'"""
-deactivate_liver_tracks = [
+deactivate_liver_tracks = [  # type: ignore[assignment]
     x.strip("'") for x in deactivate_liver_tracks.split("\n") if len(x) > 0
 ]
 # print(activate_muscle_tracks)
@@ -226,7 +226,7 @@ activate_liver_tracks = """
 'CAGE:liver, adult, pool1'
 
 'CAGE:liver, fetal, pool1'"""
-activate_liver_tracks = [
+activate_liver_tracks = [  # type: ignore[assignment]
     x.strip("'") for x in activate_liver_tracks.split("\n") if len(x) > 0
 ]
 assert len(activate_liver_tracks) == 11
@@ -281,7 +281,7 @@ deactivate_muscle_tracks = """
 'CHIP:H3K27me3:muscle layer of duodenum male adult (59 years)'
 
 'CHIP:H3K27me3:muscle of leg female embryo (110 days)'"""
-deactivate_muscle_tracks = [
+deactivate_muscle_tracks = [  # type: ignore[assignment]
     x.strip("'") for x in deactivate_muscle_tracks.split("\n") if len(x) > 0
 ]
 assert len(deactivate_muscle_tracks) == 25

@@ -10,6 +10,7 @@ python -m nucleobench.models.grelu.model_def
 """
 
 from collections.abc import Iterable
+from typing import Any
 
 import grelu.resources
 import numpy as np
@@ -28,7 +29,7 @@ class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
 
     # List of possible tasks.
     # Set in child models.
-    POSSIBLE_TASKS_ = None
+    POSSIBLE_TASKS_: list[str] | None = None
 
     @staticmethod
     def init_parser():
@@ -54,7 +55,7 @@ class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         if self.device == constants.AUTO_DEVICE:
             self.device = "cuda" if torch.cuda.is_available() else "cpu"
         if override_model:
-            self.model = override_model
+            self.model: Any = override_model
         else:
             self.model = grelu.resources.load_model(
                 repo_id=self.repo_id, filename=self.filename, device=self.device
@@ -84,7 +85,6 @@ class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
     def inference_on_tensor(
         self,
         x: torch.Tensor,
-        return_debug_info: bool = False,
     ) -> torch.Tensor:
         """Run inference on a one-hot tensor."""
         raise ValueError("Implement me.")
@@ -94,9 +94,7 @@ class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         # `string_utils.dna2tensor_batch(x, vocab_list=self.vocab)`
         return grelu.sequence.format.strings_to_one_hot(x).to(self.device)
 
-    def inference_on_strings(
-        self, x: Iterable[str], return_debug_info: bool = False
-    ) -> np.ndarray:
+    def inference_on_strings(self, x: Iterable[str]) -> np.ndarray:
         if not isinstance(x, (tuple, list)):
             raise ValueError(
                 f"Input needs to be an iterable of strings, not just string: {x}"
@@ -107,13 +105,10 @@ class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
                     f"Input needs to be an iterable of strings, instead found: {type(s)}, {s}"
                 )
 
-        tensor = self.string_to_onehot(x)
-        ret = self.inference_on_tensor(tensor, return_debug_info=return_debug_info)
-        if return_debug_info:
-            assert len(ret) == 2
-            return ret[0].detach().clone().cpu().numpy(), ret[1]
-        else:
-            return ret.detach().clone().cpu().numpy()
+        tensor = self.string_to_onehot(list(x))
+        ret = self.inference_on_tensor(tensor)
+        assert isinstance(ret, torch.Tensor)
+        return ret.detach().clone().cpu().numpy()
 
-    def __call__(self, x: Iterable[str], return_debug_info: bool = False) -> np.ndarray:
-        return self.inference_on_strings(x, return_debug_info=return_debug_info)
+    def __call__(self, x: Iterable[str]) -> np.ndarray:
+        return self.inference_on_strings(x)

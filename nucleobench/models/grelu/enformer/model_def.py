@@ -82,8 +82,8 @@ class Enformer(grelu_md.GReluModel):
                 if spatial_bins_to_aggregate is not None:
                     model_out = model_out[:, :, spatial_bins_to_aggregate]
 
-                ret = torch.sum(model_out[:, positive_idxs], axis=(1, 2)) - torch.sum(
-                    model_out[:, negative_idxs], axis=(1, 2)
+                ret = torch.sum(model_out[:, positive_idxs], dim=(1, 2)) - torch.sum(
+                    model_out[:, negative_idxs], dim=(1, 2)
                 )
                 assert ret.ndim == 1
                 return ret
@@ -101,13 +101,13 @@ class Enformer(grelu_md.GReluModel):
             assert ret.shape == (1, 5313, 1), ret.shape
 
             ret = self.inference_on_strings(["A" * self.sequence_length])
+            assert isinstance(ret, np.ndarray)
             assert ret.ndim == 1
 
     def inference_on_tensor(
         self,
         x: torch.Tensor,
-        return_debug_info: bool = False,
-    ) -> torch.Tensor | tuple[torch.Tensor, np.ndarray]:
+    ) -> torch.Tensor:
         """Run inference on a one-hot tensor."""
         assert x.ndim == 3  # Batched.
         assert x.shape[1] == 4
@@ -123,10 +123,7 @@ class Enformer(grelu_md.GReluModel):
         # Always return something that should be minimized, so flip the sign.
         ret *= -1
 
-        if return_debug_info:
-            return (ret, m_out.clone().detach().numpy())
-        else:
-            return ret
+        return ret
 
 
 if __name__ == "__main__":

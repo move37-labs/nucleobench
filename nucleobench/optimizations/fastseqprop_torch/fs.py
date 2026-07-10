@@ -75,7 +75,9 @@ class FastSeqProp(torch.nn.Module, oc.SequenceOptimizer):
     def energy(self, batch_size: int) -> torch.Tensor:
         """Energy on current params."""
         sampled_nts_onehot = self.opt_module.get_samples_onehot(batch_size)
-        return self.model_fn.inference_on_tensor(sampled_nts_onehot)
+        ret = self.model_fn.inference_on_tensor(sampled_nts_onehot)
+        assert isinstance(ret, torch.Tensor)
+        return ret
 
     def run(self, n_steps: int) -> list[np.ndarray]:
         """Runs the optimization.

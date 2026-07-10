@@ -172,7 +172,7 @@ class UnorderedBeamSearch(oc.SequenceOptimizer):
             rets.append(self.model_fn(batch_input))
         rets = np.concatenate(rets, axis=0)
         assert rets.shape == (len(potential_moves),), (rets.shape, len(potential_moves))
-        rets = zip(rets, potential_moves)
+        rets = zip(rets, potential_moves)  # type: ignore[assignment]
 
         return rets
 

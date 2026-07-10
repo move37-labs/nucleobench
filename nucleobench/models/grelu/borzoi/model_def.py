@@ -14,6 +14,7 @@ python -m nucleobench.models.grelu.borzoi.model_def
 import argparse
 import os
 
+import numpy as np
 import torch
 
 from nucleobench.models.grelu import model_def as grelu_md
@@ -170,8 +171,8 @@ class Borzoi(grelu_md.GReluModel):
                 if spatial_bins_to_aggregate is not None:
                     model_out = model_out[:, :, spatial_bins_to_aggregate]
 
-                ret = torch.sum(model_out[:, positive_idxs], axis=(1, 2)) - torch.sum(
-                    model_out[:, negative_idxs], axis=(1, 2)
+                ret = torch.sum(model_out[:, positive_idxs], dim=(1, 2)) - torch.sum(
+                    model_out[:, negative_idxs], dim=(1, 2)
                 )
                 assert ret.ndim == 1
                 return ret
@@ -186,15 +187,14 @@ class Borzoi(grelu_md.GReluModel):
             assert ret.shape == (1, 7611, 6144), ret.shape
 
             ret = self.inference_on_strings(["A" * self.sequence_length])
+            assert isinstance(ret, np.ndarray)
             assert ret.ndim == 1
 
     def inference_on_tensor(
         self,
         x: torch.Tensor,
-        return_debug_info: bool = False,
     ) -> torch.Tensor:
         """Run inference on a one-hot tensor."""
-        del return_debug_info
         assert x.ndim == 3  # Batched.
         assert x.shape[1] == 4
         # assert x.shape[2] == self.sequence_length, x.shape

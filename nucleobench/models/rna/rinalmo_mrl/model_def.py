@@ -7,6 +7,7 @@ python -m nucleobench.models.rna.rinalmo_mrl.model_def
 """
 
 import argparse
+from typing import Any
 
 import numpy as np
 import torch
@@ -47,6 +48,7 @@ class RinalmoMRL(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         override_ft_wts_local_path: str | None = None,
     ):
         self.has_cuda = torch.cuda.is_available()
+        self.model: Any
         if override_model:
             self.model = override_model
         elif override_ft_wts_local_path:

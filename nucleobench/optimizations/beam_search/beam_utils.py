@@ -17,7 +17,7 @@ class Beam:
 
     def __init__(self, max_items: int):
         self.max_items = max_items
-        self.beam = []
+        self.beam: list[tuple[BeamValue, Any]] = []
 
     def put(self, itms: list[tuple[BeamValue, Any]]):
         self.beam.extend(itms)
@@ -34,3 +34,6 @@ class Beam:
 
     def get_best_val_and_state(self) -> Any:
         return self.beam[0]
+
+    def __len__(self) -> int:
+        return len(self.beam)

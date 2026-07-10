@@ -3,6 +3,8 @@
 import argparse
 from collections.abc import Iterable
 
+import numpy as np
+
 from nucleobench.common import constants
 from nucleobench.optimizations import model_class as mc
 
@@ -29,7 +31,7 @@ class DummyModel(mc.ModelClass):
     def debug_init_args():
         return {}
 
-    def inference_on_strings(self, seqs: Iterable[str]) -> float:
+    def inference_on_strings(self, seqs: Iterable[str]) -> np.ndarray:
         """Batch call on list of sequences."""
         if not isinstance(seqs, Iterable):
             raise ValueError(f"Expected `Iterable[str]`, got {type(seqs)}")
@@ -38,11 +40,7 @@ class DummyModel(mc.ModelClass):
                 raise ValueError(f"Invalid sequence: {seq}")
 
         # -1 to minimize the count, keeping with convention.
-        return [-1 * s.count(self.to_count) for s in seqs]
+        return np.array([-1 * s.count(self.to_count) for s in seqs])
 
-    def __call__(self, seqs: list[str], return_debug_info: bool = False) -> float:
-        ret = self.inference_on_strings(seqs)
-        if return_debug_info:
-            return ret, {}
-        else:
-            return ret
+    def __call__(self, seqs: list[str]) -> np.ndarray:
+        return self.inference_on_strings(seqs)

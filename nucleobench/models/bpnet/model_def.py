@@ -85,7 +85,6 @@ class BPNet(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
     def inference_on_tensor(
         self,
         x: torch.Tensor,
-        return_debug_info: bool = False,
     ) -> torch.Tensor:
         """Run inference on a one-hot tensor."""
         assert x.ndim == 3  # Batched.
@@ -106,16 +105,12 @@ class BPNet(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         ret = self.inference_on_tensor(tensor)
         return ret.detach().clone().numpy()
 
-    def __call__(self, x: list[str], return_debug_info: bool = False) -> np.ndarray:
+    def __call__(self, x: list[str]) -> np.ndarray:
         if isinstance(x, str):
             raise ValueError(
                 f"Malinois input needs to be list of strings, not just string: {x}"
             )
-        ret = self.inference_on_strings(x)
-        if return_debug_info:
-            return ret, {}
-        else:
-            return ret
+        return self.inference_on_strings(x)
 
 
 if __name__ == "__main__":
