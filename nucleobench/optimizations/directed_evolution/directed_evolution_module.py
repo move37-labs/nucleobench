@@ -36,11 +36,11 @@ class TISMArgs:
 
 
 def evolve(
-    model: mc.ModelClass,
+    model: mc.ModelClass | mc.TISMModelClass,
     seqs: list[str],
     max_iter: int,
     batch_size: int = 1,
-    positions: list[int] = None,
+    positions: list[int] | None = None,
     verbose: bool = False,
     vocab: list[str] = constants.VOCAB,
     tism_args: TISMArgs | None = None,

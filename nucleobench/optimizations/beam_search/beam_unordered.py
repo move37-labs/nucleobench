@@ -108,7 +108,7 @@ class UnorderedBeamSearch(oc.SequenceOptimizer):
         # since it's not that helpful.
         self.seed_energy = self.model_fn([self.start_sequence])[0]
         self.beam = beam_utils.Beam(max_items=self.beam_size)
-        self.beam.put([(self.seed_energy, self.start_sequence)])
+        self.beam.put([(self.seed_energy, self.start_sequence)])  # type: ignore[list-item]
 
         self.n_edits = 0
 
@@ -172,7 +172,7 @@ class UnorderedBeamSearch(oc.SequenceOptimizer):
             rets.append(self.model_fn(batch_input))
         rets = np.concatenate(rets, axis=0)
         assert rets.shape == (len(potential_moves),), (rets.shape, len(potential_moves))
-        rets = zip(rets, potential_moves)
+        rets = zip(rets, potential_moves)  # type: ignore[assignment]
 
         return rets
 

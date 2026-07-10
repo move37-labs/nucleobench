@@ -21,7 +21,7 @@ class OneSidedPriorityQueue:
         # Max items allowed in the queue. Internally, we will at times
         # have more elements in the queue than this.
         self.max_items = max_items
-        self.q = []
+        self.q: list[SearchQItem] = []
 
     def reset_queue(self, itms: list[SearchQItem]):
         del self.q

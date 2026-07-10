@@ -65,7 +65,7 @@ class SalukiModel(mc.ModelClass):
         # are lower (minimized), according to convention.
         return -1 * preds
 
-    def __call__(self, x: list[str]) -> np.ndarray:
+    def __call__(self, x: list[str], return_debug_info: bool = False) -> np.ndarray:
         if isinstance(x, str):
             raise ValueError(f"Input needs to be list of strings, not just string: {x}")
         return self.inference_on_strings(x)

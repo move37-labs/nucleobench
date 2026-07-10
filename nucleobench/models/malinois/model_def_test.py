@@ -145,7 +145,7 @@ def test_flank_length(flank_length: int):
         a_min=None,
         a_max=None,
         vocab=["A", "C", "G", "T"],
-        override_model=testing_utils.CountLetterModel(**model_args),
+        override_model=testing_utils.CountLetterModel(**model_args),  # type: ignore[arg-type]
         check_input_shape=True,
     )
     m(["A" * seq_len])

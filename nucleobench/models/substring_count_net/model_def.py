@@ -79,7 +79,7 @@ class CountSubstringModel(
 
         return out_tensor
 
-    def inference_on_tensor(self, x: torch.Tensor) -> torch.Tensor:
+    def inference_on_tensor(self, x: torch.Tensor, return_debug_info: bool = False) -> torch.Tensor:
         return self.forward(x)
 
     def __call__(self, seqs: list[str], return_debug_info: bool = False):

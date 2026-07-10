@@ -7,6 +7,7 @@ python -m nucleobench.models.rna.rinalmo_mrl.model_def
 """
 
 import argparse
+from typing import Any
 
 import numpy as np
 import torch
@@ -47,6 +48,7 @@ class RinalmoMRL(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         override_ft_wts_local_path: str | None = None,
     ):
         self.has_cuda = torch.cuda.is_available()
+        self.model: Any
         if override_model:
             self.model = override_model
         elif override_ft_wts_local_path:
@@ -98,7 +100,7 @@ class RinalmoMRL(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
     def _batch_embed(self, x: list[str]) -> torch.Tensor:
         return self.model.lm.embedding(self.batch_tokenize(x))
 
-    def inference_on_tensor(self, x: torch.Tensor) -> torch.Tensor:
+    def inference_on_tensor(self, x: torch.Tensor, return_debug_info: bool = False) -> torch.Tensor:
         """Run inference on a one-hot encoded tensor.
 
         IMPORTANT: This method ONLY accepts one-hot encoded tensors to ensure
@@ -194,7 +196,7 @@ class RinalmoMRL(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         ret = self.inference_on_tensor(batch_onehot)
         return ret.detach().clone().cpu().numpy()
 
-    def __call__(self, x: list[str]) -> np.ndarray:
+    def __call__(self, x: list[str], return_debug_info: bool = False) -> np.ndarray:
         if isinstance(x, str):
             raise ValueError(f"Input needs to be list of strings, not just string: {x}")
         return self.inference_on_strings(x)

@@ -70,7 +70,7 @@ class OrderedBeamSearch(oc.SequenceOptimizer):
         # since it's not that helpful.
         self.seed_energy = self.model_fn([self.start_sequence])[0]
         self.beam = beam_utils.Beam(max_items=self.beam_size)
-        self.beam.put([(self.seed_energy, self.start_sequence)])
+        self.beam.put([(self.seed_energy, self.start_sequence)])  # type: ignore[list-item]
 
         # Optionally set up the queue for the best seen.
         if self.use_priority_queue:
@@ -80,7 +80,7 @@ class OrderedBeamSearch(oc.SequenceOptimizer):
             self.q.push(
                 priority_queue.SearchQItem(
                     # Higher is better in the queue, so flip the sign.
-                    fitness=-1 * self.seed_energy,
+                    fitness=float(-1 * self.seed_energy),
                     state=self.start_sequence,
                     num_edits=0,
                 )
@@ -173,7 +173,7 @@ class OrderedBeamSearch(oc.SequenceOptimizer):
             rets.append(self.model_fn(batch_input))
         rets = np.concatenate(rets, axis=0)
         assert rets.shape == (len(potential_moves),), (rets.shape, len(potential_moves))
-        rets = zip(rets, potential_moves)
+        rets = zip(rets, potential_moves)  # type: ignore[assignment]
 
         return rets
 
@@ -189,7 +189,7 @@ class OrderedBeamSearch(oc.SequenceOptimizer):
                 break
             rets.append(self.model_fn(cur_minibatch))
         rets = np.concatenate(rets, axis=0)
-        rets = zip(rets, potential_moves)
+        rets = zip(rets, potential_moves)  # type: ignore[assignment]
 
         return rets
 

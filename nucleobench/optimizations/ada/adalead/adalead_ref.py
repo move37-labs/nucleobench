@@ -209,7 +209,7 @@ class AdaLeadRef(oc.SequenceOptimizer):
         if self.debug:
             print(f"After thresholding, went from {len(parent_inds)} to {len(parents)}")
 
-        sequences = {}
+        sequences: dict[str, float] = {}
         previous_model_cost = self.model.cost
         while self.model.cost - previous_model_cost < self.model_queries_per_batch:
             # Generate recombinant mutants.
@@ -235,7 +235,7 @@ class AdaLeadRef(oc.SequenceOptimizer):
                     < self.model_queries_per_batch
                 ):
                     child_idxs = []
-                    children = []
+                    children: list[str] = []
                     round_num = 0
                     while len(children) < len(nodes):
                         round_num += 1

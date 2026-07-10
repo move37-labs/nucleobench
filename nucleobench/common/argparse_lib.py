@@ -81,7 +81,7 @@ def possibly_parse_positions_to_mutate(
         assert len(positions_to_mutate) == 1, (
             f"Expected 1 positions_to_mutate, got {len(positions_to_mutate)}"
         )
-        positions_to_mutate = positions_to_mutate[0].tolist()
+        positions_to_mutate = positions_to_mutate[0].tolist()  # type: ignore[union-attr]
         assert isinstance(positions_to_mutate, list), (
             type(positions_to_mutate),
             positions_to_mutate,

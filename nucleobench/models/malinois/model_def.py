@@ -7,6 +7,7 @@ python -m nucleobench.models.malinois.model_def
 """
 
 import argparse
+from typing import Any
 
 import numpy as np
 import torch
@@ -60,7 +61,7 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         self,
         target_feature: int,
         bending_factor: float,
-        model_artifact: str = "gs://tewhey-public-data/CODA_resources/malinois_artifacts__20211113_021200__287348.tar.gz",
+        model_artifact: str | None = "gs://tewhey-public-data/CODA_resources/malinois_artifacts__20211113_021200__287348.tar.gz",
         a_min: float | None = -2.0,
         a_max: float | None = 6.0,
         target_alpha: float = 1.0,
@@ -73,6 +74,7 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         if override_model:
             self.model = override_model
         else:
+            assert model_artifact is not None, "model_artifact must be provided when override_model is not set."
             self.model = load_model.load_model(model_artifact, has_cuda=self.has_cuda)
 
         self._model_artifact = model_artifact
@@ -84,6 +86,8 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         self.check_input_shape = check_input_shape
 
         self.flank_length = flank_length
+        self.left_flank: str | None
+        self.right_flank: str | None
         if self.flank_length > 0:
             self.left_flank = constants.MPRA_UPSTREAM[-self.flank_length :]
             self.right_flank = constants.MPRA_DOWNSTREAM[: self.flank_length]
@@ -96,7 +100,7 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         self.vocab_array = np.array(vocab)
 
         if self.left_flank:
-            self.left_flank_tensor = string_utils.dna2tensor(
+            self.left_flank_tensor: torch.Tensor | None = string_utils.dna2tensor(
                 self.left_flank, vocab_list=self.vocab
             )
             self.left_flank_tensor.requires_grad = False
@@ -105,7 +109,7 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
             self.left_flank_tensor = None
 
         if self.right_flank:
-            self.right_flank_tensor = string_utils.dna2tensor(
+            self.right_flank_tensor: torch.Tensor | None = string_utils.dna2tensor(
                 self.right_flank, vocab_list=self.vocab
             )
             self.right_flank_tensor.requires_grad = False
@@ -117,7 +121,7 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         self,
         x: torch.Tensor,
         return_debug_info: bool = False,
-    ) -> torch.Tensor:
+    ) -> torch.Tensor | tuple[torch.Tensor, dict[str, Any]]:
         """Run inference on a one-hot tensor."""
         assert x.ndim == 3  # Batched.
         x_flanked = self.add_flanks_tensor(x)
@@ -167,12 +171,15 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         self,
         x: list[str],
         return_debug_info: bool = False,
-    ) -> np.ndarray:
+    ) -> np.ndarray | tuple[np.ndarray, dict[str, Any]]:
         tensor = string_utils.dna2tensor_batch(x, vocab_list=self.vocab)
-        ret = self.inference_on_tensor(tensor, return_debug_info)
         if return_debug_info:
-            return ret[0].detach().clone().numpy(), ret[1]
+            ret_tuple = self.inference_on_tensor(tensor, return_debug_info=True)
+            assert isinstance(ret_tuple, tuple)
+            return ret_tuple[0].detach().clone().numpy(), ret_tuple[1]
         else:
+            ret = self.inference_on_tensor(tensor, return_debug_info=False)
+            assert isinstance(ret, torch.Tensor)
             return ret.detach().clone().numpy()
 
     def add_flank_string(self, x: str) -> str:
@@ -194,7 +201,7 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         self,
         x: list[str],
         return_debug_info: bool = False,
-    ) -> np.ndarray:
+    ) -> np.ndarray | tuple[np.ndarray, dict[str, Any]]:
         if isinstance(x, str):
             raise ValueError(
                 f"Malinois input needs to be list of strings, not just string: {x}"

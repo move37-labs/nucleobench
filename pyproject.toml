@@ -31,3 +31,10 @@ python_version = "3.11"
 ignore_missing_imports = true
 warn_unused_ignores = true
 warn_redundant_casts = true
+
+[[tool.mypy.overrides]]
+module = [
+    "nucleobench.models.rna.rinalmo_mrl.rinalmo.*",
+    "nucleobench.models.malinois.model.*",
+]
+ignore_errors = true

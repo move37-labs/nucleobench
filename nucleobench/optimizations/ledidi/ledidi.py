@@ -1,6 +1,7 @@
 """Wrapper around Ledidi."""
 
 import argparse
+from typing import Any
 
 import numpy as np
 import torch
@@ -44,6 +45,7 @@ class Ledidi(oc.SequenceOptimizer):
 
         # Convert sequence into a one-hot encoded tensor.
         self.seed_tensor = string_utils.dna2tensor(self.start_sequence)
+        self.model_fn: Any
         if isinstance(model_fn, torch.nn.Module):
             self.model_fn = model_fn.eval()
             for param in self.model_fn.parameters():

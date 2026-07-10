@@ -58,7 +58,7 @@ def grad_torch(
     y = model(input_tensor)
     y.sum().backward(retain_graph=False)
 
-    grads = x_grad.grad.detach().cpu()
+    grads = x_grad.grad.detach().cpu()  # type: ignore[union-attr]
 
     # Optional cleanup.
     del y
@@ -95,10 +95,10 @@ def grad_to_tism(sg: SmoothgradVocabType, base_seq: str) -> TISMOutputType:
     tism = []
     for base_nt, sg_dict in zip(base_seq, sg):
         cur_tism = {}
-        for nt, sg in sg_dict.items():
+        for nt, sg_val in sg_dict.items():
             if nt == base_nt:
                 continue
-            cur_tism[nt] = float(sg - sg_dict[base_nt])
+            cur_tism[nt] = float(sg_val - sg_dict[base_nt])
         tism.append(cur_tism)
 
     return tism

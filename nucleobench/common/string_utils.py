@@ -192,7 +192,7 @@ def load_sequences(
 
     # Determine whether it's a single sequence or a list of sequences.
     if "," in seq_or_seqs:
-        seq_or_seqs = seq_or_seqs.split(",")
+        seq_or_seqs = seq_or_seqs.split(",")  # type: ignore[assignment]
 
     assert ret_comment is not None
     return seq_or_seqs, ret_comment
