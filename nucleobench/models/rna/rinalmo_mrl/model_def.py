@@ -100,7 +100,7 @@ class RinalmoMRL(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
     def _batch_embed(self, x: list[str]) -> torch.Tensor:
         return self.model.lm.embedding(self.batch_tokenize(x))
 
-    def inference_on_tensor(self, x: torch.Tensor, return_debug_info: bool = False) -> torch.Tensor:
+    def inference_on_tensor(self, x: torch.Tensor) -> torch.Tensor:
         """Run inference on a one-hot encoded tensor.
 
         IMPORTANT: This method ONLY accepts one-hot encoded tensors to ensure
@@ -196,7 +196,7 @@ class RinalmoMRL(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         ret = self.inference_on_tensor(batch_onehot)
         return ret.detach().clone().cpu().numpy()
 
-    def __call__(self, x: list[str], return_debug_info: bool = False) -> np.ndarray:
+    def __call__(self, x: list[str]) -> np.ndarray:
         if isinstance(x, str):
             raise ValueError(f"Input needs to be list of strings, not just string: {x}")
         return self.inference_on_strings(x)

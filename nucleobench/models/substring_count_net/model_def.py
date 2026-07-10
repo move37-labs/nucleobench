@@ -79,14 +79,11 @@ class CountSubstringModel(
 
         return out_tensor
 
-    def inference_on_tensor(self, x: torch.Tensor, return_debug_info: bool = False) -> torch.Tensor:
+    def inference_on_tensor(self, x: torch.Tensor) -> torch.Tensor:
         return self.forward(x)
 
-    def __call__(self, seqs: list[str], return_debug_info: bool = False):
+    def __call__(self, seqs: list[str]) -> np.ndarray:
         torch_seq = string_utils.dna2tensor_batch(seqs)
         result = self.inference_on_tensor(torch_seq)
         assert result.ndim == 1, result.shape
-        if return_debug_info:
-            return [float(x) for x in result], {}
-        else:
-            return [float(x) for x in result]
+        return result.detach().numpy()

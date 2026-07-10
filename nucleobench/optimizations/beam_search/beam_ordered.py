@@ -70,7 +70,7 @@ class OrderedBeamSearch(oc.SequenceOptimizer):
         # since it's not that helpful.
         self.seed_energy = self.model_fn([self.start_sequence])[0]
         self.beam = beam_utils.Beam(max_items=self.beam_size)
-        self.beam.put([(self.seed_energy, self.start_sequence)])  # type: ignore[list-item]
+        self.beam.put([(self.seed_energy, self.start_sequence)])
 
         # Optionally set up the queue for the best seen.
         if self.use_priority_queue:

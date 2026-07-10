@@ -170,9 +170,6 @@ def _get_dict_to_write(
         )
 
     # Calculate their energies.
-    # TODO(joelshor): Figure out how to add arbitrary debug info. Until then, disable
-    # the debug info.
-    # energies, debug_info = model(proposals, return_debug_info=True)
     energies = model(proposals)
 
     # Write output.

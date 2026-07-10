@@ -85,8 +85,7 @@ class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
     def inference_on_tensor(
         self,
         x: torch.Tensor,
-        return_debug_info: bool = False,
-    ) -> torch.Tensor | tuple[torch.Tensor, np.ndarray]:
+    ) -> torch.Tensor:
         """Run inference on a one-hot tensor."""
         raise ValueError("Implement me.")
 
@@ -95,9 +94,7 @@ class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         # `string_utils.dna2tensor_batch(x, vocab_list=self.vocab)`
         return grelu.sequence.format.strings_to_one_hot(x).to(self.device)
 
-    def inference_on_strings(
-        self, x: Iterable[str], return_debug_info: bool = False
-    ) -> np.ndarray | tuple[np.ndarray, Any]:
+    def inference_on_strings(self, x: Iterable[str]) -> np.ndarray:
         if not isinstance(x, (tuple, list)):
             raise ValueError(
                 f"Input needs to be an iterable of strings, not just string: {x}"
@@ -109,14 +106,9 @@ class GReluModel(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
                 )
 
         tensor = self.string_to_onehot(list(x))
-        if return_debug_info:
-            ret_tuple = self.inference_on_tensor(tensor, return_debug_info=True)
-            assert isinstance(ret_tuple, tuple)
-            return ret_tuple[0].detach().clone().cpu().numpy(), ret_tuple[1]
-        else:
-            ret = self.inference_on_tensor(tensor, return_debug_info=False)
-            assert isinstance(ret, torch.Tensor)
-            return ret.detach().clone().cpu().numpy()
+        ret = self.inference_on_tensor(tensor)
+        assert isinstance(ret, torch.Tensor)
+        return ret.detach().clone().cpu().numpy()
 
-    def __call__(self, x: Iterable[str], return_debug_info: bool = False) -> np.ndarray | tuple[np.ndarray, Any]:
-        return self.inference_on_strings(x, return_debug_info=return_debug_info)
+    def __call__(self, x: Iterable[str]) -> np.ndarray:
+        return self.inference_on_strings(x)

@@ -35,20 +35,15 @@ def test_energy_calc_from_output_tensor_correctness():
     assert np.allclose(ret, np.array([1.0 - 0.5, 5.0 - 1.5]))
 
 
-@pytest.mark.parametrize("return_debug_info", [True, False])
-def test_malinois_sanity(return_debug_info):
+def test_malinois_sanity():
     m = model_def.Malinois(
         model_artifact=None,
         target_feature=0,
         bending_factor=1.0,
         override_model=testing_utils.CountLetterModel(**model_args),
     )
-    ret = m.inference_on_strings(["AAA", "CCC", "TTT", "GGG", "ACT"], return_debug_info)
-    if return_debug_info:
-        assert list(ret[0].shape) == [5]
-        assert list(ret[1]["malinois_output"].shape) == [5, 3]
-    else:
-        assert list(ret.shape) == [5]
+    ret = m.inference_on_strings(["AAA", "CCC", "TTT", "GGG", "ACT"])
+    assert list(ret.shape) == [5]
 
 
 def test_add_flank():

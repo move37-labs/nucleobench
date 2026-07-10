@@ -1,6 +1,7 @@
 """Parent class for models."""
 
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 import torch
@@ -23,7 +24,7 @@ class ModelClass:
     def __init__(self, model_fn: Callable, start_sequence: SequenceType):
         raise NotImplementedError("Not implemented.")
 
-    def __call__(self, x: list[str], return_debug_info: bool = False) -> np.ndarray | tuple[np.ndarray, Any]:
+    def __call__(self, x: list[str]) -> np.ndarray:
         """Takes in a list of strings, returns a scalar value per string."""
         raise NotImplementedError("Not implemented.")
 
@@ -33,9 +34,7 @@ class TISMModelClass(ModelClass):
 
     vocab: list[str]
 
-    def inference_on_tensor(
-        self, x: torch.Tensor, return_debug_info: bool = False
-    ) -> torch.Tensor | tuple[torch.Tensor, Any]:
+    def inference_on_tensor(self, x: torch.Tensor) -> torch.Tensor:
         raise NotImplementedError("Not implemented.")
 
     def tism(
@@ -53,7 +52,7 @@ class TISMModelClass(ModelClass):
         input_tensor = string_utils.dna2tensor(x, vocab_list=cur_vocab)
         sg_tensor = att_lib.grad_torch(
             input_tensor=torch.unsqueeze(input_tensor, dim=0),
-            model=self.inference_on_tensor,  # type: ignore[arg-type]
+            model=self.inference_on_tensor,
             idxs=idxs,
         )
         sg = att_lib.grad_tensor_to_dict(
@@ -62,7 +61,7 @@ class TISMModelClass(ModelClass):
         x_effective = x if idxs is None else "".join([x[idx] for idx in idxs])
         sg = att_lib.grad_to_tism(sg, x_effective)  # type: ignore[assignment]
         y = self.inference_on_tensor(torch.unsqueeze(input_tensor, dim=0))
-        return y, sg  # type: ignore[return-value]
+        return y, sg
 
     def str2tensor(self, x: str) -> torch.Tensor:
         """Convert a string to a tensor.
@@ -90,7 +89,7 @@ class TISMModelClass(ModelClass):
         input_tensor = self.str2tensor(x)
         sg_tensor = att_lib.grad_torch(
             input_tensor=torch.unsqueeze(input_tensor, dim=0),
-            model=self.inference_on_tensor,  # type: ignore[arg-type]
+            model=self.inference_on_tensor,
             idxs=idxs,
         )
         # Determine the effective sequence (full or subset by idxs)
@@ -180,7 +179,5 @@ class TISMModelClass(ModelClass):
 class PyTorchDifferentiableModel(ModelClass):
     """Model that can produce differentiable, PyTorch tensors."""
 
-    def inference_on_tensor(
-        self, x: torch.Tensor, return_debug_info: bool = False
-    ) -> torch.Tensor | tuple[torch.Tensor, Any]:
+    def inference_on_tensor(self, x: torch.Tensor) -> torch.Tensor:
         raise NotImplementedError("Not implemented.")

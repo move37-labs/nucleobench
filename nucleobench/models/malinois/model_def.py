@@ -7,7 +7,6 @@ python -m nucleobench.models.malinois.model_def
 """
 
 import argparse
-from typing import Any
 
 import numpy as np
 import torch
@@ -61,7 +60,8 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         self,
         target_feature: int,
         bending_factor: float,
-        model_artifact: str | None = "gs://tewhey-public-data/CODA_resources/malinois_artifacts__20211113_021200__287348.tar.gz",
+        model_artifact: str
+        | None = "gs://tewhey-public-data/CODA_resources/malinois_artifacts__20211113_021200__287348.tar.gz",
         a_min: float | None = -2.0,
         a_max: float | None = 6.0,
         target_alpha: float = 1.0,
@@ -74,7 +74,9 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         if override_model:
             self.model = override_model
         else:
-            assert model_artifact is not None, "model_artifact must be provided when override_model is not set."
+            assert model_artifact is not None, (
+                "model_artifact must be provided when override_model is not set."
+            )
             self.model = load_model.load_model(model_artifact, has_cuda=self.has_cuda)
 
         self._model_artifact = model_artifact
@@ -120,8 +122,7 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
     def inference_on_tensor(
         self,
         x: torch.Tensor,
-        return_debug_info: bool = False,
-    ) -> torch.Tensor | tuple[torch.Tensor, dict[str, Any]]:
+    ) -> torch.Tensor:
         """Run inference on a one-hot tensor."""
         assert x.ndim == 3  # Batched.
         x_flanked = self.add_flanks_tensor(x)
@@ -138,11 +139,7 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
             a_max=self.a_max,
             target_alpha=self.target_alpha,
         )
-
-        if return_debug_info:
-            return ret_energy, {"malinois_output": m_out}
-        else:
-            return ret_energy
+        return ret_energy
 
     def add_flanks_tensor(self, x: torch.Tensor) -> torch.Tensor:
         """Add Tensor flanks, with the right backprop properties."""
@@ -170,17 +167,11 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
     def inference_on_strings(
         self,
         x: list[str],
-        return_debug_info: bool = False,
-    ) -> np.ndarray | tuple[np.ndarray, dict[str, Any]]:
+    ) -> np.ndarray:
         tensor = string_utils.dna2tensor_batch(x, vocab_list=self.vocab)
-        if return_debug_info:
-            ret_tuple = self.inference_on_tensor(tensor, return_debug_info=True)
-            assert isinstance(ret_tuple, tuple)
-            return ret_tuple[0].detach().clone().numpy(), ret_tuple[1]
-        else:
-            ret = self.inference_on_tensor(tensor, return_debug_info=False)
-            assert isinstance(ret, torch.Tensor)
-            return ret.detach().clone().numpy()
+        ret = self.inference_on_tensor(tensor)
+        assert isinstance(ret, torch.Tensor)
+        return ret.detach().clone().numpy()
 
     def add_flank_string(self, x: str) -> str:
         """Unused, in favor of flanking in tensors."""
@@ -200,13 +191,12 @@ class Malinois(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
     def __call__(
         self,
         x: list[str],
-        return_debug_info: bool = False,
-    ) -> np.ndarray | tuple[np.ndarray, dict[str, Any]]:
+    ) -> np.ndarray:
         if isinstance(x, str):
             raise ValueError(
                 f"Malinois input needs to be list of strings, not just string: {x}"
             )
-        return self.inference_on_strings(x, return_debug_info)
+        return self.inference_on_strings(x)
 
 
 def _bend(x: torch.Tensor, bending_factor: float) -> torch.Tensor:

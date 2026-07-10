@@ -2,7 +2,6 @@
 
 import argparse
 from collections.abc import Iterable
-from typing import Any
 
 import numpy as np
 
@@ -43,9 +42,5 @@ class DummyModel(mc.ModelClass):
         # -1 to minimize the count, keeping with convention.
         return np.array([-1 * s.count(self.to_count) for s in seqs])
 
-    def __call__(self, seqs: list[str], return_debug_info: bool = False) -> np.ndarray | tuple[np.ndarray, Any]:
-        ret = self.inference_on_strings(seqs)
-        if return_debug_info:
-            return ret, {}
-        else:
-            return ret
+    def __call__(self, seqs: list[str]) -> np.ndarray:
+        return self.inference_on_strings(seqs)

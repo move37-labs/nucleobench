@@ -193,10 +193,8 @@ class Borzoi(grelu_md.GReluModel):
     def inference_on_tensor(
         self,
         x: torch.Tensor,
-        return_debug_info: bool = False,
     ) -> torch.Tensor:
         """Run inference on a one-hot tensor."""
-        del return_debug_info
         assert x.ndim == 3  # Batched.
         assert x.shape[1] == 4
         # assert x.shape[2] == self.sequence_length, x.shape

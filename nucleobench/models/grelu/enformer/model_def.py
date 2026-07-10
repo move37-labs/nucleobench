@@ -107,8 +107,7 @@ class Enformer(grelu_md.GReluModel):
     def inference_on_tensor(
         self,
         x: torch.Tensor,
-        return_debug_info: bool = False,
-    ) -> torch.Tensor | tuple[torch.Tensor, np.ndarray]:
+    ) -> torch.Tensor:
         """Run inference on a one-hot tensor."""
         assert x.ndim == 3  # Batched.
         assert x.shape[1] == 4
@@ -124,10 +123,7 @@ class Enformer(grelu_md.GReluModel):
         # Always return something that should be minimized, so flip the sign.
         ret *= -1
 
-        if return_debug_info:
-            return (ret, m_out.clone().detach().numpy())
-        else:
-            return ret
+        return ret
 
 
 if __name__ == "__main__":

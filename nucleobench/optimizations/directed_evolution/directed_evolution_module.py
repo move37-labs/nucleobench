@@ -36,7 +36,7 @@ class TISMArgs:
 
 
 def evolve(
-    model: mc.ModelClass | mc.TISMModelClass,
+    model: mc.ModelClass,
     seqs: list[str],
     max_iter: int,
     batch_size: int = 1,
