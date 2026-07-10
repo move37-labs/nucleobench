@@ -14,11 +14,11 @@ jobs:
   review:
     runs-on: ubuntu-latest
     if: |
-      (github.event_name == 'pull_request') ||
+      (github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]') ||
       (github.event_name == 'issue_comment' &&
        github.event.issue.pull_request != null &&
        contains(fromJSON('["OWNER", "COLLABORATOR", "MEMBER"]'), github.event.comment.author_association) &&
-       contains(github.event.comment.body, '@gemini-cli /review'))
+       contains(github.event.comment.body, '@gemini'))
     permissions:
       contents: read
       pull-requests: write
@@ -29,7 +29,7 @@ jobs:
         persona:
           - key: code-hygiene
             name: "Code Hygiene and Coverage"
-            model: "gemini-2.5-flash"
+            model: "gemini-3.1-pro-preview"
             instructions: |
               You are a senior software engineer focused on code hygiene, test coverage, and repository conventions.
               Your job is to ensure that the code changes follow the repository's coding conventions and have adequate test coverage.
@@ -40,7 +40,7 @@ jobs:
               - **Test Coverage**: Check if tests were added or updated to cover the new changes.
           - key: algorithmic
             name: "Algorithmic Review"
-            model: "gemini-2.5-pro"
+            model: "gemini-3.1-pro-preview"
             instructions: |
               You are an expert algorithm engineer and senior technical reviewer.
               Your job is to thoroughly review the algorithmic changes in this PR and ensure they are correct, optimal, and comprehensively tested.
@@ -50,7 +50,7 @@ jobs:
               - **Performance**: Are there any obvious performance bottlenecks or suboptimal algorithmic choices?
               - **Testing of Algorithms**: Do the tests thoroughly evaluate the algorithms, including edge cases, boundary conditions, and complex scenarios? Ensure the algorithms are thoroughly tested.
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Find the PR to review and write its diff and metadata to files
       # that Gemini can read.
@@ -82,7 +82,6 @@ jobs:
         run: echo "${{ github.token }}" | gh auth login --with-token
 
       - uses: google-github-actions/run-gemini-cli@v0
-        if: ${{ secrets.GEMINI_API_KEY != '' }}
         env:
           GEMINI_CLI_TRUST_WORKSPACE: "true"
         with:
@@ -103,7 +102,13 @@ jobs:
             - Edge cases or risks: anything that could break or behave incorrectly?
             - Overall recommendation from your persona's perspective: Approve / Request changes / Needs discussion
 
-            Be concise and specific. Reference exact file names and line numbers. If the PR has nothing in your focus area, say so in one or two sentences rather than padding the review with generic comments.
+            Be concise and specific. Reference exact file names and line numbers. If the diff contains no changes in your focus area, or if you find no concrete issues, write a single sentence stating that — do not pad the review with generic advice or speculative risks.
+
+            IMPORTANT REVIEW TONE:
+            - A false positive (reporting a non-existent issue) is worse than a false negative (missing a real issue). Only report an issue if you can cite the exact diff line that demonstrates it.
+            - Before flagging anything, re-read the relevant lines in pr_diff.txt to confirm the problem is real. Do not infer issues from what the code omits unless the checklist above explicitly requires that element.
+            - Be direct and concise. Do not sugarcoat real problems, but do not manufacture negativity. If the PR is acceptable in your focus area, say so plainly.
+            - Do not praise, pad, or hedge. One sentence per issue, with file and line number.
 
             When the review is written, post it as a comment by running:
             gh pr comment ${{ steps.pr.outputs.number }} --body "## ${{ matrix.persona.name }} Review
