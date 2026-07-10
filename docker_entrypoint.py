@@ -138,7 +138,7 @@ def run_loop(
         all_dicts_to_write,
         args,
         args.output_path,
-        format="parquet",
+        format=args.output_format,
     )
 
     # At the end of it all, write a 'SUCCESS.txt' file.
@@ -241,6 +241,13 @@ def parse_all(
         type=argparse_lib.str_to_bool,
         default=False,
         help="Ignore empty commandline args. Useful to have one script for all models/optimizers.",
+    )
+    group.add_argument(
+        "--output_format",
+        type=str,
+        default="parquet",
+        choices=["parquet", "csv"],
+        help="Output file format.",
     )
 
     group = parser.add_mutually_exclusive_group()
