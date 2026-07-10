@@ -4,16 +4,17 @@ This module is intentionally isolated from the nucleobench wrapper so the torchg
 pieces can be swapped or extended independently.
 
 Design:
-- DNASequenceEnv: autoregressive construction of a length-L DNA sequence over a
-  4-letter vocab. Modeled directly after gfn.gym.discrete_ebm.DiscreteEBM.
-  State: 1-D int tensor of length L; -1 means "not yet filled".
+- DNASequenceEnv: autoregressive construction of K editable positions within a
+  fixed-length scaffold. Modeled directly after gfn.gym.discrete_ebm.DiscreteEBM.
+  State: 1-D int tensor of length K (number of editable positions); -1 = unfilled.
   Actions 0..3: place VOCAB[a] at the next empty position (leftmost -1).
-  Action 4: exit (only valid when all positions are filled).
+  Action 4: exit (only valid when all K slots are filled).
+  Terminal states are spliced back into the scaffold to form full-length strings
+  before passing to the oracle (reconstruct_full).
+  When positions=range(L) the scaffold is fully overwritten and behaviour is
+  identical to the original L-position construction.
 - log_reward = -beta * energy, so the GFlowNet learns to sample low-energy sequences.
   This is identical in form to DiscreteEBM.log_reward = -alpha * energy.
-- The backward policy is fixed and uniform (constant_pb=True in TBGFlowNet), which
-  is valid for an autoregressive DAG where every terminal state has exactly one parent
-  chain of length L.
 """
 
 from collections.abc import Callable
@@ -39,40 +40,73 @@ EMPTY = -1
 
 
 class DNASequenceEnv(DiscreteEnv):
-    """Autoregressive GFlowNet environment for fixed-length DNA sequences.
+    """Autoregressive GFlowNet environment for DNA sequences with editable positions.
 
-    States are 1-D int tensors of length `seq_len`. -1 marks unfilled positions.
-    At each step the policy places one of the 4 nucleotides at the leftmost empty
-    slot. Once all slots are filled the only valid action is exit.
+    The GFlowNet builds K nucleotides (one per editable position). Terminal states
+    are spliced back into the frozen scaffold at `positions` to produce full-length
+    strings for the oracle. When positions = range(len(scaffold)) the scaffold is
+    fully overwritten and behaviour is identical to a plain length-L construction.
 
     Args:
-        seq_len: Length of sequences to generate.
+        scaffold: The full-length reference sequence (used for frozen positions).
+        positions: Sorted list of indices into scaffold that the GFlowNet may edit.
         model_fn: Black-box oracle, model_fn(list[str]) -> list[float].
-            Called only on complete (terminal) states.
+            Called only on complete (terminal) states via full-length reconstructed seqs.
         beta: Reward temperature. log_reward = -beta * energy.
+        vocab: Nucleotide alphabet, default VOCAB = ["A","C","G","T"].
     """
 
     def __init__(
         self,
-        seq_len: int,
+        scaffold: str,
+        positions: list[int],
         model_fn: Callable,
         beta: float = 2.0,
+        vocab: list[str] = VOCAB,
     ):
-        self.seq_len = seq_len
+        self.scaffold = scaffold
+        self.positions = list(positions)
+        self.build_len = len(positions)  # K: number of positions the GFlowNet fills
         self.model_fn = model_fn
         self.beta = beta
+        self.vocab = vocab
 
-        s0 = torch.full((seq_len,), EMPTY, dtype=torch.long)
-        # sf is the library's "sink" state used for padding; must differ from s0 and
-        # all valid terminal states. We use a value outside {-1, 0, 1, 2, 3}.
-        sf = torch.full((seq_len,), VOCAB_SIZE + 1, dtype=torch.long)
+        s0 = torch.full((self.build_len,), EMPTY, dtype=torch.long)
+        # sf must differ from s0 and all valid terminal states.
+        sf = torch.full((self.build_len,), VOCAB_SIZE + 1, dtype=torch.long)
 
         super().__init__(
             n_actions=N_ACTIONS,
             s0=s0,
-            state_shape=(seq_len,),
+            state_shape=(self.build_len,),
             sf=sf,
         )
+
+    def reconstruct_full(self, state_tensor: torch.Tensor) -> list[str]:
+        """Splice generated bases into the frozen scaffold at `positions`.
+
+        Args:
+            state_tensor: shape (*batch, build_len) with values in 0..VOCAB_SIZE-1.
+                All positions must be filled (no -1); raises AssertionError otherwise
+                to surface masking bugs loudly rather than silently emitting wrong seqs.
+
+        Returns:
+            List of full-length DNA strings (len = len(scaffold)).
+        """
+        flat = state_tensor.reshape(-1, self.build_len).cpu().numpy()
+        assert (flat >= 0).all(), (
+            "reconstruct_full received an unfilled state — a trajectory exited "
+            "before all K slots were filled (masking bug)."
+        )
+        vocab_arr = np.array(self.vocab)
+        base = list(self.scaffold)
+        out = []
+        for row in flat:
+            s = base.copy()
+            for j, pos in enumerate(self.positions):
+                s[pos] = vocab_arr[row[j]]
+            out.append("".join(s))
+        return out
 
     # ------------------------------------------------------------------
     # States class with correct 2.4.1 masking API
@@ -83,7 +117,7 @@ class DNASequenceEnv(DiscreteEnv):
         env = self
 
         class DNAStates(DiscreteStates):
-            state_shape = (env.seq_len,)
+            state_shape = (env.build_len,)
             s0 = env.s0
             sf = env.sf
             make_random_states = env.make_random_states
@@ -100,8 +134,6 @@ class DNASequenceEnv(DiscreteEnv):
                 )
                 has_empty = (self.tensor == EMPTY).any(dim=-1)  # (*batch,)
                 # All 4 placement actions are allowed whenever there is an empty slot.
-                # (The env.step logic always fills the leftmost slot, so only one slot
-                # is targeted per step; allowing all 4 nucleotide choices is correct.)
                 masks[..., :VOCAB_SIZE] = has_empty.unsqueeze(-1).expand(
                     *batch, VOCAB_SIZE
                 )
@@ -118,21 +150,12 @@ class DNASequenceEnv(DiscreteEnv):
                     dtype=torch.bool,
                     device=self.device,
                 )
-                # Any of the 4 nucleotide placements could have been the last action.
-                # The backward mask just needs to be non-zero at the actions that
-                # could have led to this state. Since we track position implicitly
-                # (always fill leftmost), any filled slot can be "undone" with the
-                # corresponding nucleotide action.
-                # Backward action a (0..3) is valid if the rightmost filled position
-                # contains nucleotide a.
                 last_pos = (self.tensor != EMPTY).sum(dim=-1) - 1  # (*batch,)
                 valid = last_pos >= 0  # (*batch,)
-                # Clamp to avoid out-of-bounds index for fully empty states.
                 last_pos_clamped = last_pos.clamp(min=0)
                 last_nt = self.tensor.gather(
                     -1, last_pos_clamped.unsqueeze(-1)
                 ).squeeze(-1)  # (*batch,)
-                # Only set backward mask for valid states (at least one filled pos).
                 for nt in range(VOCAB_SIZE):
                     masks[..., nt] = valid & (last_nt == nt)
                 return masks
@@ -152,7 +175,7 @@ class DNASequenceEnv(DiscreteEnv):
     ) -> DiscreteStates:
         device = self.device if device is None else device
         tensor = torch.randint(
-            EMPTY, VOCAB_SIZE, (*batch_shape, self.seq_len), device=device
+            EMPTY, VOCAB_SIZE, (*batch_shape, self.build_len), device=device
         )
         return self.States(tensor)
 
@@ -165,14 +188,9 @@ class DNASequenceEnv(DiscreteEnv):
         new_tensor = states.tensor.clone()
         action_vals = actions.tensor.squeeze(-1)  # (*batch,)
 
-        # Find the leftmost empty position for each state.
-        # is_empty: (*batch, seq_len)
         is_empty = new_tensor == EMPTY
-        # leftmost_empty: (*batch,) — index of the first -1, or seq_len if none.
         leftmost_empty = is_empty.long().argmax(dim=-1)
 
-        # Place the nucleotide at the leftmost empty position.
-        # Only place for non-exit actions (placement actions < VOCAB_SIZE).
         is_placement = action_vals < VOCAB_SIZE
         idx = leftmost_empty.unsqueeze(-1)  # (*batch, 1)
         new_tensor = torch.where(
@@ -185,11 +203,8 @@ class DNASequenceEnv(DiscreteEnv):
     def backward_step(self, states: States, actions: Actions) -> States:
         """Remove the rightmost filled position (set it back to -1)."""
         new_tensor = states.tensor.clone()
-        # Find the rightmost filled position.
         is_filled = new_tensor != EMPTY
-        # argmax on reversed gives us the leftmost in reversed == rightmost in original.
-        rightmost_filled = self.seq_len - 1 - is_filled.flip(-1).long().argmax(dim=-1)
-        # Set that position back to EMPTY.
+        rightmost_filled = self.build_len - 1 - is_filled.flip(-1).long().argmax(dim=-1)
         new_tensor.scatter_(-1, rightmost_filled.unsqueeze(-1), EMPTY)
         return self.States(new_tensor)
 
@@ -200,42 +215,22 @@ class DNASequenceEnv(DiscreteEnv):
     def log_reward(self, final_states: DiscreteStates) -> torch.Tensor:
         """log R(x) = -beta * energy(x).
 
-        Lower energy sequences get higher reward, consistent with the nucleobench
-        convention that model_fn returns an energy to be minimised.
+        Reconstructs full-length sequences from terminal build states (splicing
+        generated bases into the scaffold at `positions`) before calling model_fn.
 
         Args:
-            final_states: terminal states (all positions filled).
+            final_states: terminal states (all build positions filled).
 
         Returns:
             Tensor of shape (*batch_shape,) with log-rewards.
         """
-        seqs = _states_to_strings(final_states.tensor, VOCAB)
+        seqs = self.reconstruct_full(final_states.tensor)
         energies = self.model_fn(seqs)
         if not isinstance(energies, torch.Tensor):
             energies = torch.tensor(energies, dtype=torch.float32)
         log_r = -self.beta * energies.to(final_states.tensor.device)
         assert log_r.shape == final_states.batch_shape
         return log_r
-
-
-# ------------------------------------------------------------------
-# Helper: decode integer tensor to DNA strings
-# ------------------------------------------------------------------
-
-
-def _states_to_strings(tensor: torch.Tensor, vocab: list[str]) -> list[str]:
-    """Convert a batch of integer-encoded states to DNA strings.
-
-    Args:
-        tensor: shape (*batch, seq_len) with values in 0..VOCAB_SIZE-1.
-        vocab: nucleotide list (e.g. ["A", "C", "G", "T"]).
-
-    Returns:
-        List of strings, one per batch element.
-    """
-    flat = tensor.view(-1, tensor.shape[-1]).cpu().numpy()
-    vocab_arr = np.array(vocab)
-    return ["".join(vocab_arr[row]) for row in flat]
 
 
 # ------------------------------------------------------------------
@@ -249,9 +244,9 @@ def build_gflownet(
 ) -> tuple[TBGFlowNet, Sampler]:
     """Construct a TBGFlowNet with MLP forward and backward policy estimators.
 
-    Uses constant (uniform) backward policy via constant_pb=True in TBGFlowNet.
-    The forward policy MLP maps state vectors of length seq_len to logits over
-    N_ACTIONS actions.
+    The forward policy MLP maps build-state vectors of length build_len (K) to
+    logits over N_ACTIONS actions. For masked tasks this is K << L, keeping the
+    network compact regardless of full sequence length.
 
     Args:
         env: The DNASequenceEnv to train on.
@@ -260,7 +255,7 @@ def build_gflownet(
     Returns:
         (gflownet, sampler) ready for training.
     """
-    input_dim = env.seq_len
+    input_dim = env.build_len
 
     module_pf = MLP(
         input_dim=input_dim,
@@ -302,7 +297,7 @@ def sample_sequences(
     env: DNASequenceEnv,
     n: int,
 ) -> list[str]:
-    """Sample n sequences from the current policy.
+    """Sample n full-length sequences from the current policy.
 
     Args:
         sampler: On-policy sampler wrapping the forward policy estimator.
@@ -310,9 +305,10 @@ def sample_sequences(
         n: Number of sequences to sample.
 
     Returns:
-        List of n DNA strings, each of length env.seq_len.
+        List of n full-length DNA strings (len = len(env.scaffold)).
     """
     with torch.no_grad():
         trajectories = sampler.sample_trajectories(env=env, n=n, save_logprobs=False)
     terminal = trajectories.terminating_states
-    return _states_to_strings(terminal.tensor, VOCAB)
+    return env.reconstruct_full(terminal.tensor)
+

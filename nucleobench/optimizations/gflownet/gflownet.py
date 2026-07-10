@@ -41,12 +41,6 @@ class GFlowNet(oc.SequenceOptimizer):
         rnd_seed: int = 0,
         vocab: list[str] = constants.VOCAB,
     ):
-        if positions_to_mutate is not None:
-            raise NotImplementedError(
-                "GFlowNet does not yet support positions_to_mutate. "
-                "Pass positions_to_mutate=None to use the full sequence."
-            )
-
         torch.manual_seed(rnd_seed)
         np.random.seed(rnd_seed)
 
@@ -60,10 +54,18 @@ class GFlowNet(oc.SequenceOptimizer):
         self.hidden_dim = hidden_dim
         self.rnd_seed = rnd_seed
 
+        self.positions = (
+            list(range(self.seq_len))
+            if positions_to_mutate is None
+            else sorted(set(positions_to_mutate))
+        )
+
         self._env = core.DNASequenceEnv(
-            seq_len=self.seq_len,
+            scaffold=start_sequence,
+            positions=self.positions,
             model_fn=model_fn,
             beta=beta,
+            vocab=vocab,
         )
         self._gflownet, self._sampler = core.build_gflownet(
             self._env,
@@ -111,7 +113,7 @@ class GFlowNet(oc.SequenceOptimizer):
 
             # Compute per-sample oracle energies for the current batch.
             terminal = trajectories.terminating_states
-            seqs = core._states_to_strings(terminal.tensor, self.vocab)
+            seqs = self._env.reconstruct_full(terminal.tensor)
             raw_energies = self.model_fn(seqs)
             if not isinstance(raw_energies, np.ndarray):
                 raw_energies = np.array(raw_energies, dtype=np.float32)

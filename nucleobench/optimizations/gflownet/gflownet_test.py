@@ -16,6 +16,35 @@ from . import gflownet
 VOCAB = constants.VOCAB
 
 
+def test_respects_pos_to_mutate():
+    """Positions outside positions_to_mutate must be frozen in all returned samples."""
+    start_sequence = "A" * 20
+    positions_to_mutate = [2, 5, 10]
+
+    opt = gflownet.GFlowNet(
+        model_fn=testing_utils.CountLetterModel(),
+        start_sequence=start_sequence,
+        positions_to_mutate=positions_to_mutate,
+        beta=2.0,
+        learning_rate=1e-3,
+        batch_size=4,
+        hidden_dim=16,
+        rnd_seed=0,
+    )
+
+    for _ in range(3):
+        opt.run(n_steps=1)
+        proposals = opt.get_samples(n_samples=8)
+        for proposal in proposals:
+            assert len(proposal) == len(start_sequence), (
+                f"Returned sequence has wrong length: {len(proposal)} vs {len(start_sequence)}"
+            )
+            testing_utils.assert_proposal_respects_positions_to_mutate(
+                start_sequence, proposal, positions_to_mutate
+            )
+
+
+
 def test_init_sanity():
     """Construct a GFlowNet from debug_init_args without error."""
     init_args = gflownet.GFlowNet.debug_init_args()
