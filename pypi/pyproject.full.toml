@@ -38,6 +38,7 @@ dependencies = [
     "tqdm",
     "einops",
     "gradabeam==0.1.0",
+    "torchgfn==2.4.1",
 ]
 
 [project.optional-dependencies]

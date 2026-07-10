@@ -40,4 +40,5 @@ dependencies:
         - gReLU==1.1.0  # For the gReLU models.
         - bpnet-lite==0.8.1  # For a BPNet model.
         - gradabeam==0.1.0
+        - torchgfn==2.4.1
         - build  # For building wheels.

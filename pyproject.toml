@@ -31,6 +31,7 @@ python_version = "3.11"
 ignore_missing_imports = true
 warn_unused_ignores = true
 warn_redundant_casts = true
+exclude = ["experiments/"]
 
 [[tool.mypy.overrides]]
 module = [

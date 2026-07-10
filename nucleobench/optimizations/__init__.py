@@ -6,6 +6,7 @@ from nucleobench.optimizations.beam_search import beam_ordered, beam_unordered
 from nucleobench.optimizations.directed_evolution import directed_evolution
 from nucleobench.optimizations.dummy import random_perturbation
 from nucleobench.optimizations.fastseqprop_torch import fs
+from nucleobench.optimizations.gflownet import gflownet
 from nucleobench.optimizations.ledidi import ledidi
 from nucleobench.optimizations.simulated_annealing import simulated_annealing
 
@@ -25,6 +26,7 @@ GENERAL_OPTIMIZATIONS_ = {
     "adabeam": adabeam.AdaBeam,
     "directed_evolution": directed_evolution.DirectedGreedyEvolution,
     "dummy": random_perturbation.RandomPerturbation,
+    "gflownet": gflownet.GFlowNet,
     "simulated_annealing": simulated_annealing.SimulatedAnnealing,
 }
 
