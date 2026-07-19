@@ -23,7 +23,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
-          cache-dependency-path: 'pypi/pyproject.full.toml'
+          cache-dependency-path: 'pyproject.toml'
 
       - name: Install system dependencies for pybigwig
         run: |
@@ -32,8 +32,6 @@ jobs:
 
       - name: Test fresh pip installation
         run: |
-          # Copy the full pyproject.toml to the root for installation
-          cp pypi/pyproject.full.toml pyproject.toml
           python -m pip install --upgrade pip
           # Installs the package from the local directory exactly as PyPI would
           pip install .[dev]
