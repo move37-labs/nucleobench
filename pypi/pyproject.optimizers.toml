@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nucleopt"
-version = "2.0.4"
+version = "2.0.5"
 description = "Optimizers from the nucleobench package."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -20,7 +20,7 @@ classifiers = [
 ]
 dependencies = [
     "torch>=2.1",
-    "numpy>=1.16",
+    "numpy>=2.0.0",
     "scipy",
     "pandas",
     "h5py",
@@ -30,7 +30,7 @@ dependencies = [
     "gcsfs",
     "xxhash",
     "tqdm",
-    "gradabeam==0.1.0",
+    "gradabeam",
 ]
 
 [project.optional-dependencies]
