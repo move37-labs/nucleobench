@@ -62,9 +62,11 @@ NucleoBench is provided via **PyPi**, **Docker**, or **source**.
 
 Install `nucleobench` on your terminal:
 ```bash
-# Choose one.
-pip install nucleobench  # optimizers and tasks
-pip install nucleopt  # smaller, faster install for just optimizers
+# Standard / GPU install:
+pip install nucleobench
+
+# CPU-only install (forces PyTorch to use CPU version):
+pip install nucleobench --extra-index-url https://download.pytorch.org/whl/cpu
 ```
 
 Then run in Python:
