@@ -35,7 +35,7 @@ class RinalmoMRL(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
 
         """
         parser = argparse.ArgumentParser()
-        parser.add_argument("--override_ft_wts_local_path", type=str, default=None)
+        parser.add_argument("--override_weights_local_path", type=str, default=None)
         return parser
 
     @staticmethod
@@ -45,15 +45,15 @@ class RinalmoMRL(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
     def __init__(
         self,
         override_model: torch.nn.Module | None = None,
-        override_ft_wts_local_path: str | None = None,
+        override_weights_local_path: str | None = None,
     ):
         self.has_cuda = torch.cuda.is_available()
         self.model: Any
         if override_model:
             self.model = override_model
-        elif override_ft_wts_local_path:
+        elif override_weights_local_path:
             self.model = load_model.load_model(
-                ft_wts_url=override_ft_wts_local_path, has_cuda=self.has_cuda
+                ft_wts_url=override_weights_local_path, has_cuda=self.has_cuda
             )
         else:
             self.model = load_model.load_model(has_cuda=self.has_cuda)
