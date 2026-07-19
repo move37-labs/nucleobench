@@ -58,6 +58,22 @@ dev = [
 where = ["."]
 include = ["nucleobench", "nucleobench.*"]
 
+[tool.setuptools.exclude-package-data]
+"nucleobench.common" = [
+    "all_enformer_proposals_cache.*",
+    "gcs_proposals_enformer.*",
+]
+"*" = [
+    "*.pt",
+    "*.pth",
+    "*.h5",
+    "*.hdf5",
+    "*.parquet",
+    "*.safetensors",
+    "*.bin",
+    "*.pkl",
+]
+
 [tool.setuptools.package-data]
 "*" = ["*.csv"]
 
