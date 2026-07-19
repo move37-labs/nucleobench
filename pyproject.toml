@@ -57,9 +57,27 @@ dev = [
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["nucleobench", "nucleobench.*"]
+exclude = [
+    "nucleobench.models.rna.rinalmo_mrl.rinalmo",
+    "nucleobench.models.rna.rinalmo_mrl.rinalmo.*",
+    "nucleobench.models.malinois.model",
+    "nucleobench.models.malinois.model.*",
+    "tests",
+    "tests.*",
+]
 
-[tool.setuptools.package-data]
-"*" = ["*.csv"]
+[tool.setuptools.exclude-package-data]
+"*" = [
+    "*.pt",
+    "*.pth",
+    "*.h5",
+    "*.hdf5",
+    "*.csv",
+    "*.parquet",
+    "*.safetensors",
+    "*.bin",
+    "*.pkl",
+]
 
 [tool.black]
 line-length = 88

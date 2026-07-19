@@ -207,3 +207,6 @@ integration_tests/data_loaders/cache/
 experiments/
 *.hdf5
 *.h5
+
+# Files for building whls.
+nucleobench-*/**
