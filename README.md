@@ -24,7 +24,7 @@
 This repo is intended to be used in a few ways:
 1. Design a DNA sequence with selective expression in a cell-type (or any other target property in the benchmark, see list [here](#summary-of-tasks-in-nucleobench)), using the GrAdaBeam algorithm (or any of the ones listed [here](#summary-of-designers-in-nucleobench))
 2. Design a DNA sequence with high binding affinity for a specific transcription factor (such as the ones listed [here](#summary-of-tasks-in-nucleobench)), using the GrAdaBeam algorithm (or any of the ones listed [here](#summary-of-designers-in-nucleobench))
-1. Design a DNA or RNA sequence for a new task, using any designer (see tutorial [here](https://github.com/move37-labs/nucleobench/blob/main/recipes/colab/custom_task.ipynb))
+1. Design a DNA or RNA sequence for a new task, using any designer (see tutorial [here](recipes/colab/custom_task.ipynb))
 1. Run a new design algorithm on NucleoBench tasks.
 1. Reproduce the NucleoBench results, using the standard tasks / designers or using your custom ones, on the Cloud using Google Batch or AWS (instructions [here](#get-started-in-8-minutes-google-batch-inference))
 
@@ -59,14 +59,20 @@ NucleoBench is provided via **PyPi** or **source**.
 
 ### Get started in 1 minute (pip install)
 
-Install `nucleobench` on your terminal:
+Requires Python 3.10+. On Debian/Ubuntu, install build deps for `pyBigWig` first:
+```bash
+sudo apt-get install -y libcurl4-openssl-dev
+```
+
+Then install `nucleobench` on your terminal:
 ```bash
 # Standard / GPU install:
 pip install nucleobench
-
 # CPU-only install (forces PyTorch to use CPU version):
 pip install nucleobench --extra-index-url https://download.pytorch.org/whl/cpu
 ```
+
+This installs PyTorch and related scientific deps and can take several minutes.
 
 Then run in Python:
 ```python
@@ -99,7 +105,7 @@ Final score: -535.0
 Final sequence: ATGTCTGTCTATGTCATGTCATGTCATGTCATGTCATGTCTCTATGTCATGTCTATGTCTATGTCTATGTCATGTCATGTCTGTCTATGTCATGTATGTC
 ```
 
-This "recipe" can be found under [`recipes/python/gradabeam_substringcount.py`](https://github.com/move37-labs/nucleobench/blob/main/recipes/python/gradabeam_substringcount.py).
+This "recipe" can be found under [`recipes/python/gradabeam_substringcount.py`](recipes/python/gradabeam_substringcount.py).
 
 ### Get started in 5 minutes (git clone)
 
@@ -138,13 +144,13 @@ Proposals deposited at:
     ./output/python_recipe/gradabeam_substringcount/gradabeam_substring_count/20260725_180740/20260725_180755.parquet
 ```
 
-This "recipe" can be found under [`recipes/python/gradabeam_atac.sh`](https://github.com/move37-labs/nucleobench/blob/main/recipes/python/gradabeam_atac.sh).
+This "recipe" can be found under [`recipes/python/gradabeam_substringcount.sh`](recipes/python/gradabeam_substringcount.sh).
 
 ### Get started in 8 minutes (Google Batch inference)
 
 Google Batch is Google's cheapest batch compute offering. It enables relatively cheap parallel compute on the cloud.
 
-First, setup a Google Cloud project by following instructions [here](https://cloud.google.com/batch). You will need to activate the Google Batch API. If you want the job to write to a private bucket, you will also need to setup what's called a "Service Account" with the proper permissions. Once you have done this, you will need to collect the following information from your new project, and fill this information in [runners/gcp/config.py](https://github.com/move37-labs/nucleobench/blob/main/runners/gcp/config.py):
+First, setup a Google Cloud project by following instructions [here](https://cloud.google.com/batch). You will need to activate the Google Batch API. If you want the job to write to a private bucket, you will also need to setup what's called a "Service Account" with the proper permissions. Once you have done this, you will need to collect the following information from your new project, and fill this information in [runners/gcp/config.py](runners/gcp/config.py):
 
 1. PROJECT_ID (the project ID of the project you created above)
 1. REGION (the region of the project)
@@ -266,4 +272,4 @@ algorithms devised in this work.</small>
 ## FAQ
 
 1. How can I add a new task to NucleoBench?
-    A: Follow [this](https://github.com/move37-labs/nucleobench/blob/main/recipes/colab/custom_task.ipynb) colab notebook.
+    A: Follow [this](recipes/colab/custom_task.ipynb) colab notebook.

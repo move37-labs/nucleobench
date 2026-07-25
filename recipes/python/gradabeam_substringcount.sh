@@ -13,5 +13,5 @@ python -m docker_entrypoint \
     --max_seconds 15 \
     --optimization_steps_per_output 5 \
     --proposals_per_round 2 \
-    --output_path ./output/python_recipe/gradabeam_atac \
+    --output_path ./output/python_recipe/gradabeam_substringcount \
     --start_sequence AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
