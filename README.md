@@ -17,13 +17,13 @@
 ### Model Integration Tests (Micromamba)
 [![Enformer Integration Tests (Micromamba)](https://github.com/move37-labs/nucleobench/actions/workflows/enformer-integration-tests-in-micromamba.yml/badge.svg)](https://github.com/move37-labs/nucleobench/actions/workflows/enformer-integration-tests-in-micromamba.yml)
 
-**A large-scale benchmark for modern nucleic acid sequence design algorithms (NucleoBench), and a new design algorithm that outperforms existing designers (AdaBeam).  Link to ICML GenBio 2025 workshop paper [here](https://www.biorxiv.org/content/10.1101/2025.06.20.660785).**
+**A large-scale benchmark for modern nucleic acid sequence design algorithms (NucleoBench), and a new design algorithm that outperforms existing designers (GrAdaBeam).  Link to ICML GenBio 2025 workshop paper [here](https://www.biorxiv.org/content/10.1101/2025.06.20.660785).**
 
 [comment]: <> (Consider an image here.)
 
 This repo is intended to be used in a few ways:
-1. Design a DNA sequence with selective expression in a cell-type (or any other target property in the benchmark, see list [here](#summary-of-tasks-in-nucleobench)), using the AdaBeam algorithm (or any of the ones listed [here](#summary-of-designers-in-nucleobench))
-2. Design a DNA sequence with high binding affinity for a specific transcription factor (such as the ones listed [here](#summary-of-tasks-in-nucleobench)), using the AdaBeam algorithm (or any of the ones listed [here](#summary-of-designers-in-nucleobench))
+1. Design a DNA sequence with selective expression in a cell-type (or any other target property in the benchmark, see list [here](#summary-of-tasks-in-nucleobench)), using the GrAdaBeam algorithm (or any of the ones listed [here](#summary-of-designers-in-nucleobench))
+2. Design a DNA sequence with high binding affinity for a specific transcription factor (such as the ones listed [here](#summary-of-tasks-in-nucleobench)), using the GrAdaBeam algorithm (or any of the ones listed [here](#summary-of-designers-in-nucleobench))
 1. Design a DNA or RNA sequence for a new task, using any designer (see tutorial [here](https://github.com/move37-labs/nucleobench/blob/main/recipes/colab/custom_task.ipynb))
 1. Run a new design algorithm on NucleoBench tasks.
 1. Reproduce the NucleoBench results, using the standard tasks / designers or using your custom ones, on the Cloud using Google Batch or AWS (instructions [here](#get-started-in-8-minutes-google-batch-inference))
@@ -31,14 +31,14 @@ This repo is intended to be used in a few ways:
 
 ### Citation
 
-Please cite the following publication when referencing NucleoBench or AdaBeam:
+Please cite the following publication when referencing NucleoBench or GrAdaBeam:
 
 ```
 @article{shor2025nucleobench,
   author    = {Shor, Joel and Strand, Erik and McLean, Cory Y.},
-  title     = {{NucleoBench: A Large-Scale Benchmark of Neural Nucleic Acid Design Algorithms}},
+  title     = {{GrAdaBeam: Combining model gradients with evolutionary search for generalizable nucleic acid design}},
   journal   = {bioRxiv},
-  year      = {2025},
+  year      = {2026},
   doi       = {10.1101/2025.06.20.660785},
   url       = {https://www.biorxiv.org/content/10.1101/2025.06.20.660785}
 }
@@ -48,7 +48,6 @@ Please cite the following publication when referencing NucleoBench or AdaBeam:
 
 - [Quick Start](#quick_start)
   - [1 minute install w/ pip](#get-started-in-1-minute-pip-install)
-  - [3  minute install w/ docker](#get-started-in-3-minutes-docker-image-pull)
   - [5 minute install w/ source](#get-started-in-5-minutes-git-clone)
   - [8 minute install w/ Google Batch inference](#get-started-in-8-minutes-google-batch-inference)
 - [Details](#details)
@@ -76,11 +75,11 @@ from nucleobench import models
 model = models.get_model('substring_count')
 model_init_args = model.debug_init_args()
 model_init_args['substring'] = 'ATGTC'
-model_fn = model_obj(**model_init_args)
+model_fn = model(**model_init_args)
 
 # 2. Choose an optimizer.
 from nucleobench import optimizations
-opt_obj = optimizations.get_optimization('adabeam')
+opt_obj = optimizations.get_optimization('gradabeam')
 opt_init_args = opt_obj.debug_init_args()
 opt_init_args['model_fn'] = model_fn
 opt_init_args['start_sequence'] = 'A' * 100
@@ -96,62 +95,11 @@ print(f'Final sequence: {ret[0]}')
 
 Output:
 ```bash
-Step 99 current scores: [np.float64(508.0), np.float64(507.0), np.float64(506.0), np.float64(505.0), np.float64(504.0), np.float64(503.0), np.float64(503.0), np.float64(502.0), np.float64(502.0), np.float64(502.0)]
-Final score: -508.0
-Final sequence: AGATGTCATATATGATGTCATGTCATGTCGTCATGTCTGTCTCTCATGTATGTCATGTCTATGTCTGTCTATGTCTATGTCTATGTCATGTCTATGTCTC
+Final score: -535.0
+Final sequence: ATGTCTGTCTATGTCATGTCATGTCATGTCATGTCATGTCTCTATGTCATGTCTATGTCTATGTCTATGTCATGTCATGTCTGTCTATGTCATGTATGTC
 ```
 
-This "recipe" can be found under [`recipes/python/adabeam_substring.py`](https://github.com/move37-labs/nucleobench/blob/main/recipes/python/adabeam_substringcount.py).
-
-### Get started in 3 minutes (docker image pull)
-
-Get the image:
-```bash
-docker image pull joelshor/nucleobench:latest
-```
-
-Output:
-```bash
-latest: Pulling from joelshor/nucleobench
-Digest: sha256:602230b568c0f15acfa7a0b6723ffb16fab6f32c37ae5b88c71763fb722ab5c3
-Status: Image is up to date for joelshor/nucleobench:latest
-docker.io/joelshor/nucleobench:latest
-```
-
-Make a directory for output:
-```bash
-readonly output="./output/docker_recipe/adabeam_atac"
-mkdir -p "${output}"
-readonly fullpath="$(realpath $output)"
-```
-
-Then run it:
-```bash
-docker run \
-    -v "${fullpath}":"${fullpath}" \
-    joelshor/nucleobench:latest \
-    --model substring_count \
-        --substring 'ATGTC' \
-    --optimization adabeam \
-        --beam_size 2 \
-        --n_rollouts_per_root 4 \
-        --mutations_per_sequence 2 \
-        --rng_seed 0 \
-    --max_seconds 15 \
-    --optimization_steps_per_output 5 \
-    --proposals_per_round 2 \
-    --output_path ${fullpath} \
-    --start_sequence AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-```
-
-Output:
-```bash
-Completed round 3441 (5 steps) took 0.00s. Avg 0.00s per step.
-Proposals deposited at:
-	output/docker_recipe/adabeam_atac/adabeam_substring_count/20250731_194857/20250731_194912.pkl
-```
-
-This "recipe" can be found under [`recipes/docker/adabeam_atac.sh`](https://github.com/move37-labs/nucleobench/blob/main/recipes/docker/adabeam_atac.sh).
+This "recipe" can be found under [`recipes/python/gradabeam_substringcount.py`](https://github.com/move37-labs/nucleobench/blob/main/recipes/python/gradabeam_substringcount.py).
 
 ### Get started in 5 minutes (git clone)
 
@@ -168,28 +116,29 @@ Now run the main entrypoint:
 python -m docker_entrypoint \
     --model substring_count \
         --substring 'ATGTC' \
-    --optimization adabeam \
+    --optimization gradabeam \
         --beam_size 2 \
         --n_rollouts_per_root 4 \
         --mutations_per_sequence 2 \
+        --exploration_alpha 0.05 \
         --rng_seed 0 \
     --max_seconds 15 \
     --optimization_steps_per_output 5 \
     --proposals_per_round 2 \
-    --output_path ./output/python_recipe/adabeam_atac \
+    --output_path ./output/python_recipe/gradabeam_substringcount \
     --start_sequence AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 ```
 
 Output:
 ```bash
 ...
-Completed round 3820 (5 steps) took 0.00s. Avg 0.00s per step.
-  0%|                              | 3821/99999999 [00:14<109:01:33, 254.77it/s]
+Completed round 1839 (5 steps) took 0.01s. Avg 0.00s per step.
+  0%|                                     | 1840/99999999 [00:14<226:20:41, 122.72it/s]
 Proposals deposited at:
-	./output/python_recipe/adabeam_atac/adabeam_substring_count/20250731_162119/20250731_162134.pkl
+    ./output/python_recipe/gradabeam_atac/gradabeam_substring_count/20260725_180740/20260725_180755.parquet
 ```
 
-This "recipe" can be found under [`recipes/python/adabeam_atac.py`](https://github.com/move37-labs/nucleobench/blob/main/recipes/python/adabeam_atac.py).
+This "recipe" can be found under [`recipes/python/gradabeam_atac.sh`](https://github.com/move37-labs/nucleobench/blob/main/recipes/python/gradabeam_atac.sh).
 
 ### Get started in 8 minutes (Google Batch inference)
 
@@ -264,7 +213,8 @@ Finally, make sure that the job completes fully, and the output is in the right 
 
 ## Details
 
-**NucleoBench** is a large-scale comparison of modern sequence design algorithms across 16 biological tasks (such as transcription factor binding and gene expression) and 9 design algorithms. NucleoBench, compares design algorithms on the same tasks and start sequences across more than 400K experiments, allowing us to derive unique modeling insights on the importance of using gradient information, the role of randomness, scaling properties, and reasonable starting hyperparameters on new problems. We use these insights to present a novel hybrid design algorithm, **AdaBeam**, that outperforms existing algorithms on 11 of 16 tasks and demonstrates superior scaling properties on long sequences and large predictors. Our benchmark and algorithms are freely available online.
+We introduce **GrAdaBeam**, a hybrid model-based optimization algorithm that
+combines gradient-derived attention maps with an adaptive beam search to navigate complex nucleic acid fitness landscapes. By unifying the broad exploration of evolutionary methods with the precise guidance of gradient descent, GrAdaBeam overcomes a central limitation of existing approaches: no single optimization strategy performs robustly across the full spectrum of genomic design tasks. We rigorously evaluate GrAdaBeam and nine other design algorithms using NucleoBench, a novel benchmark covering 17 diverse genomic tasks that introduces a paired-start-sequence design for superior statistical comparisons. GrAdaBeam statistically outperforms all other algorithms across over 600,000 experiments, never ranking lower than second across all 17 benchmark tasks, while baseline methods often struggle on large models or long sequences. Critically, GrAdaBeam sequences generalize most reliably to independent predictive models and recover canonical transcription factor binding motifs de novo, providing evidence of biological signal capture beyond the optimization target. GrAdaBeam and NucleoBench are freely available as an open-source package.
 
 <div align="center">
 <img src="assets/images/results_summary.png" alt="results" style="width: 70%; max-width: 800px; height: auto;" />
