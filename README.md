@@ -223,51 +223,43 @@ We introduce **GrAdaBeam**, a hybrid model-based optimization algorithm that
 combines gradient-derived attention maps with an adaptive beam search to navigate complex nucleic acid fitness landscapes. By unifying the broad exploration of evolutionary methods with the precise guidance of gradient descent, GrAdaBeam overcomes a central limitation of existing approaches: no single optimization strategy performs robustly across the full spectrum of genomic design tasks. We rigorously evaluate GrAdaBeam and nine other design algorithms using NucleoBench, a novel benchmark covering 17 diverse genomic tasks that introduces a paired-start-sequence design for superior statistical comparisons. GrAdaBeam statistically outperforms all other algorithms across over 600,000 experiments, never ranking lower than second across all 17 benchmark tasks, while baseline methods often struggle on large models or long sequences. Critically, GrAdaBeam sequences generalize most reliably to independent predictive models and recover canonical transcription factor binding motifs de novo, providing evidence of biological signal capture beyond the optimization target. GrAdaBeam and NucleoBench are freely available as an open-source package.
 
 <div align="center">
-<img src="assets/images/results_summary.png" alt="results" style="width: 70%; max-width: 800px; height: auto;" />
+<img src="assets/images/order_score_violin.png" alt="Order-score violin plot: GrAdaBeam ranks highest across NucleoBench tasks" style="width: 70%; max-width: 800px; height: auto;" />
+<br/>
+<small>Order scores across NucleoBench tasks (higher is better). For a given task and start sequence, the order score is the number of designers with worse final fitness.</small>
 </div>
-
-### Comparison of nucleic acid design benchmarks
-
-| NAME | YEAR | ALGOS | TASKS | SEQ. LENGTH (BP) | DESIGN BENCHMARK | LONG SEQS | LARGE MODELS | PAIRED START SEQS. |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| Fitness Landscape Exploration Sandbox | 2020 | 4-6 | 9 | Most <100 | ✅ | ❌ | ❌ | ✅ |
-| Computational Optimization of DNA Activity | 2024 | 3 | 3 | 200 | ✅ | ❌ | ❌ | ✅ |
-| gRelu | 2024 | 2 | 5 | 500K (20 edit) | ❌ | ❌ | ✅ | ❌ |
-| Linder et al repos | 2021 | 2 | 20 | <600 | ✅ | ❌ | ❌ | ❌ |
-| NucleoBench (ours) | 2025 | 9 | 16 | 256-3K | ✅ | ✅ | ✅ | ✅ |
-
-<small>Table: Nucleic acid design from sequence benchmarks. All benchmarks prior to NucleoBench are limited either in the range of tasks
-they measure against, the range of optimizations they compare, or the complexity of the task.</small>
 
 ### Summary of tasks in NucleoBench
 
-| TASK CATEGORY | MODEL | DESCRIPTION | NUM TASKS | SEQ LEN (BP) | SPEED (MS / EXAMPLE) |
+| TASK CATEGORY | MODEL | DESCRIPTION | NUM TASKS | SEQ LEN (BP) | INFERENCE (MS / EXAMPLE) |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | Cell-type specific cis-regulatory activity | Malinois | How DNA sequences control gene expression from the same DNA molecule. Cell types are: *precursor blood cells*, *liver cells*, *neuronal cells*. | 3 | 200 | 2 |
-| Transcription factor binding | BPNet-lite | How likely a specific transcription factor (TF) will bind to a particular stretch of DNA. Specific TFs: *CTCF*, *E2F3*, *ELF4*, *GATA2*, *JUNB*, *MAX*, *MECOM*, *MYC*, *OTX1*, *RAD21*, *SOX6* | 11 | 3000 | 55 |
-| Chromatin accessibility | BPNet-lite | How physically accessible DNA is for interactions with other molecules. | 1 | 3000 | 260 |
-| Selective gene expression | Enformer | Prediction of gene expression. We optimize for *maximal expression in muscle cells, minimal expression in liver cells*.| 1 | 196,608 / 256 * | 15,000 |
+| Transcription factor binding | BPNet-lite | How likely a specific transcription factor (TF) will bind to a particular stretch of DNA. Specific TFs: *CTCF*, *E2F3*, *ELF4*, *GATA2*, *JUNB*, *MAX*, *MECOM*, *MYC*, *OTX1*, *RAD21*, *SOX6* | 11 | 3000 | 14 |
+| Chromatin accessibility | BPNet-lite | How physically accessible DNA is for interactions with other molecules. | 1 | 3000 | 120 |
+| Ribosomal loading | RiNALMo | Mean ribosome load on 5' UTR sequences (translational efficiency). | 1 | 100 | 450 |
+| Selective gene expression | Enformer | Prediction of gene expression. We optimize for *maximal expression in muscle cells, minimal expression in liver cells*. | 1 | 196,608 / 256 * | 7900 |
 
-<small>*Input length is 200K, but only 256 bp are edited.</small>
+<small>*Input length is 196,608 bp, but only 256 bp are edited.</small>
 
 ### Summary of designers in NucleoBench
 
 | Algo | Description | Gradient-based |
-| :--- | :--- | :--- |
+| :--- | :--- | :---: |
 | Directed Evolution | Random mutations, track the best. | ❌ |
 | Simulated Annealing | Greedy optimization with random jumps. | ❌ |
-| [AdaLead](https://arxiv.org/abs/2010.02141) | Iterative combining and mutating of a population of sequences. | ❌ |
-| [FastSeqProp](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-021-04437-5) | Sampling and the straight-through estimator for maximal input. | ✅ |
-| [Ledidi](https://www.biorxiv.org/content/10.1101/2020.05.21.109686v1) | Sampling and the gumbel softmax estimator for maximal input. | ✅ |
+| [AdaLead](https://arxiv.org/abs/2010.02141) | Heuristic-guided random-mutation search. | ❌ |
+| [FastSeqProp](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-021-04437-5) | Straight-through estimator for maximal input. | ✅ |
+| [Ledidi](https://www.biorxiv.org/content/10.1101/2020.05.21.109686v1) | Gumbel softmax sampling for maximal input. | ✅ |
+| GFlowNet* | Flow-based generative model. | ❌ |
 | --- |
-| Ordered Beam | Greedy search, in fixed sequence order, with cache. | ❌ |
-| Unordered Beam | Greedy search with cache. | ❌ |
-| Gradient Evo | Directed Evolution, guided by model gradients. | ✅ |
-| [AdaBeam (ours)](https://www.biorxiv.org/content/10.1101/2025.06.20.660785) | Hybrid of Unordered Beam and improved AdaLead. | ❌ |
+| Ordered Beam | Greedy beam search, in fixed edit order. | ❌ |
+| Unordered Beam | Greedy beam search, any edit order. | ❌ |
+| Gradient Evo | Directed Evolution, guided by gradients. | ✅ |
+| [GrAdaBeam](https://www.biorxiv.org/content/10.1101/2025.06.20.660785) | Efficient beam search guided by gradients. | ✅ |
 
 <small>Table: Summary of designers in NucleoBench. Above the solid line are designers already found in the nucleic acid design literature.
 Below the line are designers from the search literature not previously used to benchmark nucleic acid sequence design and hybrid
-algorithms devised in this work.</small>
+algorithms devised in this work. *GFlowNet is a generative model, not a model-based optimizer, included for benchmark completeness.
+GFlowNets do not use gradients of the oracle model.</small>
 
 ## FAQ
 
