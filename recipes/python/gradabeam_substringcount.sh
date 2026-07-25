@@ -1,5 +1,5 @@
 #
-# bash recipes/python/gradabeam_atac.sh
+# bash recipes/python/gradabeam_substringcount.sh
 #
 python -m docker_entrypoint \
     --model substring_count \

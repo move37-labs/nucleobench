@@ -55,7 +55,7 @@ Please cite the following publication when referencing NucleoBench or GrAdaBeam:
 
 ## Quick Start
 
-NucleoBench is provided via **PyPi**, **Docker**, or **source**.
+NucleoBench is provided via **PyPi** or **source**.
 
 ### Get started in 1 minute (pip install)
 
@@ -135,7 +135,7 @@ Output:
 Completed round 1839 (5 steps) took 0.01s. Avg 0.00s per step.
   0%|                                     | 1840/99999999 [00:14<226:20:41, 122.72it/s]
 Proposals deposited at:
-    ./output/python_recipe/gradabeam_atac/gradabeam_substring_count/20260725_180740/20260725_180755.parquet
+    ./output/python_recipe/gradabeam_substringcount/gradabeam_substring_count/20260725_180740/20260725_180755.parquet
 ```
 
 This "recipe" can be found under [`recipes/python/gradabeam_atac.sh`](https://github.com/move37-labs/nucleobench/blob/main/recipes/python/gradabeam_atac.sh).
