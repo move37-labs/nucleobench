@@ -2,7 +2,7 @@
 
 To run:
 ```zsh
-python -m recipes.python.adabeam_substringcount
+python -m recipes.python.gradabeam_substringcount
 ```
 """
 
@@ -10,22 +10,22 @@ from nucleobench import models, optimizations
 
 # Initialize the task.
 
-# Design for a simple task: count the number of occurances of a particular substring.
+# Design for a simple task: count the number of occurrences of a particular substring.
 # See `nucleobench.models.__init__` for a registry of tasks, or add your own.
-model_obj = models.get_model("substring_count")
+model = models.get_model("substring_count")
 
 # Every task has some baseline, default arguments to initialize. We can use
 # these to demonstrate, or modify them for custom behavior. We do both, to
 # demonstrate.
-model_init_args = model_obj.debug_init_args()
+model_init_args = model.debug_init_args()
 model_init_args["substring"] = "ATGTC"
-model_fn = model_obj(**model_init_args)
+model_fn = model(**model_init_args)
 
 # Initialize the designer.
 
 # Pick a design algorithm that attemps to solve the task. In this case,
 # maximize the number of substrings.
-opt_obj = optimizations.get_optimization("adabeam")
+opt_obj = optimizations.get_optimization("gradabeam")
 # Every task has some baseline, default arguments to initialize. We can use
 # these to demonstrate, or modify them for custom behavior. We do both, to
 # demonstrate.
