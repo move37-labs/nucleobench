@@ -98,6 +98,7 @@ line-length = 88
 target-version = "py310"
 exclude = [
     "*.ipynb",
+    "*.md",
     "nucleobench/models/rna/rinalmo_mrl/rinalmo",
     "nucleobench/models/malinois/model",
 ]
