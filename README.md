@@ -51,6 +51,7 @@ Please cite the following publication when referencing NucleoBench or GrAdaBeam:
   - [5 minute install w/ source](#get-started-in-5-minutes-git-clone)
   - [8 minute install w/ Google Batch inference](#get-started-in-8-minutes-google-batch-inference)
 - [Details](#details)
+  - [GrAdaBeam](#gradabeam)
 - [FAQ](#faq)
 
 ## Quick Start
@@ -221,6 +222,21 @@ Finally, make sure that the job completes fully, and the output is in the right 
 
 We introduce **GrAdaBeam**, a hybrid model-based optimization algorithm that
 combines gradient-derived attention maps with an adaptive beam search to navigate complex nucleic acid fitness landscapes. By unifying the broad exploration of evolutionary methods with the precise guidance of gradient descent, GrAdaBeam overcomes a central limitation of existing approaches: no single optimization strategy performs robustly across the full spectrum of genomic design tasks. We rigorously evaluate GrAdaBeam and nine other design algorithms using NucleoBench, a novel benchmark covering 17 diverse genomic tasks that introduces a paired-start-sequence design for superior statistical comparisons. GrAdaBeam statistically outperforms all other algorithms across over 600,000 experiments, never ranking lower than second across all 17 benchmark tasks, while baseline methods often struggle on large models or long sequences. Critically, GrAdaBeam sequences generalize most reliably to independent predictive models and recover canonical transcription factor binding motifs de novo, providing evidence of biological signal capture beyond the optimization target. GrAdaBeam and NucleoBench are freely available as an open-source package.
+
+### GrAdaBeam
+
+GrAdaBeam is a gradient-guided adaptive beam search. At each step it
+samples how many sites to edit, chooses those sites with a mixture of
+uniform exploration and oracle-gradient (TISM) signal, proposes new
+bases, and keeps improving children. Mutation rate and the exploration
+weight are updated from successful edits so the search adapts during
+optimization.
+
+<div align="center">
+<img src="assets/images/gradabeam_flowchart.png" alt="GrAdaBeam algorithm schematic" style="width: 70%; max-width: 800px; height: auto;" />
+<br/>
+<small>One GrAdaBeam step: the oracle supplies gradients for position selection (TISM) and forward scores for acceptance; accepted children update the parent sequence and the adaptive parameters μ and α.</small>
+</div>
 
 <div align="center">
 <img src="assets/images/order_score_violin.png" alt="Order-score violin plot: GrAdaBeam ranks highest across NucleoBench tasks" style="width: 70%; max-width: 800px; height: auto;" />
