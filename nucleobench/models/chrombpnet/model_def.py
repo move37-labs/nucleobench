@@ -64,6 +64,8 @@ class ChromBPNetOracle(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
                 override_weights_local_path=override_weights_local_path,
             )
 
+        self.model.eval()
+
         self.vocab = vocab
         self.vocab_to_idx = {nt: i for i, nt in enumerate(vocab)}
         self.vocab_array = np.array(vocab)
