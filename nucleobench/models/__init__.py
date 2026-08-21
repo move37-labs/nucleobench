@@ -1,4 +1,5 @@
 from nucleobench.models.bpnet import model_def as bpnet_model_def
+from nucleobench.models.chrombpnet import model_def as chrombpnet_model_def
 from nucleobench.models.dummy import model_def as dummy_model_def
 from nucleobench.models.grelu.borzoi import model_def as borzoi_model_def
 from nucleobench.models.grelu.enformer import model_def as enformer_model_def
@@ -19,6 +20,7 @@ MODELS_ = {
     "optimus5p": optimus5p_model_def.Optimus5P,
     "saluki": saluki_model_def.SalukiModel,
     "borzoi": borzoi_model_def.Borzoi,
+    "chrombpnet": chrombpnet_model_def.ChromBPNetOracle,
 }
 
 
