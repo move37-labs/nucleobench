@@ -22,11 +22,7 @@ POLYA = "A" * _L
 GC_RICH = ("GC" * (_L // 2 + 1))[:_L]
 
 _TESTDATA_DIR = (
-    Path(__file__).parent.parent
-    / "nucleobench"
-    / "models"
-    / "chrombpnet"
-    / "testdata"
+    Path(__file__).parent.parent / "nucleobench" / "models" / "chrombpnet" / "testdata"
 )
 _GOLDEN_PATH = _TESTDATA_DIR / "adrenal_c0_keras_goldens.json"
 
