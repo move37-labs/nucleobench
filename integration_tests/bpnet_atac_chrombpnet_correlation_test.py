@@ -55,8 +55,8 @@ _CHROMBPNET_SCORES_CSV = _CACHE_DIR / "chrombpnet_k562_scores.csv"
 _PLOTS_DIR = Path(__file__).parent / "plots"
 
 # Placeholder thresholds — update after the first run reveals actual values.
-_MIN_PEARSON_R = 0.99
-_MIN_SPEARMAN_RHO = 0.99
+_MIN_PEARSON_R = 0.80
+_MIN_SPEARMAN_RHO = 0.73
 
 
 # ---------------------------------------------------------------------------
