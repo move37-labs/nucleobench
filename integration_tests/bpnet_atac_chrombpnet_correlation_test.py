@@ -2,6 +2,7 @@
 
 Scores 100 real genomic sequences (196,608 bp each) with both models, using
 center-crops matched to each model's native input length, and asserts
+Pearson r >= 0.80 and Spearman rho >= 0.73.
 
 Both models see the same genomic center region:
   BPNet-ATAC   receives the center 3,000 bp crop of each 196,608 bp sequence.
@@ -15,8 +16,7 @@ Scatter plot artifact:
   integration_tests/plots/bpnet_atac_chrombpnet_scatter.png
 
 To run:
-    pytest -s -m bpnet_atac_chrombpnet \\
-        integration_tests/bpnet_atac_chrombpnet_correlation_test.py
+    pytest -s integration_tests/bpnet_atac_chrombpnet_correlation_test.py
 """
 
 from pathlib import Path
@@ -157,13 +157,13 @@ def scored_sequences():
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.bpnet_atac_chrombpnet
+@pytest.mark.correlation
 def test_n_sequences(scored_sequences):
     assert len(scored_sequences["bpnet_scores"]) == N_SEQUENCES
     assert len(scored_sequences["chrombpnet_scores"]) == N_SEQUENCES
 
 
-@pytest.mark.bpnet_atac_chrombpnet
+@pytest.mark.correlation
 def test_pearson_r(scored_sequences):
     x = scored_sequences["bpnet_scores"]
     y = scored_sequences["chrombpnet_scores"]
@@ -174,7 +174,7 @@ def test_pearson_r(scored_sequences):
     )
 
 
-@pytest.mark.bpnet_atac_chrombpnet
+@pytest.mark.correlation
 def test_spearman_rho(scored_sequences):
     x = scored_sequences["bpnet_scores"]
     y = scored_sequences["chrombpnet_scores"]
@@ -185,7 +185,7 @@ def test_spearman_rho(scored_sequences):
     )
 
 
-@pytest.mark.bpnet_atac_chrombpnet
+@pytest.mark.correlation
 def test_scatter_plot(scored_sequences):
     """Save a scatter plot of BPNet-ATAC vs ChromBPNet-K562 scores.
 

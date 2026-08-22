@@ -11,8 +11,7 @@ Scatter plot artifact:
   integration_tests/plots/enformer_bpnet_atac_scatter.png
 
 To run:
-    pytest -s -m enformer_bpnet_atac \\
-        integration_tests/enformer_bpnet_atac_correlation_test.py
+    pytest -s integration_tests/enformer_bpnet_atac_correlation_test.py
 """
 
 import math
@@ -149,13 +148,13 @@ def scored_sequences():
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.enformer_bpnet_atac
+@pytest.mark.correlation
 def test_n_sequences(scored_sequences):
     assert len(scored_sequences["enformer_scores"]) == N_SEQUENCES
     assert len(scored_sequences["bpnet_scores"]) == N_SEQUENCES
 
 
-@pytest.mark.enformer_bpnet_atac
+@pytest.mark.correlation
 def test_pearson_r(scored_sequences):
     x = scored_sequences["bpnet_scores"]
     y = scored_sequences["enformer_scores"]
@@ -166,7 +165,7 @@ def test_pearson_r(scored_sequences):
     )
 
 
-@pytest.mark.enformer_bpnet_atac
+@pytest.mark.correlation
 def test_spearman_rho(scored_sequences):
     x = scored_sequences["bpnet_scores"]
     y = scored_sequences["enformer_scores"]
@@ -177,7 +176,7 @@ def test_spearman_rho(scored_sequences):
     )
 
 
-@pytest.mark.enformer_bpnet_atac
+@pytest.mark.correlation
 def test_scatter_plot(scored_sequences):
     """Save a scatter plot of BPNet-ATAC vs Enformer scores.
 
