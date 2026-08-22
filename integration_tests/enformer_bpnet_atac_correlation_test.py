@@ -47,7 +47,7 @@ SPATIAL_BINS = list(range(BIN_FIRST, BIN_LAST))  # 24 bins
 
 N_SEQUENCES = 100
 
-_CACHE_DIR = Path(__file__).parent / "cache"
+_CACHE_DIR = Path(__file__).parent / "cache" / "enformer_bpnet_atac"
 _ENFORMER_SCORES_CSV = _CACHE_DIR / "enformer_scores.csv"
 _BPNET_SCORES_CSV = _CACHE_DIR / "bpnet_atac_scores.csv"
 _PLOTS_DIR = Path(__file__).parent / "plots"

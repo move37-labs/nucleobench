@@ -1,20 +1,25 @@
 """Integration test: BPNet-ATAC vs ChromBPNet-K562 correlation.
 
-Scores 100 real genomic sequences (3,000 bp each) with both models and
-asserts Pearson r >= 0.99 and Spearman rho >= 0.99.
+Scores 100 real genomic sequences (196,608 bp each) with both models, using
+center-crops matched to each model's native input length, and asserts
+Pearson r >= 0.99 and Spearman rho >= 0.99.
 
 NOTE: The 0.99 thresholds are placeholders. Run the test once to obtain
 the actual correlation values, then update _MIN_PEARSON_R and _MIN_SPEARMAN_RHO.
 
+Both models see the same genomic center region:
+  BPNet-ATAC   receives the center 3,000 bp crop of each 196,608 bp sequence.
+  ChromBPNet   receives the center 2,114 bp crop of each 196,608 bp sequence.
+
 Score caches (written on first run, reused on subsequent runs):
-  integration_tests/cache/bpnet_atac_scores_v2.csv
-  integration_tests/cache/chrombpnet_k562_scores.csv
+  integration_tests/cache/bpnet_atac_chrombpnet/bpnet_atac_scores.csv
+  integration_tests/cache/bpnet_atac_chrombpnet/chrombpnet_k562_scores.csv
 
 Scatter plot artifact:
   integration_tests/plots/bpnet_atac_chrombpnet_scatter.png
 
 To run:
-    pytest -s -m bpnet_atac_chrombpnet \
+    pytest -s -m bpnet_atac_chrombpnet \\
         integration_tests/bpnet_atac_chrombpnet_correlation_test.py
 """
 
@@ -25,22 +30,27 @@ import pytest
 from scipy import stats
 from tqdm import tqdm
 
-from integration_tests.data_loaders import BPNetATACStartSequences
+from integration_tests.data_loaders import EnformerStartSequences
 from nucleobench.models.bpnet.model_def import BPNet
 from nucleobench.models.chrombpnet.model_def import ChromBPNetOracle
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
+ENFORMER_SEQ_LEN = 196_608
 BPNET_SEQ_LEN = 3_000
 CHROMBPNET_SEQ_LEN = 2_114
-CROP_START = (BPNET_SEQ_LEN - CHROMBPNET_SEQ_LEN) // 2  # 443
-CROP_END = CROP_START + CHROMBPNET_SEQ_LEN  # 2557
+
+BPNET_CROP_START = (ENFORMER_SEQ_LEN - BPNET_SEQ_LEN) // 2           # 96_804
+BPNET_CROP_END = BPNET_CROP_START + BPNET_SEQ_LEN                     # 99_804
+
+CHROMBPNET_CROP_START = (ENFORMER_SEQ_LEN - CHROMBPNET_SEQ_LEN) // 2  # 97_247
+CHROMBPNET_CROP_END = CHROMBPNET_CROP_START + CHROMBPNET_SEQ_LEN       # 99_361
 
 N_SEQUENCES = 100
 
-_CACHE_DIR = Path(__file__).parent / "cache"
-_BPNET_SCORES_CSV = _CACHE_DIR / "bpnet_atac_scores_v2.csv"
+_CACHE_DIR = Path(__file__).parent / "cache" / "bpnet_atac_chrombpnet"
+_BPNET_SCORES_CSV = _CACHE_DIR / "bpnet_atac_scores.csv"
 _CHROMBPNET_SCORES_CSV = _CACHE_DIR / "chrombpnet_k562_scores.csv"
 _PLOTS_DIR = Path(__file__).parent / "plots"
 
@@ -72,8 +82,8 @@ def scored_sequences():
         return {"bpnet_scores": bpnet_scores, "chrombpnet_scores": chrombpnet_scores}
 
     # --- Load sequences ---
-    print("\nLoading BPNet-ATAC start sequences...")
-    loader = BPNetATACStartSequences()
+    print("\nLoading Enformer start sequences...")
+    loader = EnformerStartSequences()
     seqs_df = loader.get_data()
     sequences = seqs_df["sequence"].tolist()
     assert len(sequences) == N_SEQUENCES, f"Expected {N_SEQUENCES}, got {len(sequences)}"
@@ -84,10 +94,12 @@ def scored_sequences():
     bpnet = BPNet(protein="ATAC")
     print("  BPNet-ATAC loaded.")
 
-    print("  Scoring with BPNet-ATAC...")
+    print("  Scoring with BPNet-ATAC (center 3,000 bp crop)...")
     bpnet_scores = []
     for seq in tqdm(sequences, desc="BPNet-ATAC"):
-        score = bpnet([seq]).item()
+        crop = seq[BPNET_CROP_START:BPNET_CROP_END]
+        assert len(crop) == BPNET_SEQ_LEN, f"Crop length {len(crop)} != {BPNET_SEQ_LEN}"
+        score = bpnet([crop]).item()
         # BPNet wrapper negates (minimization); flip back to raw signal.
         bpnet_scores.append(-score)
     bpnet_scores = np.array(bpnet_scores, dtype=np.float64)
@@ -98,10 +110,10 @@ def scored_sequences():
     chrombpnet = ChromBPNetOracle(cell_type="K562_ENCSR483RKN")
     print("  ChromBPNet loaded.")
 
-    print("  Scoring with ChromBPNet-K562...")
+    print("  Scoring with ChromBPNet-K562 (center 2,114 bp crop)...")
     chrombpnet_scores = []
     for seq in tqdm(sequences, desc="ChromBPNet"):
-        crop = seq[CROP_START:CROP_END]
+        crop = seq[CHROMBPNET_CROP_START:CHROMBPNET_CROP_END]
         assert len(crop) == CHROMBPNET_SEQ_LEN, (
             f"Crop length {len(crop)} != {CHROMBPNET_SEQ_LEN}"
         )
