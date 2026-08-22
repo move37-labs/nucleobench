@@ -2,10 +2,6 @@
 
 Scores 100 real genomic sequences (196,608 bp each) with both models, using
 center-crops matched to each model's native input length, and asserts
-Pearson r >= 0.99 and Spearman rho >= 0.99.
-
-NOTE: The 0.99 thresholds are placeholders. Run the test once to obtain
-the actual correlation values, then update _MIN_PEARSON_R and _MIN_SPEARMAN_RHO.
 
 Both models see the same genomic center region:
   BPNet-ATAC   receives the center 3,000 bp crop of each 196,608 bp sequence.
@@ -54,7 +50,7 @@ _BPNET_SCORES_CSV = _CACHE_DIR / "bpnet_atac_scores.csv"
 _CHROMBPNET_SCORES_CSV = _CACHE_DIR / "chrombpnet_k562_scores.csv"
 _PLOTS_DIR = Path(__file__).parent / "plots"
 
-# Placeholder thresholds — update after the first run reveals actual values.
+# Minimum acceptable correlations (slightly below the golden values).
 _MIN_PEARSON_R = 0.80
 _MIN_SPEARMAN_RHO = 0.73
 

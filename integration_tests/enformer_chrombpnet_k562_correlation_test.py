@@ -1,10 +1,7 @@
 """Integration test: Enformer K562-DNase vs ChromBPNet-K562 correlation.
 
 Scores 100 real genomic sequences (196,608 bp each) with both models and
-asserts Pearson r >= 0.99 and Spearman rho >= 0.99.
-
-NOTE: The 0.99 thresholds are placeholders. Run the test once to obtain
-the actual correlation values, then update _MIN_PEARSON_R and _MIN_SPEARMAN_RHO.
+asserts on Pearson and Spearman correlations.
 
 Both models see the same genomic center region:
   Enformer    receives the full 196,608 bp sequence; K562-DNase tracks,
@@ -33,7 +30,6 @@ from tqdm import tqdm
 
 from integration_tests.data_loaders import EnformerStartSequences
 from nucleobench.models.chrombpnet.model_def import ChromBPNetOracle
-from nucleobench.models.grelu.enformer import constants as enf_constants
 from nucleobench.models.grelu.enformer.model_def import Enformer
 
 # ---------------------------------------------------------------------------
@@ -60,7 +56,7 @@ _ENFORMER_SCORES_CSV = _CACHE_DIR / "enformer_scores.csv"
 _CHROMBPNET_SCORES_CSV = _CACHE_DIR / "chrombpnet_k562_scores.csv"
 _PLOTS_DIR = Path(__file__).parent / "plots"
 
-# Placeholder thresholds — update after the first run reveals actual values.
+# Minimum acceptable correlations (slightly below the golden values).
 _MIN_PEARSON_R = 0.80
 _MIN_SPEARMAN_RHO = 0.80
 
@@ -102,14 +98,11 @@ def scored_sequences():
         print(f"\nLoading cached Enformer scores from {_ENFORMER_SCORES_CSV}")
         enformer_scores = pd.read_csv(_ENFORMER_SCORES_CSV)["enformer_score"].to_numpy()
     else:
-        track_idxs = enf_constants.k562_dnase_track_indices()
         print(
-            f"\nLoading Enformer (k562_dnase, {len(track_idxs)} tracks,"
-            f" {len(SPATIAL_BINS)} bins)..."
+            f"\nLoading Enformer (k562_dnase, {len(SPATIAL_BINS)} bins)..."
         )
         enformer = Enformer(
             aggregation_type="k562_dnase",
-            track_indices=track_idxs,
             spatial_bins_to_aggregate=SPATIAL_BINS,
             run_sanity_checks=False,
         )

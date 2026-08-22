@@ -1,11 +1,7 @@
 """Integration test: Enformer (K562-DNase) vs BPNet-ATAC correlation.
 
 Scores 100 real genomic sequences (196,608 bp each) with both models and
-asserts Pearson r >= 0.73 and Spearman rho >= 0.87.
-
-Expected golden values (from original scoring run):
-  Pearson  r   = 0.7312583504871208  (p = 5.68e-18)
-  Spearman rho = 0.8753555355535554  (p = 1.07e-32)
+asserts on Pearson and Spearman.
 
 Score caches (written on first run, reused on subsequent runs):
   integration_tests/cache/start_seq_enformer/enformer_scores.csv
@@ -29,7 +25,6 @@ from tqdm import tqdm
 
 from integration_tests.data_loaders import EnformerStartSequences
 from nucleobench.models.bpnet.model_def import BPNet
-from nucleobench.models.grelu.enformer import constants as enf_constants
 from nucleobench.models.grelu.enformer.model_def import Enformer
 
 # ---------------------------------------------------------------------------
@@ -94,14 +89,11 @@ def scored_sequences():
         print(f"\nLoading cached Enformer scores from {_ENFORMER_SCORES_CSV}")
         enformer_scores = pd.read_csv(_ENFORMER_SCORES_CSV)["enformer_score"].to_numpy()
     else:
-        track_idxs = enf_constants.k562_dnase_track_indices()
         print(
-            f"\nLoading Enformer (k562_dnase, {len(track_idxs)} tracks,"
-            f" {len(SPATIAL_BINS)} bins)..."
+            f"\nLoading Enformer (k562_dnase, {len(SPATIAL_BINS)} bins)..."
         )
         enformer = Enformer(
             aggregation_type="k562_dnase",
-            track_indices=track_idxs,
             spatial_bins_to_aggregate=SPATIAL_BINS,
             run_sanity_checks=False,
         )
