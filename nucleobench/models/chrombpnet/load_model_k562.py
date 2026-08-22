@@ -17,9 +17,8 @@ python -m nucleobench.models.chrombpnet.load_model_k562
 ```
 """
 
-from huggingface_hub import hf_hub_download, list_repo_tree
-
 from bpnetlite import BPNet
+from huggingface_hub import hf_hub_download, list_repo_tree
 
 from nucleobench.models.bpnet.load_model import CountWrapper
 from nucleobench.models.chrombpnet import constants as cb_constants
