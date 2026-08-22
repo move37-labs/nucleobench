@@ -12,8 +12,8 @@ Both models see the same genomic center region:
   ChromBPNet   receives the center 2,114 bp crop of each 196,608 bp sequence.
 
 Score caches (written on first run, reused on subsequent runs):
-  integration_tests/cache/bpnet_atac_chrombpnet/bpnet_atac_scores.csv
-  integration_tests/cache/bpnet_atac_chrombpnet/chrombpnet_k562_scores.csv
+  integration_tests/cache/start_seq_enformer/bpnet_atac_scores.csv
+  integration_tests/cache/start_seq_enformer/chrombpnet_k562_scores.csv
 
 Scatter plot artifact:
   integration_tests/plots/bpnet_atac_chrombpnet_scatter.png
@@ -49,7 +49,7 @@ CHROMBPNET_CROP_END = CHROMBPNET_CROP_START + CHROMBPNET_SEQ_LEN       # 99_361
 
 N_SEQUENCES = 100
 
-_CACHE_DIR = Path(__file__).parent / "cache" / "bpnet_atac_chrombpnet"
+_CACHE_DIR = Path(__file__).parent / "cache" / "start_seq_enformer"
 _BPNET_SCORES_CSV = _CACHE_DIR / "bpnet_atac_scores.csv"
 _CHROMBPNET_SCORES_CSV = _CACHE_DIR / "chrombpnet_k562_scores.csv"
 _PLOTS_DIR = Path(__file__).parent / "plots"
