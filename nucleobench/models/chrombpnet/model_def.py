@@ -1,8 +1,16 @@
-"""ChromBPNet oracle from HDMA fetal ATAC models.
+"""ChromBPNet oracle.
 
-Paper: Liu*, Jessa*, Kim*, Ng* et al., bioRxiv 2025 (HDMA).
-Weights: https://zenodo.org/records/15048278 (CC-BY 4.0).
-Loaded via bpnet-lite `BPNet.from_chrombpnet` (PyTorch; no TensorFlow).
+Two data sources are supported:
+
+HDMA fetal-tissue models (Zenodo CC-BY 4.0):
+  Paper: Liu*, Jessa*, Kim*, Ng* et al., bioRxiv 2025 (HDMA).
+  Weights: https://zenodo.org/records/15048278
+
+ENCODE K562 models (HuggingFace, ENCODE data-use policy):
+  Collection: https://huggingface.co/collections/kundajelab/encode-chrombpnet-models
+  Cite: Pampari et al. 2024.
+
+Both are loaded via bpnet-lite `BPNet.from_chrombpnet` (PyTorch; no TensorFlow).
 
 Scalar objective is the counts head, negated so NucleoBench optimizers
 minimize (suppress predicted accessibility), matching BPNet ATAC.
@@ -26,7 +34,11 @@ from nucleobench.optimizations import model_class as mc
 
 
 class ChromBPNetOracle(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
-    """Cell-type-specific ChromBPNet ATAC oracle (HDMA Part 1)."""
+    """Cell-type-specific ChromBPNet ATAC oracle.
+
+    Supports HDMA fetal-tissue models (Zenodo) and ENCODE K562 models
+    (HuggingFace).  See `constants.ALL_AVAILABLE_MODELS_` for the full list.
+    """
 
     @staticmethod
     def init_parser():
@@ -36,8 +48,11 @@ class ChromBPNetOracle(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
             "--cell_type",
             type=str,
             required=True,
-            choices=cb_constants.AVAILABLE_MODELS_,
-            help="HDMA cluster id, e.g. Adrenal_c0.",
+            choices=cb_constants.ALL_AVAILABLE_MODELS_,
+            help=(
+                "HDMA cluster id (e.g. Adrenal_c0) or ENCODE K562 key "
+                "(e.g. K562_ENCSR483RKN)."
+            ),
         )
         return parser
 
@@ -56,6 +71,13 @@ class ChromBPNetOracle(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         self._require_seq_len = override_model is None
         if override_model:
             self.model = override_model
+        elif cell_type in cb_constants.K562_AVAILABLE_MODELS_:
+            from nucleobench.models.chrombpnet import load_model_k562
+
+            self.model = load_model_k562.download(
+                cell_type,
+                override_weights_local_path=override_weights_local_path,
+            )
         else:
             from nucleobench.models.chrombpnet import load_model
 
