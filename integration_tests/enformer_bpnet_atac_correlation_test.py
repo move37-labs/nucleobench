@@ -66,8 +66,8 @@ _MIN_SPEARMAN_RHO = 0.87
 def scored_sequences():
     """Score all 100 sequences with Enformer and BPNet-ATAC.
 
-    Reads from CSV caches if available; otherwise runs both models and writes
-    the results to the cache files.
+    Each model's scores are cached independently. If a model's CSV already
+    exists it is loaded directly; only missing models are run.
     """
     import pandas as pd
 
@@ -79,7 +79,7 @@ def scored_sequences():
         print(f"  bpnet_scores shape:    {bpnet_scores.shape}")
         return {"enformer_scores": enformer_scores, "bpnet_scores": bpnet_scores}
 
-    # --- Load sequences ---
+    # --- Load sequences (only needed if either cache is missing) ---
     print("\nLoading Enformer start sequences...")
     loader = EnformerStartSequences()
     seqs_df = loader.get_data()
@@ -87,51 +87,63 @@ def scored_sequences():
     assert len(sequences) == N_SEQUENCES, f"Expected {N_SEQUENCES}, got {len(sequences)}"
     print(f"  Loaded {len(sequences)} sequences ({len(sequences[0])} bp each).")
 
-    # --- Enformer ---
-    track_idxs = enf_constants.k562_dnase_track_indices()
-    print(f"\nLoading Enformer (k562_dnase, {len(track_idxs)} tracks, {len(SPATIAL_BINS)} bins)...")
-    enformer = Enformer(
-        aggregation_type="k562_dnase",
-        track_indices=track_idxs,
-        spatial_bins_to_aggregate=SPATIAL_BINS,
-        run_sanity_checks=False,
-    )
-    print("  Enformer loaded.")
+    _CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
-    print("  Scoring with Enformer...")
-    enformer_scores = []
-    for seq in tqdm(sequences, desc="Enformer"):
-        score = enformer([seq]).item()
-        # Enformer wrapper negates (minimization); flip back to raw signal.
-        enformer_scores.append(-score)
-    enformer_scores = np.array(enformer_scores, dtype=np.float64)
-    print(f"  Enformer scores: min={enformer_scores.min():.3f}  max={enformer_scores.max():.3f}")
+    # --- Enformer ---
+    if _ENFORMER_SCORES_CSV.exists():
+        print(f"\nLoading cached Enformer scores from {_ENFORMER_SCORES_CSV}")
+        enformer_scores = pd.read_csv(_ENFORMER_SCORES_CSV)["enformer_score"].to_numpy()
+    else:
+        track_idxs = enf_constants.k562_dnase_track_indices()
+        print(
+            f"\nLoading Enformer (k562_dnase, {len(track_idxs)} tracks,"
+            f" {len(SPATIAL_BINS)} bins)..."
+        )
+        enformer = Enformer(
+            aggregation_type="k562_dnase",
+            track_indices=track_idxs,
+            spatial_bins_to_aggregate=SPATIAL_BINS,
+            run_sanity_checks=False,
+        )
+        print("  Enformer loaded.")
+        print("  Scoring with Enformer...")
+        enformer_scores = []
+        for seq in tqdm(sequences, desc="Enformer"):
+            score = enformer([seq]).item()
+            # Enformer wrapper negates (minimization); flip back to raw signal.
+            enformer_scores.append(-score)
+        enformer_scores = np.array(enformer_scores, dtype=np.float64)
+        print(
+            f"  Enformer scores: min={enformer_scores.min():.3f}"
+            f"  max={enformer_scores.max():.3f}"
+        )
+        pd.DataFrame({"enformer_score": enformer_scores}).to_csv(
+            _ENFORMER_SCORES_CSV, index=False
+        )
+        print(f"  Enformer scores written to {_ENFORMER_SCORES_CSV}")
 
     # --- BPNet-ATAC ---
-    print("\nLoading BPNet-ATAC...")
-    bpnet = BPNet(protein="ATAC")
-    print("  BPNet-ATAC loaded.")
-
-    print("  Scoring with BPNet-ATAC...")
-    bpnet_scores = []
-    for seq in tqdm(sequences, desc="BPNet-ATAC"):
-        crop = seq[CROP_START:CROP_END]
-        assert len(crop) == BPNET_SEQ_LEN, f"Crop length {len(crop)} != {BPNET_SEQ_LEN}"
-        score = bpnet([crop]).item()
-        # BPNet wrapper negates (minimization); flip back to raw signal.
-        bpnet_scores.append(-score)
-    bpnet_scores = np.array(bpnet_scores, dtype=np.float64)
-    print(f"  BPNet scores: min={bpnet_scores.min():.3f}  max={bpnet_scores.max():.3f}")
-
-    # --- Write caches ---
-    _CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    pd.DataFrame({"enformer_score": enformer_scores}).to_csv(
-        _ENFORMER_SCORES_CSV, index=False
-    )
-    pd.DataFrame({"bpnet_atac_score": bpnet_scores}).to_csv(
-        _BPNET_SCORES_CSV, index=False
-    )
-    print(f"\nScores written to {_CACHE_DIR}")
+    if _BPNET_SCORES_CSV.exists():
+        print(f"\nLoading cached BPNet-ATAC scores from {_BPNET_SCORES_CSV}")
+        bpnet_scores = pd.read_csv(_BPNET_SCORES_CSV)["bpnet_atac_score"].to_numpy()
+    else:
+        print("\nLoading BPNet-ATAC...")
+        bpnet = BPNet(protein="ATAC")
+        print("  BPNet-ATAC loaded.")
+        print("  Scoring with BPNet-ATAC...")
+        bpnet_scores = []
+        for seq in tqdm(sequences, desc="BPNet-ATAC"):
+            crop = seq[CROP_START:CROP_END]
+            assert len(crop) == BPNET_SEQ_LEN, f"Crop length {len(crop)} != {BPNET_SEQ_LEN}"
+            score = bpnet([crop]).item()
+            # BPNet wrapper negates (minimization); flip back to raw signal.
+            bpnet_scores.append(-score)
+        bpnet_scores = np.array(bpnet_scores, dtype=np.float64)
+        print(f"  BPNet scores: min={bpnet_scores.min():.3f}  max={bpnet_scores.max():.3f}")
+        pd.DataFrame({"bpnet_atac_score": bpnet_scores}).to_csv(
+            _BPNET_SCORES_CSV, index=False
+        )
+        print(f"  BPNet-ATAC scores written to {_BPNET_SCORES_CSV}")
 
     return {"enformer_scores": enformer_scores, "bpnet_scores": bpnet_scores}
 
