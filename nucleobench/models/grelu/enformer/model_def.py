@@ -30,7 +30,10 @@ class Enformer(grelu_md.GReluModel):
         parser = argparse.ArgumentParser()
         group = parser.add_argument_group("Enformer init args")
         group.add_argument(
-            "--aggregation_type", type=str, required=True, choices=["muscle_not_liver"]
+            "--aggregation_type",
+            type=str,
+            required=True,
+            choices=["muscle_not_liver", "k562_dnase"],
         )
         return parser
 
@@ -58,6 +61,14 @@ class Enformer(grelu_md.GReluModel):
         Aggregation is complicated. We enumerate the options as strings, and use premade aggregation
         functions for well thought-out options, instead of asking the user to provide them, so the
         aggregation can be easily tracked and tested.
+
+        Args:
+            aggregation_type: One of "muscle_not_liver" or "k562_dnase".
+            spatial_bins_to_aggregate: If set, restrict spatial bins before aggregating.
+            override_model: Swap in a fake model (for testing).
+            override_aggregation: Bypass the named aggregation entirely (for testing or
+                custom callers). When set, aggregation_type is ignored.
+            run_sanity_checks: Run a small forward pass to validate the model on init.
         """
         super().__init__(
             repo_id=constants.ENFORMER_REPO_ID,
@@ -67,28 +78,45 @@ class Enformer(grelu_md.GReluModel):
         )
         self.model.eval()
 
-        if aggregation_type not in ["muscle_not_liver"]:
+        if aggregation_type not in ["muscle_not_liver", "k562_dnase"]:
             raise ValueError(f"Unknown aggregation type: {aggregation_type}")
 
         # Create aggregation method.
         if override_aggregation is None:
-            positive_idxs, negative_idxs = constants.idxs_by_name(aggregation_type)
+            if aggregation_type == "muscle_not_liver":
+                positive_idxs, negative_idxs = constants.idxs_by_name(aggregation_type)
 
-            def _aggregation(model_out: torch.Tensor) -> torch.Tensor:
-                assert model_out.ndim == 3
-                assert model_out.shape[1] == len(constants.ENFORMER_TASKS_)
+                def _aggregation(model_out: torch.Tensor) -> torch.Tensor:
+                    assert model_out.ndim == 3
+                    assert model_out.shape[1] == len(constants.ENFORMER_TASKS_)
 
-                # If spatial_bins_to_aggregate is specified, use only those bins.
-                if spatial_bins_to_aggregate is not None:
-                    model_out = model_out[:, :, spatial_bins_to_aggregate]
+                    # If spatial_bins_to_aggregate is specified, use only those bins.
+                    if spatial_bins_to_aggregate is not None:
+                        model_out = model_out[:, :, spatial_bins_to_aggregate]
 
-                ret = torch.sum(model_out[:, positive_idxs], dim=(1, 2)) - torch.sum(
-                    model_out[:, negative_idxs], dim=(1, 2)
-                )
-                assert ret.ndim == 1
-                return ret
+                    ret = torch.sum(
+                        model_out[:, positive_idxs], dim=(1, 2)
+                    ) - torch.sum(model_out[:, negative_idxs], dim=(1, 2))
+                    assert ret.ndim == 1
+                    return ret
 
-            self.aggregation = _aggregation
+                self.aggregation = _aggregation
+
+            elif aggregation_type == "k562_dnase":
+                track_indices = constants.k562_dnase_track_indices()
+
+                def _aggregation_k562_dnase(model_out: torch.Tensor) -> torch.Tensor:
+                    assert model_out.ndim == 3
+                    assert model_out.shape[1] == len(constants.ENFORMER_TASKS_)
+                    out = model_out[:, track_indices]
+                    if spatial_bins_to_aggregate is not None:
+                        out = out[:, :, spatial_bins_to_aggregate]
+                    ret = out.sum(dim=(1, 2))
+                    assert ret.ndim == 1
+                    return ret
+
+                self.aggregation = _aggregation_k562_dnase
+
         else:
             self.aggregation = override_aggregation
 

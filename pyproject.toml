@@ -93,6 +93,7 @@ markers = [
     "saluki: Saluki integration tests",
     "chrombpnet: ChromBPNet HDMA fetal-tissue oracle integration tests",
     "chrombpnet_k562: ChromBPNet ENCODE K562 oracle integration tests",
+    "correlation: cross-model score correlation integration tests",
 ]
 
 [tool.ruff]

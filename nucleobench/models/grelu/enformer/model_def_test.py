@@ -98,3 +98,14 @@ def test_device_placement(fake_torch_cuda, cuda_is_available):
     )
     assert m.device == ("cuda" if cuda_is_available else "cpu")
     assert m.has_cuda is cuda_is_available
+
+
+def test_k562_dnase_aggregation_shape():
+    """k562_dnase returns one score per sequence in the batch."""
+    m = model_def.Enformer(
+        override_model=testing_utils.CountLetterModel(**model_args),
+        aggregation_type="k562_dnase",
+        run_sanity_checks=False,
+    )
+    ret = m.inference_on_strings(["A" * 196608, "C" * 196608, "T" * 196608])
+    assert list(ret.shape) == [3]

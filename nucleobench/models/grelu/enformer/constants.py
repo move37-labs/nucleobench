@@ -5414,6 +5414,14 @@ def muscle_dnase_idx():
     return [ENFORMER_TASKS_.index(t) for t in muscle_DNASE()]
 
 
+def k562_dnase_track_indices() -> list[int]:
+    """Indices of DNASE:K562* tracks in ENFORMER_TASKS_ (for BPNet ATAC correlation)."""
+    idxs = [i for i, t in enumerate(ENFORMER_TASKS_) if t.startswith("DNASE:K562")]
+    if not idxs:
+        raise ValueError("No DNASE:K562 tracks found in ENFORMER_TASKS_")
+    return idxs
+
+
 def idxs_by_name(aggregation_type: str) -> tuple[list[int], list[int]]:
     """Get the indices of the positive and negative tasks for a given aggregation type."""
     if aggregation_type == "muscle_CAGE":
