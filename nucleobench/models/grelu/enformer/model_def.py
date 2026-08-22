@@ -94,9 +94,9 @@ class Enformer(grelu_md.GReluModel):
                     if spatial_bins_to_aggregate is not None:
                         model_out = model_out[:, :, spatial_bins_to_aggregate]
 
-                    ret = torch.sum(model_out[:, positive_idxs], dim=(1, 2)) - torch.sum(
-                        model_out[:, negative_idxs], dim=(1, 2)
-                    )
+                    ret = torch.sum(
+                        model_out[:, positive_idxs], dim=(1, 2)
+                    ) - torch.sum(model_out[:, negative_idxs], dim=(1, 2))
                     assert ret.ndim == 1
                     return ret
 

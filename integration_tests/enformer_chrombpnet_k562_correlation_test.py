@@ -39,15 +39,15 @@ ENFORMER_SEQ_LEN = 196_608
 ENFORMER_BIN_SIZE = 128
 ENFORMER_CONTEXT_PAD = (ENFORMER_SEQ_LEN - 896 * ENFORMER_BIN_SIZE) // 2  # 40_960
 BPNET_SEQ_LEN = 3_000  # reference window used for bin selection
-CROP_START_REF = (ENFORMER_SEQ_LEN - BPNET_SEQ_LEN) // 2   # 96_804
-CROP_END_REF = CROP_START_REF + BPNET_SEQ_LEN              # 99_804
-BIN_FIRST = (CROP_START_REF - ENFORMER_CONTEXT_PAD) // ENFORMER_BIN_SIZE   # 436
+CROP_START_REF = (ENFORMER_SEQ_LEN - BPNET_SEQ_LEN) // 2  # 96_804
+CROP_END_REF = CROP_START_REF + BPNET_SEQ_LEN  # 99_804
+BIN_FIRST = (CROP_START_REF - ENFORMER_CONTEXT_PAD) // ENFORMER_BIN_SIZE  # 436
 BIN_LAST = math.ceil((CROP_END_REF - ENFORMER_CONTEXT_PAD) / ENFORMER_BIN_SIZE)  # 460
 SPATIAL_BINS = list(range(BIN_FIRST, BIN_LAST))  # 24 bins
 
 CHROMBPNET_SEQ_LEN = 2_114
 CHROMBPNET_CROP_START = (ENFORMER_SEQ_LEN - CHROMBPNET_SEQ_LEN) // 2  # 97_247
-CHROMBPNET_CROP_END = CHROMBPNET_CROP_START + CHROMBPNET_SEQ_LEN       # 99_361
+CHROMBPNET_CROP_END = CHROMBPNET_CROP_START + CHROMBPNET_SEQ_LEN  # 99_361
 
 N_SEQUENCES = 100
 
@@ -78,17 +78,24 @@ def scored_sequences():
     if _ENFORMER_SCORES_CSV.exists() and _CHROMBPNET_SCORES_CSV.exists():
         print(f"\nLoading cached scores from {_CACHE_DIR}")
         enformer_scores = pd.read_csv(_ENFORMER_SCORES_CSV)["enformer_score"].to_numpy()
-        chrombpnet_scores = pd.read_csv(_CHROMBPNET_SCORES_CSV)["chrombpnet_score"].to_numpy()
+        chrombpnet_scores = pd.read_csv(_CHROMBPNET_SCORES_CSV)[
+            "chrombpnet_score"
+        ].to_numpy()
         print(f"  enformer_scores shape:   {enformer_scores.shape}")
         print(f"  chrombpnet_scores shape: {chrombpnet_scores.shape}")
-        return {"enformer_scores": enformer_scores, "chrombpnet_scores": chrombpnet_scores}
+        return {
+            "enformer_scores": enformer_scores,
+            "chrombpnet_scores": chrombpnet_scores,
+        }
 
     # --- Load sequences (only needed if either cache is missing) ---
     print("\nLoading Enformer start sequences...")
     loader = EnformerStartSequences()
     seqs_df = loader.get_data()
     sequences = seqs_df["sequence"].tolist()
-    assert len(sequences) == N_SEQUENCES, f"Expected {N_SEQUENCES}, got {len(sequences)}"
+    assert len(sequences) == N_SEQUENCES, (
+        f"Expected {N_SEQUENCES}, got {len(sequences)}"
+    )
     print(f"  Loaded {len(sequences)} sequences ({len(sequences[0])} bp each).")
 
     _CACHE_DIR.mkdir(parents=True, exist_ok=True)
@@ -98,9 +105,7 @@ def scored_sequences():
         print(f"\nLoading cached Enformer scores from {_ENFORMER_SCORES_CSV}")
         enformer_scores = pd.read_csv(_ENFORMER_SCORES_CSV)["enformer_score"].to_numpy()
     else:
-        print(
-            f"\nLoading Enformer (k562_dnase, {len(SPATIAL_BINS)} bins)..."
-        )
+        print(f"\nLoading Enformer (k562_dnase, {len(SPATIAL_BINS)} bins)...")
         enformer = Enformer(
             aggregation_type="k562_dnase",
             spatial_bins_to_aggregate=SPATIAL_BINS,
@@ -125,7 +130,9 @@ def scored_sequences():
     # --- ChromBPNet-K562 ---
     if _CHROMBPNET_SCORES_CSV.exists():
         print(f"\nLoading cached ChromBPNet scores from {_CHROMBPNET_SCORES_CSV}")
-        chrombpnet_scores = pd.read_csv(_CHROMBPNET_SCORES_CSV)["chrombpnet_score"].to_numpy()
+        chrombpnet_scores = pd.read_csv(_CHROMBPNET_SCORES_CSV)[
+            "chrombpnet_score"
+        ].to_numpy()
     else:
         print("\nLoading ChromBPNet-K562 (K562_ENCSR483RKN)...")
         chrombpnet = ChromBPNetOracle(cell_type="K562_ENCSR483RKN")

@@ -37,11 +37,11 @@ ENFORMER_SEQ_LEN = 196_608
 BPNET_SEQ_LEN = 3_000
 CHROMBPNET_SEQ_LEN = 2_114
 
-BPNET_CROP_START = (ENFORMER_SEQ_LEN - BPNET_SEQ_LEN) // 2           # 96_804
-BPNET_CROP_END = BPNET_CROP_START + BPNET_SEQ_LEN                     # 99_804
+BPNET_CROP_START = (ENFORMER_SEQ_LEN - BPNET_SEQ_LEN) // 2  # 96_804
+BPNET_CROP_END = BPNET_CROP_START + BPNET_SEQ_LEN  # 99_804
 
 CHROMBPNET_CROP_START = (ENFORMER_SEQ_LEN - CHROMBPNET_SEQ_LEN) // 2  # 97_247
-CHROMBPNET_CROP_END = CHROMBPNET_CROP_START + CHROMBPNET_SEQ_LEN       # 99_361
+CHROMBPNET_CROP_END = CHROMBPNET_CROP_START + CHROMBPNET_SEQ_LEN  # 99_361
 
 N_SEQUENCES = 100
 
@@ -72,7 +72,9 @@ def scored_sequences():
     if _BPNET_SCORES_CSV.exists() and _CHROMBPNET_SCORES_CSV.exists():
         print(f"\nLoading cached scores from {_CACHE_DIR}")
         bpnet_scores = pd.read_csv(_BPNET_SCORES_CSV)["bpnet_atac_score"].to_numpy()
-        chrombpnet_scores = pd.read_csv(_CHROMBPNET_SCORES_CSV)["chrombpnet_score"].to_numpy()
+        chrombpnet_scores = pd.read_csv(_CHROMBPNET_SCORES_CSV)[
+            "chrombpnet_score"
+        ].to_numpy()
         print(f"  bpnet_scores shape:      {bpnet_scores.shape}")
         print(f"  chrombpnet_scores shape: {chrombpnet_scores.shape}")
         return {"bpnet_scores": bpnet_scores, "chrombpnet_scores": chrombpnet_scores}
@@ -82,7 +84,9 @@ def scored_sequences():
     loader = EnformerStartSequences()
     seqs_df = loader.get_data()
     sequences = seqs_df["sequence"].tolist()
-    assert len(sequences) == N_SEQUENCES, f"Expected {N_SEQUENCES}, got {len(sequences)}"
+    assert len(sequences) == N_SEQUENCES, (
+        f"Expected {N_SEQUENCES}, got {len(sequences)}"
+    )
     print(f"  Loaded {len(sequences)} sequences ({len(sequences[0])} bp each).")
 
     _CACHE_DIR.mkdir(parents=True, exist_ok=True)
@@ -99,7 +103,9 @@ def scored_sequences():
         bpnet_scores = []
         for seq in tqdm(sequences, desc="BPNet-ATAC"):
             crop = seq[BPNET_CROP_START:BPNET_CROP_END]
-            assert len(crop) == BPNET_SEQ_LEN, f"Crop length {len(crop)} != {BPNET_SEQ_LEN}"
+            assert len(crop) == BPNET_SEQ_LEN, (
+                f"Crop length {len(crop)} != {BPNET_SEQ_LEN}"
+            )
             score = bpnet([crop]).item()
             # BPNet wrapper negates (minimization); flip back to raw signal.
             bpnet_scores.append(-score)
@@ -116,7 +122,9 @@ def scored_sequences():
     # --- ChromBPNet-K562 ---
     if _CHROMBPNET_SCORES_CSV.exists():
         print(f"\nLoading cached ChromBPNet scores from {_CHROMBPNET_SCORES_CSV}")
-        chrombpnet_scores = pd.read_csv(_CHROMBPNET_SCORES_CSV)["chrombpnet_score"].to_numpy()
+        chrombpnet_scores = pd.read_csv(_CHROMBPNET_SCORES_CSV)[
+            "chrombpnet_score"
+        ].to_numpy()
     else:
         print("\nLoading ChromBPNet-K562 (K562_ENCSR483RKN)...")
         chrombpnet = ChromBPNetOracle(cell_type="K562_ENCSR483RKN")

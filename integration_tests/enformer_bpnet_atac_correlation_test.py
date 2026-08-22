@@ -79,7 +79,9 @@ def scored_sequences():
     loader = EnformerStartSequences()
     seqs_df = loader.get_data()
     sequences = seqs_df["sequence"].tolist()
-    assert len(sequences) == N_SEQUENCES, f"Expected {N_SEQUENCES}, got {len(sequences)}"
+    assert len(sequences) == N_SEQUENCES, (
+        f"Expected {N_SEQUENCES}, got {len(sequences)}"
+    )
     print(f"  Loaded {len(sequences)} sequences ({len(sequences[0])} bp each).")
 
     _CACHE_DIR.mkdir(parents=True, exist_ok=True)
@@ -89,9 +91,7 @@ def scored_sequences():
         print(f"\nLoading cached Enformer scores from {_ENFORMER_SCORES_CSV}")
         enformer_scores = pd.read_csv(_ENFORMER_SCORES_CSV)["enformer_score"].to_numpy()
     else:
-        print(
-            f"\nLoading Enformer (k562_dnase, {len(SPATIAL_BINS)} bins)..."
-        )
+        print(f"\nLoading Enformer (k562_dnase, {len(SPATIAL_BINS)} bins)...")
         enformer = Enformer(
             aggregation_type="k562_dnase",
             spatial_bins_to_aggregate=SPATIAL_BINS,
@@ -126,12 +126,16 @@ def scored_sequences():
         bpnet_scores = []
         for seq in tqdm(sequences, desc="BPNet-ATAC"):
             crop = seq[CROP_START:CROP_END]
-            assert len(crop) == BPNET_SEQ_LEN, f"Crop length {len(crop)} != {BPNET_SEQ_LEN}"
+            assert len(crop) == BPNET_SEQ_LEN, (
+                f"Crop length {len(crop)} != {BPNET_SEQ_LEN}"
+            )
             score = bpnet([crop]).item()
             # BPNet wrapper negates (minimization); flip back to raw signal.
             bpnet_scores.append(-score)
         bpnet_scores = np.array(bpnet_scores, dtype=np.float64)
-        print(f"  BPNet scores: min={bpnet_scores.min():.3f}  max={bpnet_scores.max():.3f}")
+        print(
+            f"  BPNet scores: min={bpnet_scores.min():.3f}  max={bpnet_scores.max():.3f}"
+        )
         pd.DataFrame({"bpnet_atac_score": bpnet_scores}).to_csv(
             _BPNET_SCORES_CSV, index=False
         )
