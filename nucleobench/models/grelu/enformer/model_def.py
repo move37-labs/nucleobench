@@ -52,7 +52,6 @@ class Enformer(grelu_md.GReluModel):
         self,
         aggregation_type: str,
         spatial_bins_to_aggregate: list[int] | None = None,
-        track_indices: list[int] | None = None,
         override_model: torch.nn.Module | None = None,
         override_aggregation=None,
         run_sanity_checks: bool = True,
@@ -66,11 +65,9 @@ class Enformer(grelu_md.GReluModel):
         Args:
             aggregation_type: One of "muscle_not_liver" or "k562_dnase".
             spatial_bins_to_aggregate: If set, restrict spatial bins before aggregating.
-            track_indices: Required for aggregation_type="k562_dnase". The track indices
-                (into the 5313-track output) to sum over.
             override_model: Swap in a fake model (for testing).
             override_aggregation: Bypass the named aggregation entirely (for testing or
-                custom callers). When set, aggregation_type and track_indices are ignored.
+                custom callers). When set, aggregation_type is ignored.
             run_sanity_checks: Run a small forward pass to validate the model on init.
         """
         super().__init__(
@@ -106,10 +103,7 @@ class Enformer(grelu_md.GReluModel):
                 self.aggregation = _aggregation
 
             elif aggregation_type == "k562_dnase":
-                if track_indices is None:
-                    raise ValueError(
-                        "track_indices must be provided for aggregation_type='k562_dnase'"
-                    )
+                track_indices = constants.k562_dnase_track_indices()
 
                 def _aggregation_k562_dnase(model_out: torch.Tensor) -> torch.Tensor:
                     assert model_out.ndim == 3

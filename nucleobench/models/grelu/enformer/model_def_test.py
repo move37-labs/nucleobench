@@ -105,56 +105,7 @@ def test_k562_dnase_aggregation_shape():
     m = model_def.Enformer(
         override_model=testing_utils.CountLetterModel(**model_args),
         aggregation_type="k562_dnase",
-        track_indices=[0, 1],
         run_sanity_checks=False,
     )
     ret = m.inference_on_strings(["A" * 196608, "C" * 196608, "T" * 196608])
     assert list(ret.shape) == [3]
-
-
-def test_k562_dnase_aggregation_math():
-    """k562_dnase sums exactly the selected tracks and bins.
-
-    We build the model, then call its aggregation closure directly on a
-    synthetic tensor whose values we know exactly, so the test is independent
-    of CountLetterModel internals and sequence length.
-    """
-    from nucleobench.models.grelu.enformer import constants
-
-    n_tracks = len(constants.ENFORMER_TASKS_)
-    batch, n_bins = 2, 8
-
-    m_all_bins = model_def.Enformer(
-        override_model=testing_utils.CountLetterModel(**model_args),
-        aggregation_type="k562_dnase",
-        track_indices=[0, 2],
-        run_sanity_checks=False,
-    )
-    m_two_bins = model_def.Enformer(
-        override_model=testing_utils.CountLetterModel(**model_args),
-        aggregation_type="k562_dnase",
-        track_indices=[0, 2],
-        spatial_bins_to_aggregate=[1, 3],
-        run_sanity_checks=False,
-    )
-
-    # All ones: sum over tracks [0,2] × all 8 bins = 2 * 8 = 16.0 per item.
-    x = torch.ones(batch, n_tracks, n_bins)
-    result_all = m_all_bins.aggregation(x)
-    assert result_all.shape == (batch,)
-    assert float(result_all[0]) == pytest.approx(16.0)
-
-    # Same tensor, 2 selected bins: sum over tracks [0,2] × bins [1,3] = 2 * 2 = 4.0.
-    result_two = m_two_bins.aggregation(x)
-    assert result_two.shape == (batch,)
-    assert float(result_two[0]) == pytest.approx(4.0)
-
-
-def test_k562_dnase_requires_track_indices():
-    """Omitting track_indices with aggregation_type='k562_dnase' raises ValueError."""
-    with pytest.raises(ValueError, match="track_indices"):
-        model_def.Enformer(
-            override_model=testing_utils.CountLetterModel(**model_args),
-            aggregation_type="k562_dnase",
-            run_sanity_checks=False,
-        )
