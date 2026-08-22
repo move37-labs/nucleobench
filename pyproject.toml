@@ -91,7 +91,8 @@ python_files = "*_test.py"
 markers = [
     "optimus5p: Optimus 5-Prime integration tests",
     "saluki: Saluki integration tests",
-    "chrombpnet: ChromBPNet oracle integration tests",
+    "chrombpnet: ChromBPNet HDMA fetal-tissue oracle integration tests",
+    "chrombpnet_k562: ChromBPNet ENCODE K562 oracle integration tests",
 ]
 
 [tool.ruff]
