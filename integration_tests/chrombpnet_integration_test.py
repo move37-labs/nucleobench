@@ -119,6 +119,12 @@ def test_raises_on_short_sequence(oracle):
 
 
 @pytest.mark.chrombpnet
+def test_3k_input_is_valid(oracle):
+    result = oracle(["A" * 3000])
+    assert result.shape == (1,)
+
+
+@pytest.mark.chrombpnet
 def test_raises_on_string_not_list(oracle):
     with pytest.raises(ValueError, match="list of strings"):
         oracle(POLYA)
