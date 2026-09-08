@@ -15,7 +15,7 @@ Both are loaded via bpnet-lite `BPNet.from_chrombpnet` (PyTorch; no TensorFlow).
 Scalar objective is the counts head, negated so NucleoBench optimizers
 minimize (suppress predicted accessibility), matching BPNet ATAC.
 
-Input sequences must be exactly 2114 bp (ChromBPNet default receptive field).
+Input sequences must be at least 2114 bp (ChromBPNet default receptive field).
 
 To test on real data:
 ```zsh
@@ -96,9 +96,9 @@ class ChromBPNetOracle(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         """Run inference on a one-hot tensor of shape (batch, 4, seq_len)."""
         if x.ndim != 3 or x.shape[1] != 4:
             raise ValueError(f"Expected (batch, 4, seq_len), got {tuple(x.shape)}")
-        if self._require_seq_len and x.shape[2] != cb_constants.SEQ_LEN:
+        if self._require_seq_len and x.shape[2] < cb_constants.SEQ_LEN:
             raise ValueError(
-                f"Sequence length {x.shape[2]} != ChromBPNet SEQ_LEN="
+                f"Sequence length {x.shape[2]} < ChromBPNet SEQ_LEN="
                 f"{cb_constants.SEQ_LEN}."
             )
 
