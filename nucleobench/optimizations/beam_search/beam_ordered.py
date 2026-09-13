@@ -192,9 +192,7 @@ class OrderedBeamSearch(oc.SequenceOptimizer):
             batch_scores.append(self.model_fn(cur_minibatch))
             evaluated_moves.extend(cur_minibatch)
         scores = np.concatenate(batch_scores, axis=0)
-        return [
-            (float(score), move) for score, move in zip(scores, evaluated_moves)
-        ]
+        return [(float(score), move) for score, move in zip(scores, evaluated_moves)]
 
     def get_samples(self, n_samples: int) -> SamplesType:
         """Return subset of elements from the beam."""
