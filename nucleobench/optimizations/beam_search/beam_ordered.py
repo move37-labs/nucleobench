@@ -168,30 +168,31 @@ class OrderedBeamSearch(oc.SequenceOptimizer):
             ]
 
         # `search_cost_method` is ISM.
-        rets = []
+        batch_scores = []
         for batch_input in batchify(potential_moves):
-            rets.append(self.model_fn(batch_input))
-        rets = np.concatenate(rets, axis=0)
-        assert rets.shape == (len(potential_moves),), (rets.shape, len(potential_moves))
-        rets = zip(rets, potential_moves)  # type: ignore[assignment]
-
-        return rets
+            batch_scores.append(self.model_fn(batch_input))
+        scores = np.concatenate(batch_scores, axis=0)
+        assert scores.shape == (len(potential_moves),), (
+            scores.shape,
+            len(potential_moves),
+        )
+        return [(float(score), move) for score, move in zip(scores, potential_moves)]
 
     def _evaluate_potential_moves_generator(
         self, potential_moves: Generator[str, None, None]
     ) -> list[tuple[float, str]]:
 
         # `search_cost_method` is ISM.
-        rets = []
+        batch_scores = []
+        evaluated_moves = []
         while True:
             cur_minibatch = list(itertools.islice(potential_moves, self.minibatch_size))
             if cur_minibatch == []:
                 break
-            rets.append(self.model_fn(cur_minibatch))
-        rets = np.concatenate(rets, axis=0)
-        rets = zip(rets, potential_moves)  # type: ignore[assignment]
-
-        return rets
+            batch_scores.append(self.model_fn(cur_minibatch))
+            evaluated_moves.extend(cur_minibatch)
+        scores = np.concatenate(batch_scores, axis=0)
+        return [(float(score), move) for score, move in zip(scores, evaluated_moves)]
 
     def get_samples(self, n_samples: int) -> SamplesType:
         """Return subset of elements from the beam."""
