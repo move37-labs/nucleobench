@@ -40,7 +40,8 @@ def test_tensorflow_fixture_public_api_and_input_gradient():
     assert model.weights_sha256 == fixture["model_sha256"]
     expected = np.asarray(fixture["predictions"])
     actual = model.predict_raw_on_strings(sequences)
-    # Established on macOS arm64: max observed absolute difference was 2.96e-5.
+    # Loose enough to absorb TensorFlow-vs-PyTorch backend drift, tight
+    # enough to catch a wrong checkpoint or a transposed input.
     np.testing.assert_allclose(actual, expected, rtol=5e-5, atol=4e-5)
     public_pytorch = crested.tl.predict(sequences, model.model, verbose=0)
     np.testing.assert_allclose(actual, public_pytorch, rtol=1e-5, atol=1e-6)

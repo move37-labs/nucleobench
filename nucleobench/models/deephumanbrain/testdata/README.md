@@ -29,8 +29,9 @@ oracle_score = -mean(predictions[:, selected_indices])
 ### Tolerance
 
 `integration_tests/deephumanbrain_integration_test.py` compares with
-`rtol=5e-5, atol=4e-5`. The largest absolute difference observed on macOS
-arm64 was `2.96e-5`.
+`rtol=5e-5, atol=4e-5`. That budget covers drift between the TensorFlow and
+PyTorch Keras backends, which runs around `3e-5` on these three sequences.
+Tighten it if a CREsted release narrows the gap.
 
 ### Sequences
 
