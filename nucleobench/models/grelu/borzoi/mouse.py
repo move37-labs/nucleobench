@@ -89,11 +89,8 @@ class BorzoiMouse(grelu_md.GReluModel):
         self.readout, self.strand = readout, strand
         self.track_index, self.track_name = TRACKS_[readout][strand]
         # Validate coordinates before downloading a 700 MB checkpoint.
-        self.exons = gr.union_intervals(
-            exons,
-            OUTPUT_ORIGIN_,
-            OUTPUT_ORIGIN_ + N_SPATIAL_BINS_ * OUTPUT_RESOLUTION_,
-        )
+        self.device = device
+        self.exons = exons
 
         self.weights_sha256: str | None = None
         if override_model is None:
@@ -127,15 +124,6 @@ class BorzoiMouse(grelu_md.GReluModel):
             parameter.requires_grad_(False)
 
         self._check_tracks()
-        # Static given the exons and the output grid, so it is built once here
-        # rather than on every scored sequence.
-        self._coverage_weights = gr.coverage_weights(
-            N_SPATIAL_BINS_,
-            self.exons,
-            origin=OUTPUT_ORIGIN_,
-            resolution=OUTPUT_RESOLUTION_,
-            device=self.device,
-        )
         self.output_names = self.tasks["name"].tolist()
         self.output_metadata = self.tasks
         self.provenance = {
@@ -154,6 +142,32 @@ class BorzoiMouse(grelu_md.GReluModel):
         if run_sanity_checks:
             out = self.model(self.string_to_onehot(["A" * self.sequence_length]))
             assert out.shape == (1, N_MOUSE_TASKS_, N_SPATIAL_BINS_), out.shape
+
+    @property
+    def exons(self) -> list[tuple[int, int]]:
+        return self._exons
+
+    @exons.setter
+    def exons(self, intervals) -> None:
+        """Validate exons and rebuild the coverage weights they determine.
+
+        The weights depend only on the exons and the output grid, so they are
+        cached rather than rebuilt per forward pass. Going through a setter
+        keeps that cache from going stale when a caller rescores a different
+        gene with the same loaded model.
+        """
+        self._exons = gr.union_intervals(
+            intervals,
+            OUTPUT_ORIGIN_,
+            OUTPUT_ORIGIN_ + N_SPATIAL_BINS_ * OUTPUT_RESOLUTION_,
+        )
+        self._coverage_weights = gr.coverage_weights(
+            N_SPATIAL_BINS_,
+            self._exons,
+            origin=OUTPUT_ORIGIN_,
+            resolution=OUTPUT_RESOLUTION_,
+            device=self.device,
+        )
 
     def _check_tracks(self) -> None:
         """Fail loudly if the checkpoint's target table is not what we indexed."""

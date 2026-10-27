@@ -135,3 +135,56 @@ def test_tism_matches_the_input_gradient():
     # Only `C` drives the injected track, and more of it lowers the score.
     assert values[0] < 0
     np.testing.assert_allclose(values[1:], [0, 0], atol=1e-7)
+
+
+class RampMouse(torch.nn.Module):
+    """Profile that varies by bin, so which exon window is scored matters.
+
+    `TinyMouse` emits the same value in every bin, which cannot distinguish a
+    correct exon window from a stale one.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.data_params = {
+            "tasks": _task_table(),
+            "train_seq_len": mouse.BorzoiMouse.sequence_length,
+        }
+
+    def forward(self, x):
+        out = torch.zeros(
+            (x.shape[0], mouse.N_MOUSE_TASKS_, mouse.N_SPATIAL_BINS_),
+            device=x.device,
+            dtype=x.dtype,
+        )
+        out[:, 2287, :] = torch.arange(mouse.N_SPATIAL_BINS_, dtype=x.dtype)
+        return out
+
+
+def test_reassigning_exons_rescores_the_new_window():
+    """The cached coverage weights must not go stale when exons change."""
+    resolution = mouse.OUTPUT_RESOLUTION_
+    model = BorzoiMouse(
+        "es_e14",
+        "+",
+        [(ORIGIN_, ORIGIN_ + resolution)],
+        override_model=RampMouse(),
+        device="cpu",
+        run_sanity_checks=False,
+    )
+    x = torch.zeros((1, 4, model.sequence_length))
+    first = model.inference_on_tensor(x).item()
+
+    model.exons = [(ORIGIN_ + 1000 * resolution, ORIGIN_ + 1001 * resolution)]
+    second = model.inference_on_tensor(x).item()
+
+    # Bin 0 holds 0.0 and bin 1000 holds 1000.0.
+    assert first == pytest.approx(0.0)
+    assert second == pytest.approx(-np.log1p(1000.0))
+    assert model.exons == [(ORIGIN_ + 32000, ORIGIN_ + 32032)]
+
+
+def test_exons_setter_validates():
+    model = _model()
+    with pytest.raises(ValueError, match="outside"):
+        model.exons = [(0, 1)]
