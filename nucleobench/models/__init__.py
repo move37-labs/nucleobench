@@ -22,7 +22,7 @@ MODELS_ = {
     "rinalmo_mrl": rinalmo_mrl_model_def.RinalmoMRL,
     "optimus5p": optimus5p_model_def.Optimus5P,
     "saluki": saluki_model_def.SalukiModel,
-    "borzoi": borzoi_model_def.BorzoiHuman,
+    "borzoi_human": borzoi_model_def.BorzoiHuman,
     "borzoi_mouse": borzoi_mouse_model_def.BorzoiMouse,
     "chrombpnet": chrombpnet_model_def.ChromBPNetOracle,
 }
