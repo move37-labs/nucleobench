@@ -1,5 +1,6 @@
 from nucleobench.models.bpnet import model_def as bpnet_model_def
 from nucleobench.models.chrombpnet import model_def as chrombpnet_model_def
+from nucleobench.models.deephumanbrain import model_def as deephumanbrain_model_def
 from nucleobench.models.dummy import model_def as dummy_model_def
 from nucleobench.models.grelu.borzoi.human import model_def as borzoi_model_def
 from nucleobench.models.grelu.borzoi.mouse import (
@@ -24,6 +25,7 @@ MODELS_ = {
     "saluki": saluki_model_def.SalukiModel,
     "borzoi_human": borzoi_model_def.BorzoiHuman,
     "borzoi_mouse": borzoi_mouse_model_def.BorzoiMouse,
+    "deephumanbrain": deephumanbrain_model_def.DeepHumanBrain,
     "chrombpnet": chrombpnet_model_def.ChromBPNetOracle,
 }
 

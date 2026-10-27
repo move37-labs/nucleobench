@@ -41,6 +41,10 @@ def test_model_required_fns(model):
         pytest.skip(
             "Mouse Borzoi downloads a ~700 MB checkpoint and requires 524288-bp input."
         )
+    elif model == "deephumanbrain":
+        pytest.skip(
+            "DeepHumanBrain requires the optional `crested` extra and 2114-bp input."
+        )
     else:
         seqs = ["A" * 200, "T" * 200]
 
@@ -79,6 +83,10 @@ def test_run_loop_with_all_combos(model, optimization):
     elif model == "borzoi_mouse":
         pytest.skip(
             "Mouse Borzoi downloads a ~700 MB checkpoint and requires 524288-bp input."
+        )
+    elif model == "deephumanbrain":
+        pytest.skip(
+            "DeepHumanBrain requires the optional `crested` extra and 2114-bp input."
         )
 
     model_class = models.get_model(model)

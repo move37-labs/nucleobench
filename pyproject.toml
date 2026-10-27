@@ -41,6 +41,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+crested = ["crested==1.10.0", "scanpy>=1.10"]
 dev = [
     "pytest",
     "pytest-xdist",
@@ -73,6 +74,7 @@ include = ["nucleobench", "nucleobench.*"]
     "*.bin",
     "*.pkl",
     "*.ckpt",
+    "*.keras",
 ]
 
 [tool.setuptools.package-data]
@@ -97,6 +99,7 @@ markers = [
     "correlation: cross-model score correlation integration tests",
     "borzoi_human: human Borzoi replicate 0 integration tests",
     "borzoi_mouse: mouse Borzoi replicate 0 integration tests",
+    "deephumanbrain: CREsted DeepHumanBrain integration tests",
 ]
 
 [tool.ruff]
