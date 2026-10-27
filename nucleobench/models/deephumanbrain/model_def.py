@@ -51,6 +51,9 @@ class DeepHumanBrain(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         group = parser.add_argument_group("DeepHumanBrain init args")
         group.add_argument("--output_names", type=str, nargs="+", required=True)
         group.add_argument("--override_weights_local_path", type=str, default=None)
+        group.add_argument(
+            "--override_output_names", type=str, nargs="+", default=None
+        )
         return parser
 
     @staticmethod
