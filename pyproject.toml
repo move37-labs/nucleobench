@@ -42,6 +42,13 @@ dependencies = [
 
 [project.optional-dependencies]
 crested = ["crested==1.10.0", "scanpy>=1.10"]
+alphagenome = [
+    "alphagenome_research @ git+https://github.com/google-deepmind/alphagenome_research.git@3eecf48e58d7babbbc53525a8a0cf29a179e20a6",
+    # Imported directly by `alphagenome_mouse/bridge.py`. `jmp` is not a
+    # declared dependency of alphagenome_research, only a transitive one.
+    "dm-haiku",
+    "jmp",
+]
 dev = [
     "pytest",
     "pytest-xdist",
@@ -75,6 +82,8 @@ include = ["nucleobench", "nucleobench.*"]
     "*.pkl",
     "*.ckpt",
     "*.keras",
+    "*.orbax",
+    "*.checkpoint",
 ]
 
 [tool.setuptools.package-data]
@@ -100,6 +109,7 @@ markers = [
     "borzoi_human: human Borzoi replicate 0 integration tests",
     "borzoi_mouse: mouse Borzoi replicate 0 integration tests",
     "deephumanbrain: CREsted DeepHumanBrain integration tests",
+    "alphagenome_mouse: AlphaGenome all_folds mouse integration tests",
 ]
 
 [tool.ruff]

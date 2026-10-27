@@ -1,3 +1,6 @@
+from nucleobench.models.alphagenome_mouse import (
+    model_def as alphagenome_mouse_model_def,
+)
 from nucleobench.models.bpnet import model_def as bpnet_model_def
 from nucleobench.models.chrombpnet import model_def as chrombpnet_model_def
 from nucleobench.models.deephumanbrain import model_def as deephumanbrain_model_def
@@ -26,6 +29,7 @@ MODELS_ = {
     "borzoi_human": borzoi_model_def.BorzoiHuman,
     "borzoi_mouse": borzoi_mouse_model_def.BorzoiMouse,
     "deephumanbrain": deephumanbrain_model_def.DeepHumanBrain,
+    "alphagenome_mouse": alphagenome_mouse_model_def.AlphaGenomeMouse,
     "chrombpnet": chrombpnet_model_def.ChromBPNetOracle,
 }
 

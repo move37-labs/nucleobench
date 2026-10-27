@@ -201,6 +201,8 @@ SUCCESS.txt
 *.pt
 *.ckpt
 *.keras
+*.orbax/
+*.checkpoint/
 
 # Integration tests data.
 integration_tests/data_loaders/cache/

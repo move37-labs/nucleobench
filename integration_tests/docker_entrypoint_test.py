@@ -45,6 +45,11 @@ def test_model_required_fns(model):
         pytest.skip(
             "DeepHumanBrain requires the optional `crested` extra and 2114-bp input."
         )
+    elif model == "alphagenome_mouse":
+        pytest.skip(
+            "AlphaGenome requires the optional `alphagenome` extra, gated weights, "
+            "and 1048576-bp input."
+        )
     else:
         seqs = ["A" * 200, "T" * 200]
 
@@ -87,6 +92,11 @@ def test_run_loop_with_all_combos(model, optimization):
     elif model == "deephumanbrain":
         pytest.skip(
             "DeepHumanBrain requires the optional `crested` extra and 2114-bp input."
+        )
+    elif model == "alphagenome_mouse":
+        pytest.skip(
+            "AlphaGenome requires the optional `alphagenome` extra, gated weights, "
+            "and 1048576-bp input."
         )
 
     model_class = models.get_model(model)
