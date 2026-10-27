@@ -1,10 +1,20 @@
-"""Mouse Borzoi replicate 0 exon-coverage objective.
+"""RNA-seq coverage from DNA: https://www.nature.com/articles/s41588-024-02053-6
 
-Same architecture and loader as the human Borzoi in `model_def.py`, but with the
-mouse head (2,608 tracks) and a gene-centric readout: the score is the negative
-`log1p` of overlap-weighted mean coverage across a gene's exons.
+Accessed through gRelu: https://github.com/Genentech/gReLU
 
-To test with real weights:
+Usage follows this tutorial:
+https://github.com/Genentech/gReLU/blob/main/docs/tutorials/4_design.ipynb
+
+Mouse replicate 0 (`mouse_rep0.ckpt`), 2,608 tracks. Scores a gene rather than
+a tissue contrast: the negative `log1p` of overlap-weighted mean coverage
+across the gene's exons. The human variant is in `../human/model_def.py`.
+
+To test on real data:
+```zsh
+python -m nucleobench.models.grelu.borzoi.mouse.model_def
+```
+
+To run the full integration suite:
 ```zsh
 pytest -v -m borzoi_mouse integration_tests/borzoi_mouse_integration_test.py
 ```
@@ -20,28 +30,24 @@ from nucleobench.common import genomic_readout as gr
 from nucleobench.models.grelu import constants as grelu_constants
 from nucleobench.models.grelu import model_def as grelu_md
 from nucleobench.models.grelu.borzoi import constants
+from nucleobench.models.grelu.borzoi.mouse import constants as mouse_constants
 
-REPO_ID = "Genentech/borzoi-model"
-FILENAME = "mouse_rep0.ckpt"
-# Pinned so that a silently re-uploaded checkpoint is caught rather than used.
-SHA256 = "9c8aeaa8633d1405913afe95077dd78c5a269100ee2e61c47518f1fa4b102b57"
-
-N_MOUSE_TASKS_ = 2608
-N_SPATIAL_BINS_ = 6144
-# Borzoi predicts the center 196,608 bp of its input in 32-bp bins.
-OUTPUT_RESOLUTION_ = 32
-OUTPUT_ORIGIN_ = 163_840
-
-# ENCODE RNA-seq tracks for the two mouse ES lines. E14 is stranded, so the
-# index depends on the gene's strand; Bruce4 is unstranded.
-TRACKS_ = {
-    "es_e14": {"+": (2287, "ENCFF968GGL+"), "-": (2288, "ENCFF968GGL-")},
-    "es_bruce4": {"+": (2237, "ENCFF427XNM"), "-": (2237, "ENCFF427XNM")},
-}
+# Re-exported so callers and tests can use the short names.
+REPO_ID = constants.BORZOI_REPO_ID
+FILENAME = mouse_constants.BORZOI_MOUSE_FILENAME
+SHA256 = mouse_constants.BORZOI_MOUSE_SHA256
+N_MOUSE_TASKS_ = mouse_constants.BORZOI_MOUSE_N_TASKS_
+N_SPATIAL_BINS_ = mouse_constants.BORZOI_MOUSE_N_SPATIAL_BINS_
+OUTPUT_RESOLUTION_ = mouse_constants.BORZOI_MOUSE_OUTPUT_RESOLUTION_
+OUTPUT_ORIGIN_ = mouse_constants.BORZOI_MOUSE_OUTPUT_ORIGIN_
+TRACKS_ = mouse_constants.BORZOI_MOUSE_TRACKS_
 
 
 class BorzoiMouse(grelu_md.GReluModel):
     """Predicts mouse ES-cell RNA-seq coverage over a gene's exons."""
+
+    # List of possible tasks.
+    POSSIBLE_TASKS_ = mouse_constants.BORZOI_MOUSE_TASKS_
 
     sequence_length = constants.BORZOI_TRAIN_LEN_
     output_resolution = OUTPUT_RESOLUTION_
@@ -212,3 +218,27 @@ class BorzoiMouse(grelu_md.GReluModel):
         coverage = gr.weighted_mean(profile, self._coverage_weights)
         # Always return something that should be minimized.
         return -torch.log1p(coverage)
+
+
+if __name__ == "__main__":
+    # Test with a real model.
+    import time
+
+    import tqdm
+
+    print("Starting es_e14...")
+    m = BorzoiMouse(
+        readout="es_e14",
+        strand="+",
+        exons=[(OUTPUT_ORIGIN_, OUTPUT_ORIGIN_ + OUTPUT_RESOLUTION_)],
+        run_sanity_checks=False,
+    )
+    ntimes = 1
+    s_time = time.time()
+    for _ in tqdm.trange(ntimes):
+        o = m.model(m.string_to_onehot(["A" * 524_288]))
+        print(f"Output shape: {o.shape}")
+    e_time = time.time()
+    print(
+        f"Finished in {e_time - s_time} seconds: {(e_time - s_time) / ntimes} s / iter"
+    )

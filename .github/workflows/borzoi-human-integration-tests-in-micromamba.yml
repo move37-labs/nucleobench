@@ -1,9 +1,16 @@
-name: Borzoi Integration Tests (Micromamba)
+name: Borzoi Human Integration Tests (Micromamba)
+
+# Downloads the pinned human replicate 0 checkpoint (~700 MB) and hg38
+# (~900 MB compressed, ~3 GB on disk), so this is dispatch-only, matching
+# the mouse Borzoi workflow.
 
 on:
   # push:
   #   branches: [ "main" ]
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -16,6 +23,11 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
+      - name: Free up disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+          df -h /
+
       - name: Setup Micromamba
         uses: mamba-org/setup-micromamba@v2
         with:
@@ -25,7 +37,7 @@ jobs:
           cache-environment: true
           post-cleanup: 'all'
 
-      - name: Run Borzoi integration tests
+      - name: Run human Borzoi integration tests
         shell: micromamba-shell {0}
         run: |
-          pytest -v -m borzoi integration_tests/borzoi_integration_test.py
+          pytest -v -m borzoi_human integration_tests/borzoi_human_integration_test.py

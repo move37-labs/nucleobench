@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 import torch
 
-from nucleobench.models.grelu.borzoi import mouse
-from nucleobench.models.grelu.borzoi.mouse import BorzoiMouse
+from nucleobench.models.grelu.borzoi.mouse import model_def as mouse
+from nucleobench.models.grelu.borzoi.mouse.model_def import BorzoiMouse
 
 ORIGIN_ = mouse.OUTPUT_ORIGIN_
 

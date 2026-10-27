@@ -1,7 +1,7 @@
 """
 To run:
 ```zsh
-pytest integration_tests/borzoi_integration_test.py
+pytest -v -m borzoi_human integration_tests/borzoi_human_integration_test.py
 ```
 """
 
@@ -9,7 +9,7 @@ import time
 
 import pytest
 
-from nucleobench.models.grelu.borzoi import model_def
+from nucleobench.models.grelu.borzoi.human import model_def
 
 from .data_loaders import MuscleGeneExpressionByBucket
 
@@ -19,8 +19,8 @@ def borzoi_predictions():
     # We are focusing on the center bins (2047 and 2048) because they are
     # most relevant for the TSS-centered sequences of CKM (muscle-specific)
     # and ALB (liver-specific).
-    print("\nLoading Borzoi model (center bins only)...")
-    borzoi_model = model_def.Borzoi(
+    print("\nLoading BorzoiHuman model (center bins only)...")
+    borzoi_model = model_def.BorzoiHuman(
         aggregation_type="muscle_not_liver",
         spatial_bins_to_aggregate=[3071, 3072],
         run_sanity_checks=False,
@@ -74,7 +74,7 @@ def borzoi_predictions():
     }
 
 
-@pytest.mark.borzoi
+@pytest.mark.borzoi_human
 def test_relative_expression(borzoi_predictions):
     ckm_pred = borzoi_predictions["ckm_pred"]
     alb_pred = borzoi_predictions["alb_pred"]
@@ -87,7 +87,7 @@ def test_relative_expression(borzoi_predictions):
     )
 
 
-@pytest.mark.borzoi
+@pytest.mark.borzoi_human
 def test_ckm_positive(borzoi_predictions):
     # Note: This threshold may need to be tuned.
     assert borzoi_predictions["ckm_pred"] > 35, (
@@ -95,7 +95,7 @@ def test_ckm_positive(borzoi_predictions):
     )
 
 
-@pytest.mark.borzoi
+@pytest.mark.borzoi_human
 def test_desert_neutral(borzoi_predictions):
     # Note: This threshold may need to be tuned.
     assert abs(borzoi_predictions["gene_desert_pred"]) < 60, (
@@ -103,7 +103,7 @@ def test_desert_neutral(borzoi_predictions):
     )
 
 
-@pytest.mark.borzoi
+@pytest.mark.borzoi_human
 def test_alb_negative(borzoi_predictions):
     # Note: This threshold may need to be tuned.
     assert borzoi_predictions["alb_pred"] < -140, (
@@ -111,7 +111,7 @@ def test_alb_negative(borzoi_predictions):
     )
 
 
-@pytest.mark.borzoi
+@pytest.mark.borzoi_human
 def test_stochasticity(borzoi_predictions):
     borzoi_model = borzoi_predictions["model"]
     ckm_sequence = borzoi_predictions["ckm_sequence"]

@@ -13,7 +13,10 @@ import numpy as np
 import pytest
 import torch
 
-from nucleobench.models.grelu.borzoi.mouse import OUTPUT_ORIGIN_, BorzoiMouse
+from nucleobench.models.grelu.borzoi.mouse.model_def import (
+    OUTPUT_ORIGIN_,
+    BorzoiMouse,
+)
 
 from .data_loaders import MouseEsExpressionByBucket
 

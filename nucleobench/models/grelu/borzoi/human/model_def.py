@@ -5,9 +5,13 @@ Accessed through gRelu: https://github.com/Genentech/gReLU
 Usage follows this tutorial:
 https://github.com/Genentech/gReLU/blob/main/docs/tutorials/4_design.ipynb
 
+Human replicate 0 (`human_rep0.ckpt`), 7,611 tracks. Scores a tissue contrast
+across selected tracks and spatial bins. The mouse variant is in
+`../mouse/model_def.py`.
+
 To test on real data:
 ```zsh
-python -m nucleobench.models.grelu.borzoi.model_def
+python -m nucleobench.models.grelu.borzoi.human.model_def
 ```
 """
 
@@ -18,19 +22,20 @@ import numpy as np
 import torch
 
 from nucleobench.models.grelu import model_def as grelu_md
-from nucleobench.models.grelu.borzoi import constants
+from nucleobench.models.grelu.borzoi import constants as shared_constants
+from nucleobench.models.grelu.borzoi.human import constants
 from nucleobench.models.grelu.enformer import constants as enformer_constants
 
 
-class Borzoi(grelu_md.GReluModel):
-    """Predicts RNA-seq coverage from DNA.
+class BorzoiHuman(grelu_md.GReluModel):
+    """Predicts human RNA-seq coverage from DNA.
     https://www.nature.com/articles/s41588-024-02053-6
     """
 
     @staticmethod
     def init_parser():
         parser = argparse.ArgumentParser()
-        group = parser.add_argument_group("Borzoi init args")
+        group = parser.add_argument_group("BorzoiHuman init args")
         group.add_argument(
             "--aggregation_type", type=str, required=True, choices=["muscle_not_liver"]
         )
@@ -46,7 +51,7 @@ class Borzoi(grelu_md.GReluModel):
 
     @staticmethod
     def write_dummy_sequence_to_file(
-        filepath: str, sequence_length: int = constants.BORZOI_TRAIN_LEN_
+        filepath: str, sequence_length: int = shared_constants.BORZOI_TRAIN_LEN_
     ) -> None:
         """Write a dummy sequence of specified length to a text file.
 
@@ -70,7 +75,7 @@ class Borzoi(grelu_md.GReluModel):
     def inject_middle_sequence(
         base_sequence: str,
         middle_sequence: str,
-        total_length: int = constants.BORZOI_TRAIN_LEN_,
+        total_length: int = shared_constants.BORZOI_TRAIN_LEN_,
         middle_length: int = enformer_constants.ENFORMER_TRAIN_LEN_,
     ) -> str:
         """Inject a middle sequence into a base sequence."""
@@ -101,7 +106,7 @@ class Borzoi(grelu_md.GReluModel):
     def read_and_inject_middle_sequence(
         filepath: str,
         middle_sequence: str,
-        total_length: int = constants.BORZOI_TRAIN_LEN_,
+        total_length: int = shared_constants.BORZOI_TRAIN_LEN_,
         middle_length: int = enformer_constants.ENFORMER_TRAIN_LEN_,
     ) -> str:
         """Read a sequence from a file and inject a middle sequence.
@@ -118,7 +123,7 @@ class Borzoi(grelu_md.GReluModel):
         with open(filepath) as f:
             base_sequence = f.read().strip()
 
-        return Borzoi.inject_middle_sequence(
+        return BorzoiHuman.inject_middle_sequence(
             base_sequence=base_sequence,
             middle_sequence=middle_sequence,
             total_length=total_length,
@@ -128,7 +133,7 @@ class Borzoi(grelu_md.GReluModel):
     @staticmethod
     def enformer_spatial_bins(total_bins: int = 6144) -> list[int]:
         """Return the spatial bins that correspond to the enformer model."""
-        borzoi_len = constants.BORZOI_TRAIN_LEN_
+        borzoi_len = shared_constants.BORZOI_TRAIN_LEN_
         enformer_len = enformer_constants.ENFORMER_TRAIN_LEN_
 
         middle_bins = int(round((enformer_len / borzoi_len) * total_bins))
@@ -151,10 +156,10 @@ class Borzoi(grelu_md.GReluModel):
         run_sanity_checks: bool = True,
     ):
         super().__init__(
-            repo_id=constants.BORZOI_REPO_ID,
+            repo_id=shared_constants.BORZOI_REPO_ID,
             filename=constants.BORZOI_FILENAME,
             override_model=override_model,
-            expected_sequence_length=constants.BORZOI_TRAIN_LEN_,
+            expected_sequence_length=shared_constants.BORZOI_TRAIN_LEN_,
         )
         self.model.eval()
 
@@ -219,7 +224,7 @@ if __name__ == "__main__":
     import tqdm
 
     print("Starting muscle_not_liver...")
-    m = Borzoi(aggregation_type="muscle_not_liver")
+    m = BorzoiHuman(aggregation_type="muscle_not_liver")
     ntimes = 1
     s_time = time.time()
     for _ in tqdm.trange(ntimes):
