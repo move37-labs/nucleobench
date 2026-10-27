@@ -1,0 +1,43 @@
+name: Borzoi Mouse Integration Tests (Micromamba)
+
+# Downloads the pinned mouse replicate 0 checkpoint (~700 MB) and mm10
+# (~800 MB compressed, ~2.6 GB on disk), so this is dispatch-only, matching
+# the human Borzoi workflow.
+
+on:
+  # push:
+  #   branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Free up disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+          df -h /
+
+      - name: Setup Micromamba
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-file: environment.yml
+          create-args: >-
+            python=${{ matrix.python-version }}
+          cache-environment: true
+          post-cleanup: 'all'
+
+      - name: Run mouse Borzoi integration tests
+        shell: micromamba-shell {0}
+        run: |
+          pytest -v -m borzoi_mouse integration_tests/borzoi_mouse_integration_test.py

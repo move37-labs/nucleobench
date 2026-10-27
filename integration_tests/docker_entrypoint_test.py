@@ -27,7 +27,7 @@ _valid_model_opt_pairs = list(itertools.product(_valid_models, _valid_opts))
 @pytest.mark.parametrize("model", _valid_models)
 def test_model_required_fns(model):
     """Check that models have required run functions."""
-    if model in ["enformer", "borzoi"]:
+    if model in ["enformer", "borzoi_human"]:
         pytest.skip("Test requires external access.")
     elif model == "saluki":
         pytest.skip(
@@ -36,6 +36,10 @@ def test_model_required_fns(model):
     elif model == "chrombpnet":
         pytest.skip(
             "ChromBPNet downloads ~470 MB from Zenodo and requires 2114-bp input."
+        )
+    elif model == "borzoi_mouse":
+        pytest.skip(
+            "Mouse Borzoi downloads a ~700 MB checkpoint and requires 524288-bp input."
         )
     else:
         seqs = ["A" * 200, "T" * 200]
@@ -61,7 +65,7 @@ def test_optimization_required_fns(optimization):
 
 @pytest.mark.parametrize("model,optimization", _valid_model_opt_pairs)
 def test_run_loop_with_all_combos(model, optimization):
-    if model in ["enformer", "rinalmo_mrl", "borzoi"]:
+    if model in ["enformer", "rinalmo_mrl", "borzoi_human"]:
         # Skip this test unconditionally for now as it takes too long.
         pytest.skip(f"'{model}' test is too long to run in standard CI.")
     elif model == "saluki":
@@ -71,6 +75,10 @@ def test_run_loop_with_all_combos(model, optimization):
     elif model == "chrombpnet":
         pytest.skip(
             "ChromBPNet downloads ~470 MB from Zenodo and requires 2114-bp input."
+        )
+    elif model == "borzoi_mouse":
+        pytest.skip(
+            "Mouse Borzoi downloads a ~700 MB checkpoint and requires 524288-bp input."
         )
 
     model_class = models.get_model(model)
