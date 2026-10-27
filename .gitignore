@@ -199,6 +199,7 @@ START.txt
 SUCCESS.txt
 
 *.pt
+*.ckpt
 
 # Integration tests data.
 integration_tests/data_loaders/cache/

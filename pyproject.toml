@@ -72,6 +72,7 @@ include = ["nucleobench", "nucleobench.*"]
     "*.safetensors",
     "*.bin",
     "*.pkl",
+    "*.ckpt",
 ]
 
 [tool.setuptools.package-data]
@@ -94,6 +95,7 @@ markers = [
     "chrombpnet: ChromBPNet HDMA fetal-tissue oracle integration tests",
     "chrombpnet_k562: ChromBPNet ENCODE K562 oracle integration tests",
     "correlation: cross-model score correlation integration tests",
+    "borzoi_mouse: mouse Borzoi replicate 0 integration tests",
 ]
 
 [tool.ruff]

@@ -37,6 +37,10 @@ def test_model_required_fns(model):
         pytest.skip(
             "ChromBPNet downloads ~470 MB from Zenodo and requires 2114-bp input."
         )
+    elif model == "borzoi_mouse":
+        pytest.skip(
+            "Mouse Borzoi downloads a ~700 MB checkpoint and requires 524288-bp input."
+        )
     else:
         seqs = ["A" * 200, "T" * 200]
 
@@ -71,6 +75,10 @@ def test_run_loop_with_all_combos(model, optimization):
     elif model == "chrombpnet":
         pytest.skip(
             "ChromBPNet downloads ~470 MB from Zenodo and requires 2114-bp input."
+        )
+    elif model == "borzoi_mouse":
+        pytest.skip(
+            "Mouse Borzoi downloads a ~700 MB checkpoint and requires 524288-bp input."
         )
 
     model_class = models.get_model(model)

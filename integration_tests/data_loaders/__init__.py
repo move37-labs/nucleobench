@@ -3,6 +3,7 @@
 from .base import DataLoader
 from .enformer_start_sequences import EnformerStartSequences
 from .human7600_mrl_preds import Human7600MRLPreds
+from .mouse_es_expression_by_bucket import MouseEsExpressionByBucket
 from .mrl_by_bucket import MRLByBucket
 from .muscle_gene_expression_by_bucket import MuscleGeneExpressionByBucket
 from .ribosomal_loading_mttrans_repo import RibosomalLoadingMTtransRepo
@@ -13,6 +14,7 @@ __all__ = [
     "EnformerStartSequences",
     "MRLByBucket",
     "UTR5PrimeRinalmoRepo",
+    "MouseEsExpressionByBucket",
     "MuscleGeneExpressionByBucket",
     "RibosomalLoadingMTtransRepo",
     "Human7600MRLPreds",
