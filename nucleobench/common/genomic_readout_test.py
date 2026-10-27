@@ -67,4 +67,6 @@ def test_validate_tensor():
     with pytest.raises(ValueError):
         validate_tensor(torch.zeros((4, 8)), 8)
     with pytest.raises(ValueError):
-        validate_tensor(torch.full((1, 4, 8), float("nan")), 8)
+        validate_tensor(torch.zeros((1, 4, 8), dtype=torch.int64), 8)
+    # Values are not inspected: that would force a device sync per forward pass.
+    validate_tensor(torch.full((1, 4, 8), float("nan")), 8)

@@ -46,10 +46,17 @@ def one_hot(sequences: list[str], length: int, device: str = "cpu") -> torch.Ten
 
 
 def validate_tensor(x: torch.Tensor, length: int) -> None:
+    """Check shape and dtype only.
+
+    Deliberately does not inspect values: `torch.isfinite(x).all()` reads a
+    0-dim tensor as a bool, which forces a device synchronization on every
+    forward pass and stalls iterative optimization. Non-finite input surfaces
+    as a non-finite score anyway.
+    """
     if not isinstance(x, torch.Tensor) or x.ndim != 3 or x.shape[1:] != (4, length):
         raise ValueError(f"Expected a tensor shaped (batch, 4, {length})")
-    if not x.is_floating_point() or not torch.isfinite(x).all():
-        raise ValueError("DNA tensor must contain finite floating-point values")
+    if not x.is_floating_point():
+        raise ValueError(f"DNA tensor must be floating-point, got {x.dtype}")
 
 
 def union_intervals(intervals, lower: int, upper: int) -> list[tuple[int, int]]:
