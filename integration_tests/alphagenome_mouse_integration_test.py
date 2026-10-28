@@ -61,8 +61,13 @@ def loaded_model():
             EXONS_,
             override_weights_local_path=os.environ.get("ALPHAGENOME_CHECKPOINT_PATH"),
         )
-    except Exception as error:  # Gated weights, or no local snapshot.
-        pytest.skip(f"AlphaGenome checkpoint is unavailable: {error}")
+    except Exception as error:
+        raise AssertionError(
+            "AlphaGenome checkpoint did not load. This needs HF_TOKEN from an "
+            "account that accepted the terms at "
+            "https://huggingface.co/google/alphagenome-all-folds, or "
+            f"ALPHAGENOME_CHECKPOINT_PATH pointing at a local snapshot: {error}"
+        ) from error
 
 
 @pytest.mark.alphagenome_mouse
