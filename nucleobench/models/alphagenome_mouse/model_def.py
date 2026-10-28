@@ -86,16 +86,7 @@ class AlphaGenomeMouse(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
             raise ValueError("Select E14 or Bruce4 and a gene strand")
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         self.readout, self.strand = readout, strand
-        self.exons = gr.union_intervals(exons, 0, self.sequence_length)
-        # Static given the exons, so it is built once here rather than on every
-        # scored sequence.
-        self._coverage_weights = gr.coverage_weights(
-            self.sequence_length,
-            self.exons,
-            origin=0,
-            resolution=1,
-            device=self.device,
-        )
+        self.exons = exons
         if override_model is None:
             from alphagenome.models.v1 import dna_model as dna_api
             from alphagenome_research.model import dna_model
@@ -189,6 +180,28 @@ class AlphaGenomeMouse(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
             "trunk_rematerialization": True,
             "freeze_trunk_embeddings": False,
         }
+
+    @property
+    def exons(self) -> list[tuple[int, int]]:
+        return self._exons
+
+    @exons.setter
+    def exons(self, intervals) -> None:
+        """Validate exons and rebuild the coverage weights they determine.
+
+        The weights depend only on the exons and the output grid, so they are
+        cached rather than rebuilt per forward pass. Going through a setter
+        keeps that cache from going stale when a caller rescores a different
+        gene with the same loaded model.
+        """
+        self._exons = gr.union_intervals(intervals, 0, self.sequence_length)
+        self._coverage_weights = gr.coverage_weights(
+            self.sequence_length,
+            self._exons,
+            origin=0,
+            resolution=1,
+            device=self.device,
+        )
 
     def _jax_profile(self, x):
         return selected_rna_profile(self.model, x, self.track_index)

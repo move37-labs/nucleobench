@@ -10,8 +10,12 @@ from nucleobench.models.alphagenome_mouse.model_def import AlphaGenomeMouse
 
 
 def _metadata(strands=("+", "-"), ontology="EFO:0005483", assay="polyA plus RNA-seq"):
-    """Mirrors the upstream RNA_SEQ metadata schema, verified against the real
-    `all_folds` checkpoint: the assay column is `Assay title`, not `assay`."""
+    """Mirrors the upstream RNA_SEQ metadata schema.
+
+    The assay column is `Assay title`, with a space and a capital -- not
+    `assay`. A fake that gets this wrong will agree with an adapter that gets
+    it wrong too, so the names here have to match the real checkpoint.
+    """
     return pd.DataFrame(
         {
             "name": [f"{ontology} {assay}"] * len(strands),
@@ -143,3 +147,25 @@ def test_rejects_metadata_missing_expected_columns():
             override_model=object(),
             override_metadata=renamed,
         )
+
+
+def test_reassigning_exons_rescores_the_new_window():
+    """The cached coverage weights must not go stale when exons change."""
+    model = _injected_profile_model([(10, 12)])
+    x = torch.zeros((1, 4, model.sequence_length))
+    x[0, 1, 10:12] = 1
+    first = model.inference_on_tensor(x).item()
+
+    # A window with no signal in it must score differently.
+    model.exons = [(1000, 1002)]
+    second = model.inference_on_tensor(x).item()
+
+    assert first == pytest.approx(-np.log1p(1.0))
+    assert second == pytest.approx(0.0)
+    assert model.exons == [(1000, 1002)]
+
+
+def test_exons_setter_validates():
+    model = _injected_profile_model([(10, 12)])
+    with pytest.raises(ValueError, match="outside"):
+        model.exons = [(0, model.sequence_length + 1)]
