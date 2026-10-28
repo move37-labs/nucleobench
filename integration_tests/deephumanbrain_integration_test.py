@@ -74,6 +74,15 @@ def locus_predictions():
 
 
 @pytest.mark.deephumanbrain
+def test_real_weights_live_on_the_requested_device():
+    """Keras builds the real model on an accelerator even when asked for CPU."""
+    pytest.importorskip("crested")
+    model = DeepHumanBrain(["AMY"], device="cpu")
+    devices = {str(parameter.device) for parameter in model.model.parameters()}
+    assert devices == {"cpu"}, devices
+
+
+@pytest.mark.deephumanbrain
 def test_neuronal_promoter_more_accessible_than_gene_desert(locus_predictions):
     """A pan-neuronal promoter should stand out against unannotated sequence."""
     by_locus = locus_predictions["by_locus"]

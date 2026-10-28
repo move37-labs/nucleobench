@@ -125,6 +125,13 @@ class DeepHumanBrain(mc.PyTorchDifferentiableModel, mc.TISMModelClass):
         if path is not None and Path(path).is_file():
             self.weights_sha256 = gr.file_sha256(path)
 
+        # Keras picks its own device when it builds the model, which need not
+        # be the one the caller asked for -- it selects an accelerator even
+        # when `device` is "cpu". Moving it keeps `self.device` honest, so the
+        # inputs cast in `predict_raw_on_tensor` land on the same device as
+        # the weights.
+        if hasattr(self.model, "to"):
+            self.model.to(self.device)
         if hasattr(self.model, "trainable"):
             self.model.trainable = False
         if hasattr(self.model, "eval"):

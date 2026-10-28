@@ -75,3 +75,11 @@ def test_injected_model_requires_explicit_labels():
 def test_strings_require_the_exact_input_length():
     with pytest.raises(ValueError, match="length"):
         _model()(["ACGT"])
+
+
+def test_model_weights_live_on_the_requested_device():
+    """Keras may build on an accelerator regardless of the requested device."""
+    model = _model()
+    assert all(
+        str(parameter.device) == model.device for parameter in model.model.parameters()
+    )
