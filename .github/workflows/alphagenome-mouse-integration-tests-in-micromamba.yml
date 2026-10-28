@@ -1,0 +1,70 @@
+name: AlphaGenome Mouse Integration Tests (Micromamba)
+
+# Only the metadata cases run here: they read the checkpoint's track table and
+# assert each readout and strand still names exactly one RNA-seq track. That
+# is what breaks when upstream renames a metadata column or reshuffles tracks.
+#
+# The forward cases are left out on purpose. One 1 Mb pass costs ~49 CPU
+# minutes and ~9 GB peak, so a four-combo run would take about 100 minutes on
+# a 4-vCPU runner and risk OOM. Run them locally with ALPHAGENOME_FORWARD=1,
+# and the backward pass on a CUDA box with ALPHAGENOME_GPU=1.
+#
+# The schedule, rather than push, is deliberate: this guards against upstream
+# drift, which commits to this repository cannot cause. For the same reason it
+# is not gated on repository activity -- a quiet month is exactly when a
+# dependency release would break us unnoticed.
+#
+# Monthly is enough because everything substantive is pinned: the checkpoint
+# revision, the mouse metadata SHA256, and the upstream source commit. The
+# only moving parts are the floating dependencies (dm-haiku, jmp, and the
+# transitive jax/orbax/pandas stack).
+
+on:
+  schedule:
+    # 06:00 UTC on the first of each month.
+    - cron: '0 6 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Free up disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+          df -h /
+
+      - name: Setup Micromamba
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-file: environment.yml
+          create-args: >-
+            python=${{ matrix.python-version }}
+          cache-environment: true
+          post-cleanup: 'all'
+
+      - name: Install the alphagenome extra
+        shell: micromamba-shell {0}
+        run: |
+          pip install '.[alphagenome]'
+
+      - name: Run AlphaGenome metadata integration tests
+        shell: micromamba-shell {0}
+        env:
+          # Needs a token from an account that accepted the model terms at
+          # https://huggingface.co/google/alphagenome-all-folds . Without it
+          # the checkpoint download fails and this job fails.
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          pytest -v -rs -m alphagenome_mouse \
+            integration_tests/alphagenome_mouse_integration_test.py
