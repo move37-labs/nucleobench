@@ -8,8 +8,10 @@ Requires access to the gated `all_folds` checkpoint: accept the model terms at
 https://huggingface.co/google/alphagenome-all-folds and run `hf auth login`,
 or point `ALPHAGENOME_CHECKPOINT_PATH` at a local snapshot.
 
-The full-length backward pass additionally requires a JAX GPU device, and is
-skipped without one.
+The metadata case only reads the checkpoint's track table, so it is cheap
+enough to run in CI. The forward cases each run a full 1 Mb pass (~49 CPU
+minutes, ~9 GB peak), so they are opt-in behind `ALPHAGENOME_FORWARD=1`. The
+backward pass additionally needs a JAX GPU, behind `ALPHAGENOME_GPU=1`.
 """
 
 import os
@@ -37,6 +39,12 @@ READOUTS_ = [
 ]
 
 
+_SKIP_FORWARD = pytest.mark.skipif(
+    not os.environ.get("ALPHAGENOME_FORWARD"),
+    reason="A 1 Mb forward pass costs ~49 CPU minutes; set ALPHAGENOME_FORWARD=1.",
+)
+
+
 def _has_jax_gpu() -> bool:
     jax = pytest.importorskip("jax")
     return any(device.platform == "gpu" for device in jax.local_devices())
@@ -58,6 +66,34 @@ def loaded_model():
 
 
 @pytest.mark.alphagenome_mouse
+@pytest.mark.parametrize(("readout", "strand", "ontology", "assay"), READOUTS_)
+def test_metadata_resolves_every_readout(
+    loaded_model, readout, strand, ontology, assay
+):
+    """Each readout and strand must name exactly one track in the checkpoint.
+
+    This reads only the track table, so it costs a download rather than a
+    forward pass. It is the case that catches upstream renaming a metadata
+    column or reshuffling the RNA-seq tracks, which silently breaks every
+    readout this adapter offers.
+    """
+    model = AlphaGenomeMouse(readout, strand, EXONS_, override_model=loaded_model.model)
+    rows = model.output_metadata
+    assert {ONTOLOGY_COLUMN_, ASSAY_COLUMN_, "strand", "name"} <= set(rows.columns)
+    matches = np.flatnonzero(
+        (
+            (rows[ONTOLOGY_COLUMN_] == ontology)
+            & (rows[ASSAY_COLUMN_] == assay)
+            & (rows["strand"] == strand)
+        ).to_numpy()
+    )
+    assert len(matches) == 1, f"{ontology}/{assay}/{strand} -> {len(matches)} tracks"
+    assert model.track_index == int(matches[0])
+    assert rows["name"].iloc[model.track_index] == f"{ontology} {assay}"
+
+
+@pytest.mark.alphagenome_mouse
+@_SKIP_FORWARD
 @pytest.mark.parametrize(("readout", "strand", "ontology", "assay"), READOUTS_)
 def test_profile_matches_public_predict_sequence(
     loaded_model, readout, strand, ontology, assay
@@ -97,6 +133,7 @@ def test_profile_matches_public_predict_sequence(
 
 
 @pytest.mark.alphagenome_mouse
+@_SKIP_FORWARD
 def test_stochasticity(loaded_model):
     first = loaded_model.predict_raw_on_strings([SEQUENCE_])[0]
     second = loaded_model.predict_raw_on_strings([SEQUENCE_])[0]
@@ -104,6 +141,7 @@ def test_stochasticity(loaded_model):
 
 
 @pytest.mark.alphagenome_mouse
+@_SKIP_FORWARD
 def test_batch_matches_single(loaded_model):
     pair = loaded_model.predict_raw_on_strings([SEQUENCE_, SEQUENCE_])
     single = loaded_model.predict_raw_on_strings([SEQUENCE_])

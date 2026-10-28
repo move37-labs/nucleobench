@@ -22,14 +22,19 @@
 | **Borzoi Human** | [![Borzoi Human Integration Tests (Micromamba)](https://github.com/move37-labs/nucleobench/actions/workflows/borzoi-human-integration-tests-in-micromamba.yml/badge.svg)](https://github.com/move37-labs/nucleobench/actions/workflows/borzoi-human-integration-tests-in-micromamba.yml) | manual |
 | **Borzoi Mouse** | [![Borzoi Mouse Integration Tests (Micromamba)](https://github.com/move37-labs/nucleobench/actions/workflows/borzoi-mouse-integration-tests-in-micromamba.yml/badge.svg)](https://github.com/move37-labs/nucleobench/actions/workflows/borzoi-mouse-integration-tests-in-micromamba.yml) | manual |
 | **DeepHumanBrain** | [![DeepHumanBrain Integration Tests (Micromamba)](https://github.com/move37-labs/nucleobench/actions/workflows/deephumanbrain-integration-tests-in-micromamba.yml/badge.svg)](https://github.com/move37-labs/nucleobench/actions/workflows/deephumanbrain-integration-tests-in-micromamba.yml) | manual |
+| **AlphaGenome Mouse** | [![AlphaGenome Mouse Integration Tests (Micromamba)](https://github.com/move37-labs/nucleobench/actions/workflows/alphagenome-mouse-integration-tests-in-micromamba.yml/badge.svg)](https://github.com/move37-labs/nucleobench/actions/workflows/alphagenome-mouse-integration-tests-in-micromamba.yml) | monthly |
 | **ChromBPNet** | [![ChromBPNet Integration Tests (Micromamba)](https://github.com/move37-labs/nucleobench/actions/workflows/chrombpnet-integration-tests-in-micromamba.yml/badge.svg)](https://github.com/move37-labs/nucleobench/actions/workflows/chrombpnet-integration-tests-in-micromamba.yml) | push to main |
 | **Optimus 5-Prime** | [![Optimus 5-Prime Integration Tests (Micromamba)](https://github.com/move37-labs/nucleobench/actions/workflows/optimus5p-integration-tests-in-micromamba.yml/badge.svg)](https://github.com/move37-labs/nucleobench/actions/workflows/optimus5p-integration-tests-in-micromamba.yml) | push to main |
 | **Saluki** | [![Saluki Integration Tests (Micromamba)](https://github.com/move37-labs/nucleobench/actions/workflows/saluki-integration-tests-in-micromamba.yml/badge.svg)](https://github.com/move37-labs/nucleobench/actions/workflows/saluki-integration-tests-in-micromamba.yml) | push to main |
 
 Workflows marked *manual* are `workflow_dispatch` only: they download
 multi-gigabyte checkpoints or genomes, or need an optional extra that is
-not in `environment.yml`. Their offline unit tests still run on every
-commit via the standard unit-test workflows.
+not in `environment.yml`. The *monthly* one guards against upstream drift
+rather than against our own commits, and runs only the cheap metadata
+checks; its full-length forward and backward passes are opt-in via
+`ALPHAGENOME_FORWARD=1` and `ALPHAGENOME_GPU=1`. In every case the
+offline unit tests still run on each commit via the standard unit-test
+workflows.
 
 **A large-scale benchmark for modern nucleic acid sequence design algorithms (NucleoBench), and a new design algorithm that outperforms existing designers (GrAdaBeam).  Link to ICML GenBio 2025 workshop paper [here](https://www.biorxiv.org/content/10.1101/2025.06.20.660785).**
 
