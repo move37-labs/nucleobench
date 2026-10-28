@@ -15,10 +15,16 @@ class JaxSelectedProfile(torch.autograd.Function):
         import jax.numpy as jnp
 
         array = jnp.asarray(x.detach().to(torch.float32).cpu().numpy())
-        # Save only the input; recomputing the VJP avoids retaining trunk activations.
-        ctx.function = function
-        ctx.save_for_backward(x.detach())
-        result = function(array)
+        if ctx.needs_input_grad[0]:
+            # `jax.vjp` runs the forward pass anyway, so take its output and
+            # keep the closure rather than re-linearizing in backward. The
+            # function is wrapped in `jax.checkpoint`, so that closure holds
+            # the inputs and recomputes the trunk; it does not retain trunk
+            # activations.
+            result, ctx.vjp = jax.vjp(function, array)
+        else:
+            # Inference needs no linearization, and building one is not free.
+            result, ctx.vjp = function(array), None
         return torch.from_numpy(np.array(jax.device_get(result), copy=True)).to(
             x.device
         )
@@ -28,12 +34,9 @@ class JaxSelectedProfile(torch.autograd.Function):
         import jax
         import jax.numpy as jnp
 
-        (x,) = ctx.saved_tensors
-        array = jnp.asarray(x.to(torch.float32).cpu().numpy())
-        _, vjp = jax.vjp(ctx.function, array)
-        gradient = vjp(jnp.asarray(grad_output.detach().cpu().numpy()))[0]
+        gradient = ctx.vjp(jnp.asarray(grad_output.detach().cpu().numpy()))[0]
         return torch.from_numpy(np.array(jax.device_get(gradient), copy=True)).to(
-            device=x.device, dtype=x.dtype
+            device=grad_output.device, dtype=grad_output.dtype
         ), None
 
 

@@ -169,3 +169,22 @@ def test_exons_setter_validates():
     model = _injected_profile_model([(10, 12)])
     with pytest.raises(ValueError, match="outside"):
         model.exons = [(0, model.sequence_length + 1)]
+
+
+def test_bridge_skips_linearization_when_no_gradient_is_needed():
+    """Inference must not pay to build a VJP closure it will never use."""
+    jnp = pytest.importorskip("jax.numpy")
+
+    def function(value):
+        return jnp.square(value).sum(axis=1)
+
+    # requires_grad=False: autograd records nothing, so no closure is kept.
+    x = torch.tensor([[1.0, 2.0, 3.0]])
+    out = JaxSelectedProfile.apply(x, function)
+    assert not out.requires_grad
+    np.testing.assert_allclose(out.numpy(), [[14.0]][0])
+
+    # requires_grad=True: the closure is built and the backward uses it.
+    x = torch.tensor([[1.0, 2.0, 3.0]], requires_grad=True)
+    JaxSelectedProfile.apply(x, function).sum().backward()
+    np.testing.assert_allclose(x.grad.numpy(), [[2.0, 4.0, 6.0]])
