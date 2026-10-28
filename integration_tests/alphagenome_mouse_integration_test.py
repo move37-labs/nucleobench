@@ -6,7 +6,9 @@ pytest -v -m alphagenome_mouse integration_tests/alphagenome_mouse_integration_t
 
 Requires access to the gated `all_folds` checkpoint: accept the model terms at
 https://huggingface.co/google/alphagenome-all-folds and run `hf auth login`,
-or point `ALPHAGENOME_CHECKPOINT_PATH` at a local snapshot.
+or point `ALPHAGENOME_CHECKPOINT_PATH` at a local snapshot. Without one of
+those these tests fail rather than skip, so that a scheduled run cannot pass
+while testing nothing.
 
 The metadata case only reads the checkpoint's track table, so it is cheap
 enough to run in CI. The forward cases each run a full 1 Mb pass (~49 CPU

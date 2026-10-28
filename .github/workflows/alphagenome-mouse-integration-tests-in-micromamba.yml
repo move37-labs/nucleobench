@@ -63,7 +63,7 @@ jobs:
         env:
           # Needs a token from an account that accepted the model terms at
           # https://huggingface.co/google/alphagenome-all-folds . Without it
-          # the checkpoint download fails and the tests skip rather than fail.
+          # the checkpoint download fails and this job fails.
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           pytest -v -rs -m alphagenome_mouse \
