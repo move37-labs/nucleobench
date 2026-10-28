@@ -200,6 +200,7 @@ SUCCESS.txt
 
 *.pt
 *.ckpt
+*.keras
 
 # Integration tests data.
 integration_tests/data_loaders/cache/

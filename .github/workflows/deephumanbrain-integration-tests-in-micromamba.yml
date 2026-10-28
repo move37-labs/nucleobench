@@ -1,0 +1,46 @@
+name: DeepHumanBrain Integration Tests (Micromamba)
+
+# Needs the optional `crested` extra, which is deliberately absent from
+# environment.yml so the core package does not depend on it. That extra is
+# installed here, and the job downloads the CREsted DeepHumanBrain archive, so
+# this is dispatch-only like the Borzoi workflows.
+
+on:
+  # push:
+  #   branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Setup Micromamba
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-file: environment.yml
+          create-args: >-
+            python=${{ matrix.python-version }}
+          cache-environment: true
+          post-cleanup: 'all'
+
+      - name: Install the crested extra
+        shell: micromamba-shell {0}
+        run: |
+          pip install '.[crested]'
+
+      - name: Run DeepHumanBrain integration tests
+        shell: micromamba-shell {0}
+        env:
+          KERAS_BACKEND: torch
+        run: |
+          pytest -v -m deephumanbrain integration_tests/deephumanbrain_integration_test.py
